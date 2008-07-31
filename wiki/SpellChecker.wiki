@@ -1,4 +1,4 @@
-#labels spellcheck
+#labels spellcheck,enduser
 This page will tell you how to get MindTree's SpellChecker tool to work.
 
 = Introduction =
