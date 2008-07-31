@@ -1,0 +1,16 @@
+#summary One-sentence summary of this page.
+#labels spellcheck
+This page will tell you how to get MindTree's SpellChecker tool to work.
+
+= Introduction =
+
+MindTree's SpellChecker is a plugin module which is constructed on a 3rd party library called PyEnchant.  To use the SpellChecker, it is necessary that you install this module.
+
+= Details =
+
+http://pyenchant.sourceforge.net/
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
