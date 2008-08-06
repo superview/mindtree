@@ -119,8 +119,7 @@ class Archiver( object ):
       """Read the file and return a document object.  If an error occurs,
       raise an exception.
       """
-      #import pickle
-      import cPickle as pickle
+      import pickle
       data = pickle.load( open( aFilename, 'rb' ) )
       return data
 
@@ -128,8 +127,7 @@ class Archiver( object ):
       """Write the document to the named file.  If an error occurs,
       raise an exception.
       """
-      #import pickle
-      import cPickle as pickle
+      import pickle
       f = open( aFilename, 'wb' )
       pickle.dump( aDocument, f, -1 )
    

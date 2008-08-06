@@ -17,6 +17,7 @@ FEATURE
 
 import Tix
 from Tree import *
+from Outline import Outline
 from TkTools import menuItem, CALLBACK, EVTCALLBACK, EVTCALLBACK2, splitFilePath, exceptionPopup
 import Tkdnd
 import tkFont
@@ -27,24 +28,6 @@ import sys
 import os.path
 
 from resources import RES
-
-
-class Outline( object ):
-   def __init__( self, tree=None, anchors=None ):
-      self._tree    = tree
-      self._anchors = anchors
-      
-      if anchors is None:
-         self._anchors = { }
-   
-   def validateModel( self ):
-      pass
-
-   def updateModel( self ):
-      pass
-
-   def anchors( self ):
-      return self._anchors
 
 
 class ArticleEditor( DocumentWriter ):
@@ -345,6 +328,7 @@ class TreeEditor( Tix.Frame ):
       
       # Initialize the instance data
       self._project          = None
+      self._outline          = None
       self._treeDoc          = None
       self._currentEntry     = None
       
@@ -359,11 +343,6 @@ class TreeEditor( Tix.Frame ):
       self._finder           = None
       
       self._drawWidget( ).pack( side=Tix.TOP, expand=1, fill=Tix.BOTH )
-      
-      import datetime
-      theDate = datetime.datetime.today( )
-      theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S.log' )
-      name = 'MindTree' + theDateTimeString
 
    @staticmethod
    def setupConfig( aConfig ):
@@ -390,31 +369,28 @@ class TreeEditor( Tix.Frame ):
 
    def setModel( self, aProject ):
       try:
-         # Validate the new model
-         if isinstance( aProject.data, Tree ):
-            aTree, styles = aProject.data, None
-         elif isinstance( aProject.data, tuple ):
-            aTree, styles = aProject.data
-         else:
-            raise Exception( "Bad model passed to TreeEditor.setModel()" )
+         # Update and Validate the new model
+         treeDoc, styles = aProject.data._tree, aProject.data._styles
+         project = aProject
+         outline = aProject.data
          
-         #aTree.convertModel( )
-         #aTree.validateModel( )
-         aTree.fixIds( )
+         outline.validateModel( )
+         outline.updateModel( )
          
          # Remove the old
          self.deleteTree( )
          self._articleView.stext.reinitialize( styles )
          
          # install the new
-         self._project = aProject
-         if not aTree.hasChildren( ):
-            aTree.insert( Tree( ), TreePath(), Tree.CHILD )
-            self._treeDoc = aTree
-            self._buildTreeView( )
-         else:
-            self._treeDoc = aTree
-            self._buildTreeView( )
+         self._project = project
+         self._outline = outline
+         self._styles  = styles
+         self._treeDoc = treeDoc
+         
+         if not treeDoc.hasChildren( ):
+            self._treeDoc.insert( Tree(), TreePath(), Tree.CHILD )
+         
+         self._buildTreeView( )
          
          # Make the first tree entry the current
          pathToFirst = TreePath(self._treeDoc.children()[0].id)
@@ -424,14 +400,6 @@ class TreeEditor( Tix.Frame ):
       except:
          exceptionPopup( )
 
-   def getModel( self ):
-      try:
-         #self._treeDoc.validateModel( )
-         
-         return self._treeDoc, self._articleView.stext.styles()
-      except:
-         exceptionPopup( )
-   
    def commit( self, entryPath=None ):
       # Get the path to the item to be committed
       if entryPath is None:

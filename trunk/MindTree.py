@@ -1,6 +1,7 @@
 from __future__ import with_statement
 import Tix
 from Tree import *
+from Outline import Outline
 from TkTools import menuItem, SplashScreen
 from TreeEditor import TreeEditor
 
@@ -28,6 +29,7 @@ from resources import RES
 # Projects
 # - Logic Outline
 # - Tkinter/Tix Outlines
+# - User's Manual Outline
 
 class MindTree( Application ):
    # Management
@@ -284,26 +286,22 @@ if __name__== '__main__' :
 
    with SplashScreen( mt, 'resources\\images\\splash.gif' ):
       TkTools.fixTkinter( )
-   
+      
       rootDir = RES.APP_DIR
       imagesDir = TkTools.dirPath( rootDir, 'Resources', 'images'  )
       cursorDir = TkTools.dirPath( rootDir, 'Resources', 'cursors' )
       RES.loadValues( imagesDir, cursorDir )
-
+      
       archiver = Archiver( RES.OUTLINE_FILE_TYPES, RES.OUTLINE_FILE_EXTENSION )
       mt.iconbitmap( RES.BITMAP_ICON )
-      mt.setupMVC( Tree, TreeEditor, archiver )
+      mt.setupMVC( Outline, TreeEditor, archiver )
       mt.setupConfig( RES.APP_INIT_FILENAME, RES.APP_RECENT )
       mt.initializePlugins( RES.PLUGIN_DIR )
       mt.buildGUI( )
       workingDir = Application.CONFIG.get( 'Workspace', 'directory' )
       archiver.setup( workingDir )
       mt.winfo_toplevel().wm_geometry( Application.CONFIG.get( 'Window', 'Geometry' ) )
-
-      #if Application.CONFIG.get( 'Workspace', 'backup' ).lower() in ( 'true', 'yes', 1 ):
-         #backupDir  = os.path.join( workingDir, 'backup' )
-         #mt.setBackupDirectory( backupDir )
-
+      
       mt.new( )
 
    mt.mainloop()
