@@ -23,7 +23,7 @@ tixDataFiles = [
                ]
 
 setup( name='MindTree',
-       version='0.1.0',
+       version='0.1.1',
        description='Notes organizer/Outliner/PIM.',
        long_description='MindTree is an outliner application designed for taking and organizing notes and publishing these notes to the web.',
        url='http://code.google.com/p/mindtree',
