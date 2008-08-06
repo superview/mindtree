@@ -142,12 +142,10 @@ class Tree( object ):
       assert (title is None) or isinstance( title, (str,unicode) )
       assert (subtrees is None) or isinstance( subtrees, list )
       
-      self.id       = None
+      self.id       = uuid.uuid4()
       self.title    = None
       self.article  = None
       self.subtrees = None
-      
-      self.id       = uuid.uuid4()
       
       if title is not None:
          self.title = title
@@ -348,67 +346,6 @@ class Tree( object ):
          return True
       except:
          return False
-
-   def fixIds( self ):
-      self.id = uuid.uuid4()
-      
-      for subtree in self.subtrees:
-         subtree.fixIds( )
-   
-   def validateModel( self ):
-      try:
-         print "%s: %s" % (str(self.id), self.title)
-      except UnicodeEncodeError:
-         print "%s: ??" % (str(self.id))
-      
-      if not isinstance( self.id, str ):
-         raise Exception( "[%s] Invalid tree id" % str(self.id) )
-      
-      try:
-         str( self.id )
-      except:
-         raise Exception( "[%s] Tree id must be a UUID found %s" % ( str(self.id), type(self.id) ) )
-      
-      if not isinstance( self.title, (str,unicode) ):
-         raise Exception( "[%s] Tree title must be a string, found %s" % ( str(self.id), type(self.title) ) )
-      
-      if not isinstance( self.article, (str,unicode,list,tuple) ):
-         raise Exception( "[%s] Invalid article type, found %s" % (str(self.id), type(self.article) ) )
-      elif isinstance( self.article, (list,tuple) ):
-         from DocumentWriter.EnhancedText import EnhancedText
-         EnhancedText.validateDump( self.article )
-      
-      if not isinstance( self.subtrees, list ):
-         raise Exception( "[%s] Invalid subtree list, found %s" % (str(self.id), type(self.subtrees) ) )
-      
-      for child in self.subtrees:
-         if not isinstance( child, Tree ):
-            raise Exception( "[%s] Invalid child type, found %s" % (self.id, type(child)) )
-         
-         child.validateModel( )
-
-   def convertModel( self ):
-      if isinstance(self.article, (list,tuple) ):
-         newArticle = [ ]
-         
-         for key,val,index in self.article:
-            if key == 'image':
-               import TkTools
-               import os.path
-               disk,path,name,extension = TkTools.splitFilePath( val )
-               val = os.path.join( 'img', name + extension )
-            #if key in ('tagon','tagoff'):
-               #if val[0] == '$':
-                  #continue
-               #elif val[0] != '_':
-                  #val = '_style_%s' % val
-            
-            newArticle.append( (key,val,index) )
-         
-         self.article = newArticle
-      
-      for child in self.subtrees:
-         child.convertModel( )
 
    # Unused & Untested
    def branchInsert( self, parentPath, childIndex, newSubtree ):
