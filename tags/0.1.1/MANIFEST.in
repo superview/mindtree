@@ -1,0 +1,11 @@
+
+include *.py *.ini *.sty
+recursive-include DocumentWriter *.py
+recursive-include Plugins *.py
+recursive-include Resources *
+
+exclude *.pyc *.pyo
+
+prune .svn
+prune */.svn
+prune UnitTests

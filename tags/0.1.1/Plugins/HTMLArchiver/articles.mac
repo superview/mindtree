@@ -1,0 +1,275 @@
+      ### File Templates ###
+
+{{define( "frame", ( "name", "treename", "notesname" ),
+$"""<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+   <html>
+      <head>
+         <META NAME="keywords" CONTENT="logic, deduction, fallacies, fallacy, induction, reasoning, argumentation">
+         <META NAME="description" CONTENT="A comprehensive outline of the science of logic.">
+         <META NAME="author" CONTENT="Ronald H. Provost">
+         <title>{{frame.name}}</title>
+      </head>
+
+      <frameset cols="30%%,*">
+         <frame src="{{frame.treename}}" name="sidemenu">
+         <frame src="{{frame.notesname}}" name="baseframe">
+      </frameset>
+   </html>
+""" )}}
+
+{{define( "outline", ( "name" ),
+( $"""<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+      <head>
+         <meta http-equiv="Content-Type" content="text/xhtml;charset="iso-8859-1" />
+         <meta http-equiv="Content-Style-Type" content="text/css" />
+         <meta http-equiv="Content-Language" content="en" />
+         <link rel="stylesheet" href="doxygen.css">
+         <title>TreeView</title>
+         <style type="text/css">
+         <!--
+         BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV,PRE
+            {
+	    font-family: Lucida Sans Unicode, Geneva, Arial, Helvetica, sans-serif;
+            }
+         .directory { font-size: 10pt; font-weight: bold; }
+         .directory h3 { margin: 0px; margin-top: 1em; font-size: 11pt; }
+         .directory p { margin: 0px; white-space: nowrap; }
+         .directory div { display: none; margin: 0px; }
+         .directory img { vertical-align: middle; }
+         -->
+         </style>
+         <script type="text/javascript">
+         <!-- // Hide script from old browsers
+
+         function findChildNode(node, name)
+            {
+            var temp;
+
+            if (node == null)
+               return null;
+
+            node = node.firstChild;
+
+            while (node != null)
+               {
+               if (node.nodeName == name)
+                  return node;
+
+               temp = findChildNode(node, name);
+
+               if (temp != null)
+                  return temp;
+
+               node = node.nextSibling;
+               }
+
+            return null;
+            }
+
+         function toggleFolder(id, imageNode)
+            {
+            var folder = document.getElementById(id);
+            var l = 0;
+            var vl = "img/ftv2vertline.png";
+
+            if ( imageNode.nodeName != "IMG" )
+               {
+               imageNode = findChildNode(imageNode, "IMG");
+
+               l = imageNode.src.length;
+               }
+
+            if ( folder.style.display == "block" )
+               {
+               while ( imageNode.src.substring(l-vl.length,l) == vl )
+                  {
+                  imageNode = imageNode.nextSibling;
+                  l = imageNode.src.length;
+                  }
+
+               l = imageNode.src.length;
+               imageNode.nextSibling.src = "img/ftv2folderclosed.png";
+
+               if ( imageNode.src.substring(l-13,l) == "img/ftv2mnode.png" )
+                  imageNode.src = "img/ftv2pnode.png";
+               else if ( imageNode.src.substring(l-17,l) == "img/ftv2mlastnode.png" )
+                  imageNode.src = "img/ftv2plastnode.png";
+
+               folder.style.display = "none";
+               }
+            else
+               {
+               while ( imageNode.src.substring(l-vl.length,l) == vl )
+                  {
+                  imageNode = imageNode.nextSibling;
+                  l = imageNode.src.length;
+                  }
+
+               l = imageNode.src.length;
+               imageNode.nextSibling.src = "img/ftv2folderopen.png";
+
+               if ( imageNode.src.substring(l-13,l) == "img/ftv2pnode.png" )
+                  imageNode.src = "img/ftv2mnode.png";
+               else if ( imageNode.src.substring(l-17,l) == "img/ftv2plastnode.png" )
+                  imageNode.src = "img/ftv2mlastnode.png";
+
+               folder.style.display = "block";
+               }
+            }
+
+         // End script hiding -->
+         </script>
+      </head>
+
+      <body>
+         <div class="directory">
+            <h3>{{outline.name}}</h3>
+""",
+
+$"""      </div>
+      </body>
+   </html>
+""" )
+)}}
+
+
+{{define( "STYLES", ( ),
+$"""
+      <STYLE>
+      BODY,H1,H2,H3,H4,H5,H6,P,CENTER,TD,TH,UL,DL,DIV,PRE
+		   {
+	      font-family: Lucida Sans Unicode, Geneva, Arial, Helvetica, sans-serif;
+         }
+		
+      DIV.BLOCK
+         {
+         color:black;
+         border:solid thin black;
+         padding:1.0em 1.8em;
+         }
+		
+      DIV.BLOCK DIV.BLOCK
+         {
+         color:black;
+         border:solid thin black;
+         padding:1.0em 1.8em;
+         margin:1.5em
+         }
+      
+      DIV.GRAYBLOCK
+         {
+         background:#E0E0E0;
+         color:black;
+         border:solid thin black;
+         padding:1.0em 1.8em;
+         }
+		
+      DIV.GRAYBLOCK DIV.GRAYBLOCK
+         {
+         background:#E0E0E0;
+         color:black;
+         border:solid thin black;
+         padding:1.0em 1.8em;
+         margin:1.5em
+         }
+      </STYLE>
+""" )}}
+
+
+
+{{define( "IMGDIR", ( ), "img" )}}
+
+{{define( "LOGO-LINK", ( "url", "icon-file", "icon-width", "alternate-text" ),
+$"""<a href="{{LOGO-LINK.url}}">
+<img src="{{IMGDIR}}/{{LOGO-LINK.icon-file}}" align=top width={{LOGO-LINK.icon-width}}
+     height=44 alt="[{{LOGO-LINK.alternate-text}}]" border=0>
+</a>""" )}}
+
+
+{{define( "PythonLogo", ( ), 
+"""<a href="http://www.python.org/">
+<img src="{{IMGDIR}}/PythonPoweredAnim.gif" align=top width=110
+     height=44 alt="[Python Powered]" border=0>
+</a>""" )}}
+
+{{define( "BonsaiLogo", ( ),
+"""<a href="http://www.natara.com/">
+<img src="{{IMGDIR}}/BonsaiSm.gif" align=top width=151
+     height=122 alt="[Bonsai Powered]" border=0>
+</a>""" )}}
+
+{{define( "WingLogo", ( ),
+"""<a href="http://wingware.com/">
+<img src="{{IMGDIR}}/coded_w_wing_medium.png" align=top width=145
+     height=40 alt="[Bonsai Powered]" border=0>
+</a>""" )}}
+
+           Macro Name     Parameters                      Value
+                          (Tuple of Names),               (String, or Tuple of String)
+
+      ### Tree Icons ###
+
+#{{define( "treeicon",     ( "name", "file", "width", "height" ),    $"""{{define("{{treeicon.name}}.name", ( ), $"{{treeicon.name}}")}}
+                                                                        #{{define("{{treeicon.name}}.file", ( ), $"{{treeicon.file}}")}}
+                                                                        #{{define("{{treeicon.name}}.width", ( ), $"{{treeicon.width}}")}}
+                                                                        #{{define("{{treeicon.name}}.height", ( ), $"{{treeicon.height}}")}}""" )}}
+
+#{{treeicon( "LINE_VERT",      "{{IMGDIR}}/ftv2vertline.png",      "16",  "22" )}}
+#{{treeicon( "LINE_EMPTY",     "{{IMGDIR}}/ftv2blank.png",         "16",  "22" )}}
+#{{treeicon( "DOC_LINE_NODE",  "{{IMGDIR}}/ftv2node.png",          "16",  "22" )}}
+#{{treeicon( "DOC_LINE_LAST",  "{{IMGDIR}}/ftv2lastnode.png",      "16",  "22" )}}
+#{{treeicon( "FLD_LINE_NODE",  "{{IMGDIR}}/ftv2pnode.png",         "16",  "22" )}}
+#{{treeicon( "FLD_LINE_LAST",  "{{IMGDIR}}/ftv2plastnode.png",     "16",  "22" )}}
+#{{treeicon( "DOC_ICON",       "{{IMGDIR}}/ftv2doc.png",           "24",  "22" )}}
+#{{treeicon( "FLD_ICON",       "{{IMGDIR}}/ftv2folderclosed.png",  "24",  "22" )}}
+
+      ### Document Structure ###
+
+{{define( "document",     ( "title", "articleCount" ),    ( $"<HTML><HEAD><TITLE>{{document.title}}</TITLE>{{STYLES}}</HEAD><BODY>",$"</BODY></HTML>" ) )}}
+{{define( "article",      ( "id", "title", "location" ),  ( $"""<HR><HR><A NAME="{{article.id}}"></A><H2>{{article.id}}. {{article.title}}</H2><UL>[ <I>{{article.location}}</I> ]</UL>""", $"" ) )}}
+{{define( "section",      ( "title", "style" ),           ( $"<H4>{{section.title}}</H4>{{{{section.style}}:",                      $"}}"             ) )}}
+{{define( "item",         ( ),                            ( $"<P>",                                                                 $"</P>"           ) )}}
+
+      ### Section Styles ###
+
+{{define( "text",         ( ),                            ( $"""                {{define( "item", ( ), ( "<P>",  "</P>"  ) )}}""",  $""               ) )}}
+{{define( "unordered",    ( ),                            ( $"""<UL>            {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</UL>"          ) )}}
+{{define( "bullet",       ( ),                            ( $"""<UL TYPE=BULLET>{{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</UL>"          ) )}}
+{{define( "circle",       ( ),                            ( $"""<UL TYPE=CIRCLE>{{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</UL>"          ) )}}
+{{define( "square",       ( ),                            ( $"""<UL TYPE=SQUARE>{{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</UL>"          ) )}}
+{{define( "ordered",      ( ),                            ( $"""<OL>            {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+{{define( "ALPHA_ord",    ( ),                            ( $"""<OL TYPE=A>     {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+{{define( "alpha_ord",    ( ),                            ( $"""<OL TYPE=a>     {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+{{define( "ROMAN_ord",    ( ),                            ( $"""<OL TYPE=I>     {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+{{define( "roman_ord",    ( ),                            ( $"""<OL TYPE=i>     {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+{{define( "dec_ord",      ( ),                            ( $"""<OL TYPE=1>     {{define( "item", ( ), ( "<LI>", "</LI>" ) )}}""",  $"</OL>"          ) )}}
+
+      ### Text Styles ###
+
+{{define( "I",            ( ),                            ( $"<I>",                                                                 $"</I>"           ) )}}
+{{define( "B",            ( ),                            ( $"<B>",                                                                 $"</B>"           ) )}}
+{{define( "U",            ( ),                            ( $"<U>",                                                                 $"</U>"           ) )}}
+{{define( "PRE",          ( ),                            ( $"<PRE>",                                                               $"</PRE>"         ) )}}
+{{define( "SUB",          ( ),                            ( $"<SUB>",                                                               $"</SUB>"         ) )}}
+{{define( "SUPER",        ( ),                            ( $"<SUPER>",                                                             $"</SUPER>"       ) )}}
+{{define( "OFFSET",       ( ),                            ( $"<UL>",                                                                $"</UL>"          ) )}}
+{{define( "TERM",         ( ),                            ( $"<B>",                                                                 $"</B>"           ) )}}
+{{define( "TABLE",        ( ),                            ( $"<TABLE>",                                                             $"</TABLE>"       ) )}}
+
+      ### Textual Objects ###
+
+{{define( "MAIN",         ( ),                            ( $"""<DIV CLASS="BLOCK">""",                                             $"""</DIV>"""    )  )}}
+{{define( "DEMO",         ( ),                            ( $"""<DIV CLASS="GRAYBLOCK">""",                                         $"""</DIV>"""    )  )}}
+
+      ### Hyperlinking ###
+
+{{define( "bookmark",     ( "name" ),                       $"""{{define("bookmark.{{bookmark.name}}", ( ), "{{article.id}}")}}"""                      )}}
+{{define( "see",          ( "name" ),                     ( $"",                                                                    $""               ) )}}
+{{define( "visit",        ( "URL" ),                      ( $"""<A HREF="{{visit.URL}}" TARGET=_top>""",                            $"</A>"           ) )}}
+
+      ### Simple Objects ###
+
+{{define( "BR",           ( ),                            $"<BR>"                                                                                       )}}
+{{define( "icon.def",     ( ),                            $"""{{icon("meaningIcon.jpg")}}"""                                                            )}}
+{{define( "icon",         ( "name" ),                     $"""<IMG SRC="{{IMGDIR}}/{{icon.name}}" ALIGN="bottom">"""                                    )}}
+
