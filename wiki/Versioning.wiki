@@ -1,12 +1,13 @@
 #labels Developer
 =Versioning MindTree Distributions=
 
-MindTree releases are numbered with three parts:  x.y.z-p
+MindTree releases are numbered with three parts:  _x_._y_._z_-_pNNN_
 
-   x is the major version number
-   y is a minor version number
-   z is a patch number
-   p pre-release
+   * _x_ is the major version number
+   * _y_ is a minor version number
+   * _z_ is a patch number
+   * _p_ pre-release phase (alpha, beta, release candidate, final distribution)
+   * _NNN_ pre-release number
 
 ===Major Versions===
    * New Features
@@ -18,14 +19,10 @@ MindTree releases are numbered with three parts:  x.y.z-p
    * Bug fixes
 ===Pre-Releases===
 
-   A pre-release includes alphas, betas and release candidates.  Distribution
-   releases (final releases) shall omitt the pre-release suffix altogether.
-   Pre-releases releases shall have the following version numbering.
+A pre-release includes alphas, betas and release candidates.  Distribution releases (final releases) shall omitt the pre-release suffix altogether.
 
-   <pre-release level> <number>
-
-   pre-release level is:
-      'a',  alpha (Experimental phase)
+   _pre-release phase_ is one of:
+      'a',  alpha (Development phase)
             * design in flux
             * data formats in flux
             * stability unknown (many features untested)
@@ -39,21 +36,11 @@ MindTree releases are numbered with three parts:  x.y.z-p
             * moderate stability - community testing
       'd',  distribution (distribution phase)
 
-   number:
+   _number_ is:
 
-      Each time we enter a new phase, numbering begins again at 001.
+      A three digit number.  Each time we enter a new phase, numbering begins again at 001.
 
-   Once beta testing is complete the product shall enter c-phase (release
-   candidate).  At this point the majority of testing is completed and the
-   product is released to the community for general use.  The product shall
-   remain in c-phase for 90 days.  During this time the majority of testing
-   is performed by practical usage of the general community.  Reported
-   bugs are repaird.  At the end of the 90 days, the product goes into final
-   release (the pre-release) tag on the version numbering is dropped.
-
-MindTree Prereleases (alphas, betas and release candidates) shall have the
-following versioning.
-
+Once beta testing is complete the product shall enter c-phase (release candidate).  At this point the majority of testing is completed and the product is released to the community for general use.  The product shall remain in c-phase for 90 days.  During this time the majority of testing is performed by practical usage of the general community.  Reported bugs are repaird.  At the end of the 90 days, the product goes into final release (the pre-release) tag on the version numbering is dropped.
 
 =Plugin Versioning=
 
