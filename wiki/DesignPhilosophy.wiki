@@ -1,3 +1,4 @@
+#labels Developer
 The basic philosophy behind the design.
 
 MindTree is a 100% Pure Python Object Oriented solution.  This software has a highly modular, multi-tier architecture starting with a generic Application Framework organized similarly to MVC, on top of this is a plugin framework, all views, outline saving/retrieving, importing and exporting, and tools are all written as plugins.  The purpose of “everything’s a plugin” is to increase modularity and reduce coupling.  Ultimately, this makes it easier to add new features.
