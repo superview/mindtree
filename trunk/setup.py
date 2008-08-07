@@ -2,12 +2,15 @@ from distutils.core import setup
 import glob
 import sys
 import os
+import os.path
+import enchant.utils
 
 try:
    import py2exe
 except:
    pass
 
+# Setup some initial values
 name='MindTree'
 version='1.0.0-a002'
 pythonVersion='%d.%d' % (sys.version_info[:2])
@@ -17,6 +20,7 @@ author='Ron Longo'
 author_email='ron.longo@cox.net'
 proj_url='http://code.google.com/p/mindtree'
 dist_url=proj_url + '/downloads/list'
+entryPoint='MindTree.py'
 
 def files(folder):
    for path in glob.glob(folder+'/*'):
@@ -28,9 +32,27 @@ tixDataFiles = [
                ('tcl/tix8.4', files(sys.prefix+'/tcl/tix8.4')),
                ('tcl/tix8.4/bitmaps', files(sys.prefix+'/tcl/tix8.4/bitmaps')),
                ('tcl/tix8.4/pref', files(sys.prefix+'/tcl/tix8.4/pref')),
-	       #('PyEnchant', enchant.utils.win32_data_files() )
                ]
 
+enchantDataFiles = enchant.utils.win32_data_files()
+
+
+# Make sure we've changed the version number
+distName = ('%s-%s' % ( name, version )) + os.extsep + 'zip'
+distPath = os.path.join( '..', 'sdist', distName )
+print 'Current path: ', os.getcwd()
+print 'Checking for ', distPath
+if os.path.exists( distPath ):
+   print '###########################################################'
+   print '# A distribution with that version number already exists. #'
+   print '###########################################################'
+   print 'Type \'YES\' to coninue anyway.'
+   result = raw_input( '>>> ' )
+   if result != 'YES':
+      sys.exit( )
+
+
+# Create the Distribution
 setup( name=name,
        version=version,
        description=descr,
@@ -42,8 +64,8 @@ setup( name=name,
        url=proj_url,
        download_url=dist_url,
        license='Apache License 2.0',
-       windows=['MindTree.py'],
-       data_files=tixDataFiles,
+       windows=[entryPoint],
+       data_files=tixDataFiles + enchantDataFiles,
        classifiers=[
                    'Development Status :: 3 - Alpha',
                    'Intended Audience :: Developers',
