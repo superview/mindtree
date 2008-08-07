@@ -10,6 +10,11 @@ try:
 except:
    pass
 
+def files(folder):
+   for path in glob.glob(folder+'/*'):
+      if os.path.isfile(path):
+         yield path
+
 # Setup some initial values
 name='MindTree'
 version='1.0.0-a002'
@@ -21,11 +26,6 @@ author_email='ron.longo@cox.net'
 proj_url='http://code.google.com/p/mindtree'
 dist_url=proj_url + '/downloads/list'
 entryPoint='MindTree.py'
-
-def files(folder):
-   for path in glob.glob(folder+'/*'):
-      if os.path.isfile(path):
-         yield path
 
 tixDataFiles = [
                ('DLLs', glob.glob(sys.prefix+'/DLLs/tix84.dll')),
