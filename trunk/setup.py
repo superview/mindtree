@@ -23,7 +23,7 @@ tixDataFiles = [
                ]
 
 setup( name='MindTree',
-       version='0.1.1',
+       version='1.0.0-a002',
        description='Notes organizer/Outliner/PIM for Python 2.5.',
        long_description='MindTree is an outliner application designed for taking and organizing notes and publishing these notes to the web.  Requires Python 2.5.',
        author='Ron Longo',
@@ -31,7 +31,7 @@ setup( name='MindTree',
        maintainer='Ron Longo',
        maintainer_email='ron.longo@cox.net',
        url='http://code.google.com/p/mindtree',
-       download_url='http://code.google.com/p/mindtree/downloads/list'
+       download_url='http://code.google.com/p/mindtree/downloads/list',
        license='Apache License 2.0',
        windows=['MindTree.py'],
        data_files=tixDataFiles,
