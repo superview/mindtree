@@ -1,5 +1,5 @@
 
-include *.py *.ini *.sty
+include *.py *.ini *.sty *.txt
 recursive-include DocumentWriter *.py
 recursive-include Plugins *.py
 recursive-include Resources *
