@@ -9,22 +9,13 @@ MindTree releases are numbered with three parts:  x.y.z-p
    p pre-release
 
 ===Major Versions===
-
-   - New Features
-
-   - The external data format becomes incompatible with that of older versions.
-
+* New Features
+* The external data format becomes incompatible with that of older versions.
 ===Minor Versions===
-
-   - Enhancements to features
-
-   - New Core Plugins
-
+* Enhancements to features
+* New Core Plugins
 ===Patch Numbers===
-
-   - Bug fixes
-
-
+* Bug fixes
 ===Pre-Releases===
 
    A pre-release includes alphas, betas and release candidates.  Distribution
@@ -35,17 +26,17 @@ MindTree releases are numbered with three parts:  x.y.z-p
 
    pre-release level is:
       'a',  alpha (Experimental phase)
-            - design in flux
-            - data formats in flux
-            - stability unknown (many features untested)
+            * design in flux
+            * data formats in flux
+            * stability unknown (many features untested)
       'b',  beta (Testing/debugging phase)
-            - design stable
-            - data formats stable
-            - stability unknown - developer testing
+            * design fixed
+            * data formats fixed
+            * stability unknown - developer testing
       'c',  release candidate (Trial phase)
-            - design stable
-            - data formats stable
-            - moderate stability - community testing
+            * design fixed
+            * data formats fixed
+            * moderate stability - community testing
       'd',  distribution (distribution phase)
 
    number:
