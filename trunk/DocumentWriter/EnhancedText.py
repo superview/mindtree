@@ -4,7 +4,6 @@ import Tkinter
 class LineNotVisibleException( Exception ):
    pass
 
-
 class EnhancedTextController( KBController ):
    def __init__( self ):
       KBController.__init__( self )
@@ -591,6 +590,5 @@ class EnhancedText( Tkinter.Text ):
                raise Exception( "Invalid index format in dump: %s" % index )
          except:
             raise Exception( "Invalid index format in dump: %s" % index )
-
 
 

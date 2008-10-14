@@ -7,10 +7,10 @@ import os.path
 
 
 def fixTkinter( ):
-   # - Tix.py is missing the bbox() method of class HList.  This method is
+   # - Tix.py is missing the info_bbox() method of class HList.  This method is
    #   needed for TreeEditor to implement Drag-n-drop.  Here's the implementation:
    #      def info_bbox(self,entry):
-   #	  return [ int(pos) for pos in self.tk.call(self._w, 'info', 'bbox', entry).split( ) ]
+   #	     return [ int(pos) for pos in self.tk.call(self._w, 'info', 'bbox', entry).split( ) ]
    #   This fix is now incorporated into MindTree.  File TreeEditor.py, class TreeEditor in
    #   method _drawWidget()
    def info_bbox( self, path ):

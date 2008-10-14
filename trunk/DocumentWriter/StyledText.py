@@ -10,11 +10,6 @@ Class Hierarchy
            +------+
               ^
               |
-       +--------------+
-       | EnhancedText |
-       +--------------+
-              ^
-              |
         +------------+
         | StyledText |*------------+-------------+
         +------------+             |             |
@@ -29,11 +24,6 @@ Class Hierarchy
 
 Overview of the Classes
 =======================
-
-EnhancedText (and support classes)
-   A drop-in replacement for the Text widget which fixes some weird cursor
-   movement problems.  It's a subclass of Text and the superclass of
-   StyledText.
 
 Font
    A class to encapsulate StyledText's definition of a font object.
@@ -113,7 +103,8 @@ effect.
 
 On the bottom layer is the Global style layer.  There is exactly one Style
 instance in this layer and it applies to the entire document.  Its
-defined in the style library with the name "default".
+defined in the style library with the name "default"
+(it's value being DEFAULT_STYLE).
 
 Next is the Local style layer.  In this layer a Style may be assigned to a
 region.  Only one Style may occupy any given region.  Later style assignments
@@ -131,15 +122,14 @@ override those in the global and local layers.
 
 Implementation
 ==============
-To make the widget react more naturally when changing the value of 'offset'
-across a region, I found it convenient to make 'offset' A sub-option of the
-font object rather than a full option.  In this way if we have some text which
-has (Ariel, 12, bold, superscript), the original size is preserved in the font.
-The actual tag in the text widget gets configured with
-{{{ {font:('Ariel',5,bold), offset='10p'} }}}.
-Now if the user decides to remove the superscript styling, the information of
-the original size (12) is still available in the font object so it's easily
-restored.  To implement this I defined my own class Font to use with the
+To make the widget react more naturally when changing the value of the 'offset'
+attribute across a region, I found it convenient to make 'offset' an attribute
+of font.  So, given some text which has (Ariel, 12, bold, superscript), the
+actual tag in the text widget is configured with
+{{{ {font:('Ariel',5,bold), offset:'10p'} }}}.  Now if the user decides to
+remove the superscript styling, the information for the 'normal' size
+(namely 12) is available in the font object and thus easily restored.  To
+implement this I defined my own class Font to use with the
 StyledText in place of tkFont.  This class includes the very useful method
 {{{tagOptions()}}} which returns a dictionary of options suitable for passing
 to Text's tag_config() to produce the desired appearance.  class Font manages
@@ -148,7 +138,7 @@ can be set independently via tag_config(), so they are not managed by Font.
 
 The primary attribute styling class is class Style.  This class is a subclass
 of dict which is intended to hold values for all the style options not part of
-class Font.  class Style also contains a _font member and like class Font has
+class Font.  class Style also contains a '_font' member and like class Font has
 the very useful {{{tagOptions()}}} method.  This tagOptions will combine its
 own values with any it gets from calling {{{self._font.tagOptions()}}} to form
 a complete set of values suitable for {{{tag_config()}}}.
@@ -160,21 +150,24 @@ tags can be used.
  1.  The widget has a default styling (which assigns a value to every style
      attribute).
 
- 2.  A non-StylerFont tag may configure exactly one styling attribute.
+ 2.  If a tag is associated with a Style object, that tag explicitly defines
+     a value for every styling attribute; otherwise it defines a value for
+     exaclty one non-Font attribute.
 
  3.  For any index in the underlying text widget, there may be at most one tag
-     for any given non-StylerFont attribute.
+     for any given non-Font attribute.
 
  4.  For any index in the underlying text widget, there may be at most one tag
-     handling a StylerFont.
+     handling a Font.
 
  5.  For any unique attribute configuration in use there should exist exactly
      one tag.
 
 These restrictions eliminate "Infinite depth tag stack" (criteria 2, 3 & 4)
-and "tagName redundancy" (criteria 5).  Conceptually we now have just two
-styling layers: default styling on the bottom, custom styling on top.  So, for
-example if I call
+and "tagName redundancy" (criteria 5).  Conceptually we now have just two layers
+for Style objects: default styling on the bottom, local styling in the middle.
+(recall that the top layer is for assignment to individual attributes)
+So, for example if I call
 {{{applyStyleAttribute( begin, end, 'underline', Tkinter.TRUE )}}}, any
 existing tags in the region (begin,end) which assign to 'underline', are first
 deleted if the new styling is something other than the default for the
@@ -278,7 +271,6 @@ Kinds of Tags:
 import Tix
 import tkFont
 import copy
-from EnhancedText import *
 from resources import RES
 import os
 import os.path
@@ -650,24 +642,13 @@ class Style( object ):
 
 
 
-class StyledText( EnhancedText ):
+class StyledText( Tix.Text ):
    PRIVATE_TAGS  = [ 'sel' ]
    PRIVATE_MARKS = [ 'insert', 'current', 'anchor' ]
    
    def __init__( self, parent, styleLibrary=None, objectLibrary=None, **options ):
-      EnhancedText.__init__( self, parent, **options )
-      self.bind( '<KeyPress-BackSpace>', self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Up>',        self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Down>',      self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Left>',      self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Right>',     self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Home>',      self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-End>',       self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Prior>',     self._updateInsertStylingInfo, '+' )
-      self.bind( '<KeyPress-Next>',      self._updateInsertStylingInfo, '+' )
-      self.bind( '<ButtonPress-1>',      self._updateInsertStylingInfo, '+' )
-      self.bind( '<ButtonRelease-1>',    self._updateInsertStylingInfo, '+' )
-      
+      Tix.Text.__init__( self, parent, **options )
+     
       self._styleLib    = styleLibrary if styleLibrary else { }
       self._objectLib   = objectLibrary if objectLibrary else { }
       
@@ -698,7 +679,7 @@ class StyledText( EnhancedText ):
 
    # Content
    def dump( self, first='1.0', last='end' ):
-      return EnhancedText.dump( self, first, last,
+      return self._enhancedDump( self, first, last,
                                 omittedTags=StyledText.PRIVATE_TAGS,
                                 omittedMarks=StyledText.PRIVATE_MARKS )
    
@@ -723,7 +704,7 @@ class StyledText( EnhancedText ):
          else:
             tags = self.tag_names( index )
          
-         EnhancedText.insert( self, index, object, tuple(tags) )
+         Tix.Text.insert( self, index, object, tuple(tags) )
       
       elif type == 'dump':
          self._load( index, object )
@@ -743,6 +724,15 @@ class StyledText( EnhancedText ):
          widget = self._objectLib[ widgetName ]
          self.window_create( index, window=widget, **options )
          raise Exception( 'Unknown object type' )
+
+   def mark_set( self, name, index ):
+      Tix.Text.mark_set( self, name, index )
+      
+      if name == 'insert':
+         try:
+            self.sel_update( )
+         except:
+            pass
 
    def objects( self ):
       '''Return the dictionary of objects (objectname to object instance).'''
@@ -966,6 +956,74 @@ class StyledText( EnhancedText ):
                if style and (tagName not in StyledText.PRIVATE_TAGS):
                   self.tag_remove( tagName, begin, end )
 
+   # Styling Operations
+   def iterRegion( self, index1, index2 ):
+      '''This method iterates over the styled subregions of a given region.
+      For this method, a "subregion" is defined as any contiguous segment of
+      indecies with exactly the same tags (and thus styling).  Upon each
+      iteration, the method returns a "subregion style description" of the
+      form:
+         ( beginIndex, endIndex, [ activeStyleNames ] )
+      The list is guaranteed complete.  beginIndex of the first subregion
+      description will always equal index1, and endIndex of the last subregion
+      will always equal index2.  Further, for any two adjacent subregion
+      descriptions endIndex of the first will always equal beginIndex of the
+      second.  Thus no gaps occur in the mapping.
+      '''
+      # Begin the main loop
+      theDump = Tix.Text.dump( self, index1, index2, tag=True )
+      
+      subregionBegin = idx = index1
+      for key,val,idx in theDump:
+         if (key in ['tagon','tagoff']) and key.startswith('$'):
+            continue
+         if idx != subregionBegin:
+            yield subregionBegin,idx,self.tag_names( subregionBegin )
+            subregionBegin = idx
+      
+      if idx != index2:
+         yield idx,index2,self.tag_names( subregionBegin )
+
+   def tag_configuration( self, tagName ):
+      config = { }
+      
+      for name,value in self.tag_config( tagName ):
+         if len(value) == 5:
+            config[ name ] = value[4]
+      
+      return config
+
+   @staticmethod
+   def validateDump( aDump ):
+      assert isinstance( aDump, list )
+      
+      for key,val,index in aDump:
+         if key not in ( 'tagon','tagoff','mark','text','image','window' ):
+            raise Exception( "Invalid key in dump: %s" % key )
+         
+         if not isinstance( val, (str,unicode) ):
+            raise Exception( "Invalid value in dump: %s" % val )
+         
+         if not isinstance( index, (str,unicode) ):
+            raise Exception( "Invalid index in dump: %s" % index )
+         
+         try:
+            line,sep,col = index.partition( '.' )
+            if sep != '.':
+               raise Exception( "Invalid index format in dump: %s" % index )
+            
+            try:
+               int(line)
+            except:
+               raise Exception( "Invalid index format in dump: %s" % index )
+            
+            try:
+               int(col)
+            except:
+               raise Exception( "Invalid index format in dump: %s" % index )
+         except:
+            raise Exception( "Invalid index format in dump: %s" % index )
+
    # Implementation Only -- Not intended for use by client software
    def _load( self, index, dump ):
       '''Slave routine for insert.  This method handles inserting dumps.'''
@@ -1020,7 +1078,7 @@ class StyledText( EnhancedText ):
             else:
                self.tag_raise( tagName )
          elif action == 'text':
-            EnhancedText.insert( self, 'insertHere', value )
+            self.insert( 'insertHere', value )
          elif action == 'mark':
             if value in StyledText.PRIVATE_MARKS:
                continue
@@ -1051,4 +1109,53 @@ class StyledText( EnhancedText ):
             self._insertTags.append( name )
          else:
             self._insertTags[1] = name
+
+   def _enhancedDump( self, index1='1.0', index2='end', command=None, omittedTags=None, omittedMarks=None, **options ):
+      '''Get the contents of the widget from index1 (inclusive) through index2
+      (not inclusive).  If dump is False, a text string is returned; otherwise
+      a tuple (dump,activeTags) is returned where activeTags is a list of tags
+      that are active (open) at index1 - information lacking from the dump
+      itself.
+      
+      omittedMarks is a sequence of tags to omit from the final report.
+         default:  [ ]
+      
+      omittedTags is a sequence of marks to omit from the final report.
+         default:  [ ]
+      '''
+      index1 = self.index( index1 )
+      index2 = self.index( index2 )
+      
+      theDump = Tix.Text.dump( self, index1, index2, **options )
+      
+      if not omittedMarks:
+         omittedMarks = [ ]
+      
+      if not omittedTags:
+         omittedTags  = [ ]
+      
+      finalReport = [ ]
+      for key,val,index in theDump:
+         if (key == 'mark') and (val in omittedMarks):
+            continue
+         elif (key in ['tagon','tagoff']) and (val in omittedTags):
+            continue
+         
+         finalReport.append( ( key, val, index ) )
+      
+      if (finalReport[-1][0] == 'text') and (len(finalReport[-1][1].strip()) == 0):
+         del finalReport[-1]
+      
+      if index1 != '1.0':
+         activeTags = self.tag_names( index1 )
+         for tagName in activeTags:
+            if tagName in omittedTags:
+               continue
+            
+            finalReport.insert( 0, ( 'tagon', tagName, index1 ) )
+      
+      #self.validateDump( finalReport )
+      
+      return finalReport
+
 
