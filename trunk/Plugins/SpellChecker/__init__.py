@@ -1,3 +1,4 @@
+from __future__ import print_function
 from tkApplicationFramework import PluggableTool
 
 import Tkinter

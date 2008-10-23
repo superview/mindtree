@@ -1,3 +1,4 @@
+from __future__ import print_function
 import tkSimpleDialog
 import Tix
 from StyledText import StyledText, Style, Font

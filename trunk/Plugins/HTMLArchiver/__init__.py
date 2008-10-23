@@ -1,8 +1,8 @@
+from __future__ import print_function
 __all__ = [ 'hgen' ]
 
 
 from tkApplicationFramework import ExporterPlugin
-
 
 class HTMLArchiver( ExporterPlugin ):
    NAME                   = 'HTML Generation...'

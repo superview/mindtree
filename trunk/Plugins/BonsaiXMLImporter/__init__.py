@@ -1,5 +1,5 @@
+from __future__ import print_function
 from tkApplicationFramework import ImporterPlugin
-
 
 class BonsaiXMLArchiver( ImporterPlugin ):
    NAME                   = 'Bonsai XML...'

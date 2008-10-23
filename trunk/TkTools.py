@@ -1,10 +1,10 @@
+from __future__ import print_function
 import Tix
 import Tkinter
 import tkFont
 import time
 import os
 import os.path
-
 
 def fixTkinter( ):
    # - Tix.py is missing the info_bbox() method of class HList.  This method is

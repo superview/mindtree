@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 unicodeTranslationMap = (
    # In this Pattern     replace           with this     replace      with this
    #                     this prefix                     this suffix

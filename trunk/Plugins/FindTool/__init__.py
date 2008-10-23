@@ -1,7 +1,7 @@
+from __future__ import print_function
 from tkApplicationFramework import PluggableTool
 import Tix
 from TreeEditor import ForewardFinder
-
 
 class FindTool( PluggableTool ):
    NAME             = 'Find'
@@ -95,9 +95,9 @@ class FindTool( PluggableTool ):
          path,subject,lineNo,begin,end = self._finder.next( )
          self._textWidget.tag_add( FindTool.TAG_NAME, '%d.%d' % (lineNo,begin), '%d.%d' % (lineNo,end) )
          self._textWidget.see( '%d.%d' % (lineNo,begin) )
-         print '[ %03d : %03d : %03d ] - %s' % ( lineNo, begin, end, path )
+         print( '[ %03d : %03d : %03d ] - %s' % ( lineNo, begin, end, path ) )
       except:
-         print 'Expression not found.'
+         print( 'Expression not found.' )
 
 
    def useRegEx( self ):

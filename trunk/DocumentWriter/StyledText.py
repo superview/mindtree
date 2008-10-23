@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 '''
 Class Hierarchy
 ===============
@@ -716,7 +718,7 @@ class StyledText( Tix.Text ):
             image = self._makeImage( filename )
             self.image_create( index, name=filename, image=image, padx=1, **options )
          except:
-            print 'Unable to create image: ', filename
+            print( 'Unable to create image: ', filename )
             self.image_create( index, image=RES.IMAGE_NOT_FOUND )
       
       elif type == 'widget':

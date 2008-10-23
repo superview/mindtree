@@ -1,3 +1,4 @@
+from __future__ import print_function
 from distutils.core import setup
 import glob
 import sys
@@ -40,13 +41,13 @@ enchantDataFiles = enchant.utils.win32_data_files()
 # Make sure we've changed the version number
 distName = ('%s-%s' % ( name, version )) + os.extsep + 'zip'
 distPath = os.path.join( '..', 'sdist', distName )
-print 'Current path: ', os.getcwd()
-print 'Checking for ', distPath
+print( 'Current path: ', os.getcwd() )
+print( 'Checking for ', distPath ) )
 if os.path.exists( distPath ):
-   print '###########################################################'
-   print '# A distribution with that version number already exists. #'
-   print '###########################################################'
-   print 'Type \'YES\' to coninue anyway.'
+   print( '###########################################################' )
+   print( '# A distribution with that version number already exists. #' )
+   print( '###########################################################' )
+   print( 'Type \'YES\' to coninue anyway.' )
    result = raw_input( '>>> ' )
    if result != 'YES':
       sys.exit( )

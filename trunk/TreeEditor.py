@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 """
 TASKS - Basic Functionality
 
@@ -28,7 +30,6 @@ import sys
 import os.path
 
 from resources import RES
-
 
 class ArticleEditor( DocumentWriter ):
    CONFIG = None
@@ -221,7 +222,7 @@ class TreeViewEntry( Tix.Frame ):
       try:
          articleWidget.stext.reinitialize( )
       except:
-         print 'Update failed to reinitialize StyledText widget.'
+         print( 'Update failed to reinitialize StyledText widget.' )
          raise
       
       data = self._treeEntry.article
@@ -236,7 +237,7 @@ class TreeViewEntry( Tix.Frame ):
          #articleWidget.stext.insertObject( obj ) 
          articleWidget.stext.insert( 'end', self._treeEntry.article, dataType )
       except:
-         print 'Error displaying new article.'
+         print( 'Error displaying new article.' )
          raise
       
       articleWidget.stext.edit_reset( )
@@ -418,7 +419,7 @@ class TreeEditor( Tix.Frame ):
       try:
          modified = entryWidget.commit( articleWidget )
       except:
-         print 'Error committing current article.'
+         print( 'Error committing current article.' )
          raise
       
       if modified:
@@ -564,7 +565,7 @@ class TreeEditor( Tix.Frame ):
          try:
             entryWidget.update( self._articleView, True )
          except:
-            print 'Error while updating display.  Data integrity failure.'
+            print( 'Error while updating display.  Data integrity failure.' )
             raise
          
          entryWidget.focus_set( )

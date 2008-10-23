@@ -1,4 +1,4 @@
-from __future__ import with_statement
+from __future__ import print_function
 import Tix
 from Tree import *
 from Outline import Outline
@@ -271,9 +271,9 @@ class MindTree( Application ):
 
       try:
          path,subject,lineNo,begin,end = self._view.findNext( )
-         print '[ %03d : %03d : %03d ] - %s' % ( lineNo, begin, end, path )
+         print( '[ %03d : %03d : %03d ] - %s' % ( lineNo, begin, end, path ) )
       except:
-         print 'Expression not found.'
+         print( 'Expression not found.' )
 
    def find( self ):
       pass
@@ -281,7 +281,7 @@ class MindTree( Application ):
 
 
 if __name__== '__main__' :
-   print 'Starting MindTree'
+   print( 'Starting MindTree' )
    mt = MindTree( )
 
    with SplashScreen( mt, 'resources\\images\\splash.gif' ):

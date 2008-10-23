@@ -1,3 +1,4 @@
+from __future__ import print_function
 """
 Standard Tags
 =============
@@ -126,7 +127,6 @@ from Tree import Tree
 from MacroProcessor import Macro
 from MacroProcessor import MacroProcessor
 from MacroProcessor import BasicMacroEvaluator
-
 
 class HTMLBuilder( object ):
                    # ( icon file,                   width, height )
@@ -280,7 +280,7 @@ class HTMLBuilder( object ):
             self.outline.write( u'</div>\n' )
 
    def buildTree( self, outline, name, notesName ):
-      print "Generating tree..."
+      print( "Generating tree..." )
       self.nestingStack = []
       self.outline.write( self.procAndTrans( u'{{outline( "%s" ):' % name ) )
       self._articleCount = 0
@@ -397,7 +397,7 @@ class HTMLBuilder( object ):
             try:
                self.writeArticle( item )
             except:
-               print 'Problem in writing article: %s' % item.title
+               print( 'Problem in writing article: %s' % item.title )
          
          self._buildArticles( item.subtrees )
          
@@ -447,17 +447,17 @@ class HTMLBuilder( object ):
             self.procAndTrans( u"""{{define( "see", ( "name" ), ( $\"\"\"<A HREF="#{{bookmark.{{see.name}}}}" TARGET="baseframe">\"\"\", $"</A>") )}}""" )
             
             # Articles
-            print "Generating articles..."
+            print( "Generating articles..." )
             self.buildArticles( outline )
          
          self.articles.write( self.procAndTrans( u'}}' ) )
          
          for key,val in self._msp._handler._macros.items( ):
             if key.startswith( 'bookmark.' ):
-               print '%-40s:%6s' % ( key,val._value )
+               print( '%-40s:%6s' % ( key,val._value ) )
          
       except Exception, (msg):
-         print 'Exception raised while processing article \'%s\' (%s)\n%s' % ( self.current.title, self.current.id, msg )
+         print( 'Exception raised while processing article \'%s\' (%s)\n%s' % ( self.current.title, self.current.id, msg ) )
          raise
       
       self.frame.close()

@@ -1,7 +1,7 @@
+from __future__ import print_function
 import Tix
 import tkFont
 from TkTools import *
-
 
 class MindtreeResources( Resources ):
    def __init__( self ):

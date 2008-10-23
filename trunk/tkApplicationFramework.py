@@ -1,9 +1,9 @@
+from __future__ import print_function
 import Tix
 import TkTools
 from   resources import RES
 from   ConfigParser import SafeConfigParser
 from   Project import Project
-
 
 class Clipboard( object ):
    def __init__( self ):
@@ -380,16 +380,16 @@ class PluginManager( object ):
          module      = imp.load_module( pluginName, *moduleInfo )
          pluginClass = module.pluginClass
       except ImportError:
-         print 'Plugin %s not found' % pluginName
+         print( 'Plugin %s not found' % pluginName )
          return
       except AttributeError:
-         print 'Plugin instance %s.plugin not defined' % pluginName
+         print( 'Plugin instance %s.plugin not defined' % pluginName )
          return
       
       try:
          self._plugins[ pluginClass.NAME ] = pluginClass
       except:
-         print 'plugin.NAME is not defined'
+         print( 'plugin.NAME is not defined' )
          return
       
       return pluginClass

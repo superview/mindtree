@@ -1,3 +1,4 @@
+from __future__ import print_function
 from Tree import Tree
 from uuid import UUID
 
@@ -30,9 +31,9 @@ class Outline( object ):
       verbose = False
       if verbose:
          try:
-            print "%s: %s" % (str(aTree.id), aTree.title)
+            print( "%s: %s" % (str(aTree.id), aTree.title) )
          except UnicodeEncodeError:
-            print "%s: ??" % (str(aTree.id))
+            print( "%s: ??" % (str(aTree.id)) )
       
       if not isinstance( aTree.id, (str,UUID) ):
          raise Exception( "[%s] Invalid tree id" % str(aTree.id) )

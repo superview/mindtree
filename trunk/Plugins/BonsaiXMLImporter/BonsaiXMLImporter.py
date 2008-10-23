@@ -1,9 +1,9 @@
+from __future__ import print_function
 import xml.sax
 import copy
 
 
 from Tree import Tree
-
 
 class OutlineBuilder:
    def __init__( self, anOutlineName=None ):
