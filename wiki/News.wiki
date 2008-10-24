@@ -1,0 +1,8 @@
+=What's Going On with MindTree=
+
+  * Immediate work has begun to update MindTree to Python 2.6.  This work is well underway and a beta will be released soon.
+
+  * MindTree 2!  This is a full software rewrite currently in the planning stage.  The inner portions of the software will be updated to handle more capabilities and greater flexibility.  The Tkinter GUI will be replaced by a newly written GUI in PyQt.  Some of the new features will include Bulletized lists and tables in the articles and printing.  The plugins will be better implemented.
+
+  * MindTree 3!  This will be a port of MindTree to Python 3.x
+Add your content here.
