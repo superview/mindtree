@@ -1,5 +1,5 @@
 from __future__ import print_function, unicode_literals
-from TkTools import KBController, bind
+#from TkTools import KBController, bind
 import Tkinter
 
 #class LineNotVisibleException( Exception ):

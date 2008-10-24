@@ -29,20 +29,20 @@ class TestEnhancedText( unittest.TestCase ):
       
       self.root.update( )
 
-   def try_dline_start_end( self, index, startIndex, endIndex ):
-      idx = self.text.dline_start( index )
-      self.assertEqual( idx, startIndex )
+   #def try_dline_start_end( self, index, startIndex, endIndex ):
+      #idx = self.text.dline_start( index )
+      #self.assertEqual( idx, startIndex )
       
-      idx = self.text.dline_end( index )
-      self.assertEqual( idx, endIndex )
+      #idx = self.text.dline_end( index )
+      #self.assertEqual( idx, endIndex )
 
-   def testEmptyText( self ):
-      self.try_dline_start_end( '1.0', '1.0', '1.0' )
-      idx = self.text.dline_next( self.text.index('1.0') )
-      self.assertEqual( idx, '1.0' )
+   #def testEmptyText( self ):
+      #self.try_dline_start_end( '1.0', '1.0', '1.0' )
+      #idx = self.text.dline_next( self.text.index('1.0') )
+      #self.assertEqual( idx, '1.0' )
       
-      idx = self.text.dline_prev( self.text.index('1.0') )
-      self.assertEqual( idx, '1.0' )
+      #idx = self.text.dline_prev( self.text.index('1.0') )
+      #self.assertEqual( idx, '1.0' )
 
    def testPopulatedText( self ):
       self.text.insert( '1.0', SampleText )
