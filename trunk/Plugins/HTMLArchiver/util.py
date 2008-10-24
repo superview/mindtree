@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import os
 
 def stringSplice( aBaseString, aBegPos, anEndPos, aNewSubStr ):
@@ -59,7 +59,7 @@ class Scanner:
    
    def prepare( self, aString ):
       assert isinstance( self._tokenMap, dict )
-      assert isinstance( aString, ( str,unicode ) )
+      assert isinstance( aString, unicode )
       self._buf = Buffer( aString )
       self.consume( )
    

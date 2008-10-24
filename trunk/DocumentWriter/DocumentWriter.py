@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import tkSimpleDialog
 import Tix
 from StyledText import StyledText, Style, Font
@@ -339,13 +339,13 @@ This is a second paragraph.  The next paragraph will demonstrate tabs.
       
       # Line Spacing
       Tix.Label( paragraphFrame.frame, text='Spacing:', anchor=Tix.W ).grid( row=row, column=0, padx=5, pady=5, sticky=Tix.W )
-      Tix.Label( paragraphFrame.frame, text=u'Before \u00B6', anchor=Tix.W ).grid( row=row, column=1, padx=5, pady=5, sticky=Tix.W )
+      Tix.Label( paragraphFrame.frame, text='Before \u00B6', anchor=Tix.W ).grid( row=row, column=1, padx=5, pady=5, sticky=Tix.W )
       spacing1Combo = Tix.ComboBox( paragraphFrame.frame, editable=True,
                     dropdown=True, fancy=False, variable=self._spacing1,
                     history=False, command=self.onApplyEdits, selectmode=Tix.IMMEDIATE )
       spacing1Combo.entry.config( width=10 )
       spacing1Combo.grid( row=row, column=2, padx=5, pady=5, sticky=Tix.W )
-      Tix.Label( paragraphFrame.frame, text=u'After \u00B6', anchor=Tix.W ).grid( row=row, column=3, padx=5, pady=5, sticky=Tix.W )
+      Tix.Label( paragraphFrame.frame, text='After \u00B6', anchor=Tix.W ).grid( row=row, column=3, padx=5, pady=5, sticky=Tix.W )
       spacing3Combo = Tix.ComboBox( paragraphFrame.frame, editable=True,
                     dropdown=True, fancy=False, variable=self._spacing3,
                     history=False, command=self.onApplyEdits, selectmode=Tix.IMMEDIATE )
@@ -808,7 +808,7 @@ if __name__=='__main__':
          theFile = file( filename, 'r' )
          docData = pickle.load( theFile )
          
-         if isinstance( docData, (str,unicode) ):
+         if isinstance( docData, unicode ):
             self._text.stext.insert( docData )
          else:
             self._text.stext.insert( 'end', docData[0], docData[1], 'model' )

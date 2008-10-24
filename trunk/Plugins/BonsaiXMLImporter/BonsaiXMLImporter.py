@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import xml.sax
 import copy
 
@@ -20,7 +20,7 @@ class OutlineBuilder:
       
       newItem.location = copy.copy( self._stack )
       if name != None:
-         assert isinstance( name, (str,unicode) )
+         assert isinstance( name, unicode )
          self._top.title = name
 
    def endNested( self ):
@@ -30,12 +30,12 @@ class OutlineBuilder:
       self.addItem( item )
 
    def setTitle( self, title ):
-      assert isinstance( title, (unicode,str) )
+      assert isinstance( title, unicode )
       
       self._top.title = title
 
    def setArticle( self, article ):
-      assert isinstance( article, (unicode,str) )
+      assert isinstance( article, unicode )
       
       self._top.article = article
 

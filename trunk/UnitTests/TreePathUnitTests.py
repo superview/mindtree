@@ -98,7 +98,7 @@ class EmptyUnicodeTreePathUnitTest( TestCase, TreePathTests ):
 
    def setUp( self ):
       TreePathTests.setupTestValues( self, [ ] )
-      self.path = TreePath( u'' )
+      self.path = TreePath( '' )
 
 class EmptyListTreePathUnitTest( TestCase, TreePathTests ):
    def __init__( self, *args, **kwargs ):
@@ -125,7 +125,7 @@ class SingleElementUnicodeTreePathUnitTest( TestCase, TreePathTests ):
 
    def setUp( self ):
       TreePathTests.setupTestValues( self, [ 'abc' ] )
-      self.path = TreePath( u'abc' )
+      self.path = TreePath( 'abc' )
 
 class SingleElementListTreePathUnitTest( TestCase, TreePathTests ):
    def __init__( self, *args, **kwargs ):
@@ -162,7 +162,7 @@ class MultiElementUnicodeTreePathUnitTest( TestCase, TreePathTests ):
 
    def setUp( self ):
       TreePathTests.setupTestValues( self, [ 'abc', 'xyz' ] )
-      self.path = TreePath( u'abc.xyz' )
+      self.path = TreePath( 'abc.xyz' )
 
 
 

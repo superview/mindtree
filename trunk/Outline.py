@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from Tree import Tree
 from uuid import UUID
 
@@ -19,8 +19,6 @@ class Outline( object ):
          self._validateModel( self._tree )
 
    def updateModel( self ):
-      return
-   
       if self._tree:
          self._updateModel( self._tree )
 
@@ -43,10 +41,10 @@ class Outline( object ):
       except:
          raise Exception( "[%s] Tree id must be a UUID found %s" % ( str(aTree.id), type(aTree.id) ) )
       
-      if not isinstance( aTree.title, (str,unicode) ):
-         raise Exception( "[%s] Tree title must be a string, found %s" % ( str(aTree.id), type(self.title) ) )
+      if not isinstance( aTree.title, (bytes,unicode) ):
+         raise Exception( "[%s] Tree title must be a string, found %s" % ( str(aTree.id), type(aTree.title) ) )
       
-      if not isinstance( aTree.article, (str,unicode,list,tuple) ):
+      if not isinstance( aTree.article, (bytes,unicode,list,tuple) ):
          raise Exception( "[%s] Invalid article type, found %s" % (str(aTree.id), type(aTree.article) ) )
       elif isinstance( aTree.article, (list,tuple) ):
          from DocumentWriter.EnhancedText import EnhancedText
@@ -62,6 +60,12 @@ class Outline( object ):
          self._validateModel( child )
 
    def _updateModel( self, aTree ):
+      if isinstance( aTree.title, str ):
+         aTree.title = unicode( aTree.title )
+      
+      if isinstance( aTree.article, str ):
+         aTree.article = unicode( aTree.article )
+      
       if isinstance(aTree.article, (list,tuple) ):
          newArticle = [ ]
          
@@ -71,6 +75,11 @@ class Outline( object ):
                import os.path
                disk,path,name,extension = TkTools.splitFilePath( val )
                val = os.path.join( 'img', name + extension )
+            
+            #elif key == 'text':
+               #if isinstance(val,str):
+                  #val = unicode(val)
+            
             #if key in ('tagon','tagoff'):
                #if val[0] == '$':
                   #continue

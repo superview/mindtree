@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 '''
 Class Hierarchy
@@ -276,6 +276,7 @@ import copy
 from resources import RES
 import os
 import os.path
+from EnhancedText import EnhancedText
 
 TAG_NAME_SPLITTER = '_'
 
@@ -468,7 +469,7 @@ class Font( object ):
 
    @staticmethod
    def setupDefaults( aTextWidget ):
-      Font.DEFAULT_FONT = Font.getFont( aTextWidget['font'] )
+      Font.DEFAULT_FONT = Font.getFont( unicode(aTextWidget['font']) )
       Font.FONT_LIBRARY[ 'default' ] = Font.DEFAULT_FONT
 
 
@@ -594,21 +595,21 @@ class Style( object ):
       Style.DEFAULT_STYLE = Style( font        = Font.DEFAULT_FONT,
                                    underline   = False,
                                    overstrike  = False,
-                                   foreground  = aTextWidget[ 'foreground' ],
-                                   background  = aTextWidget[ 'background' ],
+                                   foreground  = unicode(aTextWidget[ 'foreground' ]),
+                                   background  = unicode(aTextWidget[ 'background' ]),
                                    fgstipple   = '',
                                    bgstipple   = '',
                                    borderwidth = 0,
                                    relief      = 'flat',
                                    justify     = 'left',
-                                   wrap        = aTextWidget[ 'wrap' ],
+                                   wrap        = unicode(aTextWidget[ 'wrap' ]),
                                    lmargin1    = 0,
                                    lmargin2    = 0,
                                    rmargin     = 0,
-                                   spacing1    = aTextWidget[ 'spacing1' ],
-                                   spacing2    = aTextWidget[ 'spacing2' ],
-                                   spacing3    = aTextWidget[ 'spacing3' ],
-                                   tabs        = aTextWidget[ 'tabs' ]
+                                   spacing1    = unicode(aTextWidget[ 'spacing1' ]),
+                                   spacing2    = unicode(aTextWidget[ 'spacing2' ]),
+                                   spacing3    = unicode(aTextWidget[ 'spacing3' ]),
+                                   tabs        = unicode(aTextWidget[ 'tabs' ])
                                  )
       
       Style.OFF_VALUES = {
@@ -633,8 +634,8 @@ class Style( object ):
                           # Other Attributes
                           'underline':  [ Tix.FALSE, '0', 'false', 'False', False, '', None ],
                           'overstrike': [ Tix.FALSE, '0', 'false', 'False', False, '', None ],
-                          'foreground': [ aTextWidget[ 'foreground' ], '', None ],
-                          'background': [ aTextWidget[ 'background' ], '', None ],
+                          'foreground': [ unicode(aTextWidget[ 'foreground' ]), '', None ],
+                          'background': [ unicode(aTextWidget[ 'background' ]), '', None ],
                           'fgstipple':  [ '', 'none', None ],
                           'bgstipple':  [ '', 'none', None ],
                           'borderwidth':[ '0', '0p', '0i', '0c', '0m', '', None ],
@@ -644,7 +645,7 @@ class Style( object ):
 
 
 
-class StyledText( Tix.Text ):
+class StyledText( EnhancedText ):
    PRIVATE_TAGS  = [ 'sel' ]
    PRIVATE_MARKS = [ 'insert', 'current', 'anchor' ]
    
@@ -681,20 +682,20 @@ class StyledText( Tix.Text ):
 
    # Content
    def dump( self, first='1.0', last='end' ):
-      return self._enhancedDump( self, first, last,
+      return EnhancedText.dump( self, first, last,
                                 omittedTags=StyledText.PRIVATE_TAGS,
                                 omittedMarks=StyledText.PRIVATE_MARKS )
    
    def insert( self, index, object, type=None, **options ):
       '''Insert an object into the text.
          type             object
-         'text' or None   The ascii or unicode string to be inserted.
+         'text' or None   The string to be inserted.
          'dump'           a dump returned from get().
          'image'          The filename of a .gif image file.
          'widget'         a Tix widget.
       '''
       if type is None:
-         if isinstance( object, (str,unicode) ):
+         if isinstance( object, (bytes,unicode) ):
             type = 'text'
          elif isinstance( object, (list,tuple) ):
             type = 'dump'
@@ -995,37 +996,6 @@ class StyledText( Tix.Text ):
       
       return config
 
-   @staticmethod
-   def validateDump( aDump ):
-      assert isinstance( aDump, list )
-      
-      for key,val,index in aDump:
-         if key not in ( 'tagon','tagoff','mark','text','image','window' ):
-            raise Exception( "Invalid key in dump: %s" % key )
-         
-         if not isinstance( val, (str,unicode) ):
-            raise Exception( "Invalid value in dump: %s" % val )
-         
-         if not isinstance( index, (str,unicode) ):
-            raise Exception( "Invalid index in dump: %s" % index )
-         
-         try:
-            line,sep,col = index.partition( '.' )
-            if sep != '.':
-               raise Exception( "Invalid index format in dump: %s" % index )
-            
-            try:
-               int(line)
-            except:
-               raise Exception( "Invalid index format in dump: %s" % index )
-            
-            try:
-               int(col)
-            except:
-               raise Exception( "Invalid index format in dump: %s" % index )
-         except:
-            raise Exception( "Invalid index format in dump: %s" % index )
-
    # Implementation Only -- Not intended for use by client software
    def _load( self, index, dump ):
       '''Slave routine for insert.  This method handles inserting dumps.'''
@@ -1112,52 +1082,5 @@ class StyledText( Tix.Text ):
          else:
             self._insertTags[1] = name
 
-   def _enhancedDump( self, index1='1.0', index2='end', command=None, omittedTags=None, omittedMarks=None, **options ):
-      '''Get the contents of the widget from index1 (inclusive) through index2
-      (not inclusive).  If dump is False, a text string is returned; otherwise
-      a tuple (dump,activeTags) is returned where activeTags is a list of tags
-      that are active (open) at index1 - information lacking from the dump
-      itself.
-      
-      omittedMarks is a sequence of tags to omit from the final report.
-         default:  [ ]
-      
-      omittedTags is a sequence of marks to omit from the final report.
-         default:  [ ]
-      '''
-      index1 = self.index( index1 )
-      index2 = self.index( index2 )
-      
-      theDump = Tix.Text.dump( self, index1, index2, **options )
-      
-      if not omittedMarks:
-         omittedMarks = [ ]
-      
-      if not omittedTags:
-         omittedTags  = [ ]
-      
-      finalReport = [ ]
-      for key,val,index in theDump:
-         if (key == 'mark') and (val in omittedMarks):
-            continue
-         elif (key in ['tagon','tagoff']) and (val in omittedTags):
-            continue
-         
-         finalReport.append( ( key, val, index ) )
-      
-      if (finalReport[-1][0] == 'text') and (len(finalReport[-1][1].strip()) == 0):
-         del finalReport[-1]
-      
-      if index1 != '1.0':
-         activeTags = self.tag_names( index1 )
-         for tagName in activeTags:
-            if tagName in omittedTags:
-               continue
-            
-            finalReport.insert( 0, ( 'tagon', tagName, index1 ) )
-      
-      #self.validateDump( finalReport )
-      
-      return finalReport
 
 

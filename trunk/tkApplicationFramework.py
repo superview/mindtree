@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import Tix
 import TkTools
 from   resources import RES
@@ -330,7 +330,7 @@ class Application( Tix.Tk ):
    def updateWindowTitle( self ):
       theTitle = RES.APP_NAME
       
-      if isinstance( self._project.filename, (str,unicode) ):
+      if isinstance( self._project.filename, unicode ):
          theTitle += ' - [%s]' % str(self._project.filename)
       
       if self._project.modified:

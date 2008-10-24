@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from tkApplicationFramework import ImporterPlugin
 
 class BonsaiXMLArchiver( ImporterPlugin ):

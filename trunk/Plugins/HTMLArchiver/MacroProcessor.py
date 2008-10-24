@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 """
 Macro Usage
@@ -151,21 +151,21 @@ class Macro:
    POSTFIX    =   1
 
    def __init__( self, params, value ):
-      assert isinstance( params, ( str, unicode, tuple ) ) or ( params is None )
-      assert isinstance( value,  ( str, unicode, tuple ) )
+      assert isinstance( params, ( unicode, tuple ) ) or ( params is None )
+      assert isinstance( value,  ( unicode, tuple ) )
       
       if params is None:
          params = ( )
-      elif isinstance( params, ( str, unicode ) ):
+      elif isinstance( params, unicode ):
          params = tuple( [ params ] )
       elif isinstance( params, tuple ):
          for entry in params:
-            assert isinstance( entry, ( str, unicode ) )
+            assert isinstance( entry, unicode )
       
       if isinstance( value, tuple ):
          assert len( value ) == 2
-         assert isinstance( value[0], ( str, unicode ) )
-         assert isinstance( value[1], ( str, unicode ) )
+         assert isinstance( value[0], unicode )
+         assert isinstance( value[1], unicode )
       
       self._params = params
       self._value  = value
@@ -192,7 +192,7 @@ class MacroEvaluator:
 
    # Extension
    def beginMacro( self, macroName, macroArgs = None ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode )
       assert isinstance( macroArgs, (list,tuple)  ) or ( macroArgs is None )
       
       if macroArgs is None:
@@ -206,7 +206,7 @@ class MacroEvaluator:
       return self.evalEndMacro( macroName, macroArgs )
 
    def simpleMacro( self, macroName, macroArgs = None ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode )
       assert isinstance( macroArgs, (list,tuple)  ) or ( macroArgs is None )
       
       if macroArgs is None:
@@ -235,13 +235,13 @@ class MacroEvaluator:
 
 class Buffer:
    def __init__( self, buf ):
-      assert isinstance( buf, (str,unicode) )
+      assert isinstance( buf, unicode )
       
       self.buf   = buf
       self.point = 0
 
    def substitute( self, aNewSubstring, aMark ):
-      assert isinstance( aNewSubstring, (str,unicode) )
+      assert isinstance( aNewSubstring, unicode )
       assert isinstance( aMark,         int           )
       
       newVal = self.buf[ : aMark ] + aNewSubstring + self.buf[ self.point : ]
@@ -259,7 +259,7 @@ class Buffer:
       return self.buf[ self.point ]
 
    def consumeString( self, aStr ):
-      assert isinstance( aStr, (str,unicode) )
+      assert isinstance( aStr, unicode )
       
       if self.buf.startswith( aStr, self.point ):
          self.point += len( aStr )
@@ -304,7 +304,7 @@ class MacroProcessor:
 
    # Extension
    def process( self, string ):
-      assert isinstance( string, (str,unicode) )
+      assert isinstance( string, unicode )
       
       buf = Buffer( string )
       
@@ -413,10 +413,10 @@ class MacroProcessor:
 
    @staticmethod
    def splice( aBaseStr, aBeginPos, anEndPos, newSubstr ):
-      assert isinstance( aBaseStr,  (str,unicode) )
-      assert isinstance( aBeginPos, int           )
-      assert isinstance( anEndPos,  int           )
-      assert isinstance( newSubstr, (str,unicode) )
+      assert isinstance( aBaseStr,  unicode )
+      assert isinstance( aBeginPos, int     )
+      assert isinstance( anEndPos,  int     )
+      assert isinstance( newSubstr, unicode )
       
       return ''.join( ( aBaseStr[ : aBeginPos ], newSubstr, aBaseStr[ anEndPos : ] ) )
 
@@ -437,7 +437,7 @@ class BasicMacroEvaluator( MacroEvaluator ):
       self.bookmarkReport = {}
 
    def define( self, macroName, definition ):
-      assert isinstance( macroName, ( str, unicode ) )
+      assert isinstance( macroName, unicode )
       assert isinstance( definition, Macro ) or (definition is None)
       
       if definition is None:
@@ -446,14 +446,14 @@ class BasicMacroEvaluator( MacroEvaluator ):
          self._macros[ macroName ] = definition
 
    def isDefined( self, macroName ):
-      assert isinstance( macroName, ( str, unicode ) )
+      assert isinstance( macroName, unicode )
       return macroName in self._macros
 
    def resetDefs( self ):
       self._macros = { }
 
    def evalBeginMacro( self, macroName, macroArgs ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode       )
       assert isinstance( macroArgs, (list,tuple)  )
       
       if macroName not in self._macros:
@@ -467,13 +467,13 @@ class BasicMacroEvaluator( MacroEvaluator ):
       return self._macros[ macroName ].value( Macro.PREFIX )
 
    def evalEndMacro( self, macroName, macroArgs ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode )
       assert isinstance( macroArgs, (list,tuple)  )
       
       return self._macros[ macroName ].value( Macro.POSTFIX )
 
    def evalSimpleMacro( self, macroName, macroArgs ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode )
       assert isinstance( macroArgs, (list,tuple)  )
       
       if macroName not in self._macros:
@@ -490,7 +490,7 @@ class BasicMacroEvaluator( MacroEvaluator ):
       return self._macros[ macroName ].value( )
 
    def storeArgs( self, macroName, macroArgs ):
-      assert isinstance( macroName, (str,unicode) )
+      assert isinstance( macroName, unicode )
       assert isinstance( macroArgs, (list,tuple)  )
       
       if macroName == 'define':

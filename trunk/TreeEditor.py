@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 """
 TASKS - Basic Functionality
@@ -226,7 +226,7 @@ class TreeViewEntry( Tix.Frame ):
          raise
       
       data = self._treeEntry.article
-      dataType = 'text' if isinstance( self._treeEntry.article, (str,unicode) ) else 'dump'
+      dataType = 'text' if isinstance( self._treeEntry.article, unicode ) else 'dump'
       
       try:
          #if dataType == 'dump':
@@ -644,10 +644,10 @@ class TreeEditor( Tix.Frame ):
          exceptionPopup( )
 
    def replace( self, pattern, newStr, path, recursive ):
-      assert isinstance( pattern,    (str,unicode) )
-      assert isinstance( newStr,     (str,unicode) )
-      assert isinstance( path,       TreePath      )
-      assert isinstance( recursive,  bool          )
+      assert isinstance( pattern,    unicode  )
+      assert isinstance( newStr,     unicode  )
+      assert isinstance( path,       TreePath )
+      assert isinstance( recursive,  bool     )
       pass
    
    def indentSubtree( self, path=None ):

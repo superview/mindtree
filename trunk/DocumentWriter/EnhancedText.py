@@ -1,314 +1,314 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from TkTools import KBController, bind
 import Tkinter
 
-class LineNotVisibleException( Exception ):
-   pass
+#class LineNotVisibleException( Exception ):
+   #pass
 
-class EnhancedTextController( KBController ):
-   def __init__( self ):
-      KBController.__init__( self )
-      self._insert_x_pos      = None
+#class EnhancedTextController( KBController ):
+   #def __init__( self ):
+      #KBController.__init__( self )
+      #self._insert_x_pos      = None
    
-   def onTypedCharacterKey( self, event ):
-      try:
-         event.widget.sel_delete( )
-      except:
-         pass
+   #def onTypedCharacterKey( self, event ):
+      #try:
+         #event.widget.sel_delete( )
+      #except:
+         #pass
       
-      event.widget.insert( 'insert', event.char )
-      event.widget.sel_clear( )
-      event.widget.see( 'insert' )
+      #event.widget.insert( 'insert', event.char )
+      #event.widget.sel_clear( )
+      #event.widget.see( 'insert' )
       
-      self._insert_x_pos = None
+      #self._insert_x_pos = None
    
-   def onTypedSpecialKey( self, event ):
-      widget = event.widget
+   #def onTypedSpecialKey( self, event ):
+      #widget = event.widget
       
-      if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert', 'Escape' ):
-         self.typeSpecial( event )
+      #if event.keysym in ( 'Return','Enter','KP_Enter','Tab','BackSpace','Delete','Insert', 'Escape' ):
+         #self.typeSpecial( event )
       
-      elif event.keysym in ( 'Up', 'Down', 'Left', 'Right', 'Home', 'End', 'Prior', 'Next',
-                             'KP_Up', 'KP_Down', 'KP_Left', 'KP_Right', 'KP_Home', 'KP_End', 'KP_Prior', 'KP_Next' ):
-         self.moveCarrot( event )
+      #elif event.keysym in ( 'Up', 'Down', 'Left', 'Right', 'Home', 'End', 'Prior', 'Next',
+                             #'KP_Up', 'KP_Down', 'KP_Left', 'KP_Right', 'KP_Home', 'KP_End', 'KP_Prior', 'KP_Next' ):
+         #self.moveCarrot( event )
       
-      elif self._control:
-         self.typeControlCombo( event )
+      #elif self._control:
+         #self.typeControlCombo( event )
 
-   def moveCarrot( self, event ):
-      widget = event.widget
-      widget.see( 'insert' )
-      if self._shift:
-         if not widget.sel_isAnchorSet():
-            widget.mark_set( 'anchor', 'insert' )
-      else:
-         widget.sel_clear( )
+   #def moveCarrot( self, event ):
+      #widget = event.widget
+      #widget.see( 'insert' )
+      #if self._shift:
+         #if not widget.sel_isAnchorSet():
+            #widget.mark_set( 'anchor', 'insert' )
+      #else:
+         #widget.sel_clear( )
       
-      if not self._shift:
-         if event.keysym in ('Up','Down'):
-            if self._insert_x_pos is None:
-               self._insert_x_pos = event.widget.bbox( 'insert' )[0]
-         else:
-            self._insert_x_pos = None
+      #if not self._shift:
+         #if event.keysym in ('Up','Down'):
+            #if self._insert_x_pos is None:
+               #self._insert_x_pos = event.widget.bbox( 'insert' )[0]
+         #else:
+            #self._insert_x_pos = None
       
-      if event.keysym in ( 'Home', 'KP_Home' ):
-         if self._control:
-            # Move to beginning of text
-            widget.mark_set( 'insert', '1.0' )
-         else:
-            # Move to front of line
-            insert = widget.index( 'insert' )
-            dline_start = widget.dline_start( insert )
-            dline_end   = widget.dline_end( insert )
-            dline_first = widget.search( "[^[:space:]]", dline_start, dline_end, regexp=True )
+      #if event.keysym in ( 'Home', 'KP_Home' ):
+         #if self._control:
+            ## Move to beginning of text
+            #widget.mark_set( 'insert', '1.0' )
+         #else:
+            ## Move to front of line
+            #insert = widget.index( 'insert' )
+            #dline_start = widget.dline_start( insert )
+            #dline_end   = widget.dline_end( insert )
+            #dline_first = widget.search( "[^[:space:]]", dline_start, dline_end, regexp=True )
             
-            if dline_first == '':
-               widget.mark_set( 'insert', dline_start )
-            elif widget.compare( 'insert', '!=', dline_first ):
-               widget.mark_set( 'insert', dline_first )
-            else:
-               widget.mark_set( 'insert', dline_start )
-      elif event.keysym in ( 'End', 'KP_End' ):
-         if self._control:
-            # Move to end of text
-            widget.mark_set( 'insert', 'end' )
-         else:
-            # Move to end of line
-            widget.mark_set( 'insert', widget.dline_end('insert') )
-      elif event.keysym == 'Right':
-         if self._control:
-            # Move by word
-            currentPos = widget.index( 'insert' )
-            maxPos     = widget.index( 'end wordstart' )
+            #if dline_first == '':
+               #widget.mark_set( 'insert', dline_start )
+            #elif widget.compare( 'insert', '!=', dline_first ):
+               #widget.mark_set( 'insert', dline_first )
+            #else:
+               #widget.mark_set( 'insert', dline_start )
+      #elif event.keysym in ( 'End', 'KP_End' ):
+         #if self._control:
+            ## Move to end of text
+            #widget.mark_set( 'insert', 'end' )
+         #else:
+            ## Move to end of line
+            #widget.mark_set( 'insert', widget.dline_end('insert') )
+      #elif event.keysym == 'Right':
+         #if self._control:
+            ## Move by word
+            #currentPos = widget.index( 'insert' )
+            #maxPos     = widget.index( 'end wordstart' )
             
-            if currentPos == maxPos:
-               return
+            #if currentPos == maxPos:
+               #return
             
-            offset = 1
-            while widget.compare( currentPos, '==', widget.index('insert') ):
-               widget.mark_set( 'insert', 'insert wordend +%dc wordstart' % offset )
-               offset += 1
-         else:
-            # Move by character
-            widget.mark_set( 'insert', 'insert +1 chars' )
-      elif event.keysym == 'Left':
-         if self._control:
-            # Move by word
-            currentPos = widget.index( 'insert' )
-            minPos     = widget.index( '1.0 wordstart' )
+            #offset = 1
+            #while widget.compare( currentPos, '==', widget.index('insert') ):
+               #widget.mark_set( 'insert', 'insert wordend +%dc wordstart' % offset )
+               #offset += 1
+         #else:
+            ## Move by character
+            #widget.mark_set( 'insert', 'insert +1 chars' )
+      #elif event.keysym == 'Left':
+         #if self._control:
+            ## Move by word
+            #currentPos = widget.index( 'insert' )
+            #minPos     = widget.index( '1.0 wordstart' )
             
-            if currentPos == minPos:
-               return
+            #if currentPos == minPos:
+               #return
             
-            offset = 2
-            widget.mark_set( 'insert', 'insert wordstart' )
-            while widget.compare( currentPos, '==', widget.index('insert') ):
-               widget.mark_set( 'insert', 'insert -%dc wordstart' % offset )
-               offset += 1
-         else:
-            # Move by character
-            widget.mark_set( 'insert', 'insert -1 chars' )
-      elif event.keysym == 'Down':
-         if self._control:
-            # Move by Paragraph
-            widget.mark_set( 'insert', 'insert +1 lines' )
-         else:
-            # Move by line
-            widget.mark_set( 'insert', widget.dline_next( 'insert', useThisX=self._insert_x_pos ) )
-      elif event.keysym == 'Up':
-         if self._control:
-            # Move by Paragraph
-            widget.mark_set( 'insert', 'insert -1 lines' )
-            pass
-         else:
-            # Move by line
-            widget.mark_set( 'insert', widget.dline_prev( 'insert', useThisX=self._insert_x_pos ) )
-      elif event.keysym == 'Prior':
-         if self._control:
-            pass
-         else:
-            # Move by page
-            if widget.bbox( '1.0' ):
-               widget.mark_set( 'insert', '1.0' )
-            else:
-               pos = widget.bbox( 'insert' )
-               event.widget.yview_scroll( -1, 'pages' )
-               widget.mark_set( 'insert', '@%d,%d' % pos[:2] )
-      elif event.keysym == 'Next':
-         if self._control:
-            pass
-         else:
-            # Move by page
-            if widget.bbox( 'end -1 chars' ):
-               widget.mark_set( 'insert', 'end -1 chars' )
-            else:
-               pos = widget.bbox( 'insert' )
-               event.widget.yview_scroll( 1, 'pages' )
-               widget.mark_set( 'insert', '@%d,%d' % pos[:2] )
+            #offset = 2
+            #widget.mark_set( 'insert', 'insert wordstart' )
+            #while widget.compare( currentPos, '==', widget.index('insert') ):
+               #widget.mark_set( 'insert', 'insert -%dc wordstart' % offset )
+               #offset += 1
+         #else:
+            ## Move by character
+            #widget.mark_set( 'insert', 'insert -1 chars' )
+      #elif event.keysym == 'Down':
+         #if self._control:
+            ## Move by Paragraph
+            #widget.mark_set( 'insert', 'insert +1 lines' )
+         #else:
+            ## Move by line
+            #widget.mark_set( 'insert', widget.dline_next( 'insert', useThisX=self._insert_x_pos ) )
+      #elif event.keysym == 'Up':
+         #if self._control:
+            ## Move by Paragraph
+            #widget.mark_set( 'insert', 'insert -1 lines' )
+            #pass
+         #else:
+            ## Move by line
+            #widget.mark_set( 'insert', widget.dline_prev( 'insert', useThisX=self._insert_x_pos ) )
+      #elif event.keysym == 'Prior':
+         #if self._control:
+            #pass
+         #else:
+            ## Move by page
+            #if widget.bbox( '1.0' ):
+               #widget.mark_set( 'insert', '1.0' )
+            #else:
+               #pos = widget.bbox( 'insert' )
+               #event.widget.yview_scroll( -1, 'pages' )
+               #widget.mark_set( 'insert', '@%d,%d' % pos[:2] )
+      #elif event.keysym == 'Next':
+         #if self._control:
+            #pass
+         #else:
+            ## Move by page
+            #if widget.bbox( 'end -1 chars' ):
+               #widget.mark_set( 'insert', 'end -1 chars' )
+            #else:
+               #pos = widget.bbox( 'insert' )
+               #event.widget.yview_scroll( 1, 'pages' )
+               #widget.mark_set( 'insert', '@%d,%d' % pos[:2] )
       
-      widget.see( 'insert' )
+      #widget.see( 'insert' )
 
-   def typeSpecial( self, event ):
-      widget = event.widget
+   #def typeSpecial( self, event ):
+      #widget = event.widget
       
-      if event.keysym in ( 'Return', 'Enter', 'KP_Enter' ):
-         try:
-            widget.sel_delete( )
-         finally:
-            widget.insert( 'insert', '\n' )
-            widget.see( 'insert' )
-      elif event.keysym == 'Tab':
-         widget.insert( 'insert', '\t' )
-         # We need to steal back focus since the widget manager will try to take it
-         widget.after( 1, widget.focus_set )
-      elif event.keysym == 'BackSpace':
-         try:
-            widget.delete( 'sel.first', 'sel.last' )
-         except:
-            widget.delete( 'insert -1 chars', 'insert' )
-      elif event.keysym in ( 'Delete', 'KP_Delete' ):
-         try:
-            widget.delete( 'sel.first', 'sel.last' )
-         except:
-            widget.delete( 'insert', 'insert +1 chars' )
-      elif event.keysym == 'Escape':
-         # Clear the current selection
-         pass
+      #if event.keysym in ( 'Return', 'Enter', 'KP_Enter' ):
+         #try:
+            #widget.sel_delete( )
+         #finally:
+            #widget.insert( 'insert', '\n' )
+            #widget.see( 'insert' )
+      #elif event.keysym == 'Tab':
+         #widget.insert( 'insert', '\t' )
+         ## We need to steal back focus since the widget manager will try to take it
+         #widget.after( 1, widget.focus_set )
+      #elif event.keysym == 'BackSpace':
+         #try:
+            #widget.delete( 'sel.first', 'sel.last' )
+         #except:
+            #widget.delete( 'insert -1 chars', 'insert' )
+      #elif event.keysym in ( 'Delete', 'KP_Delete' ):
+         #try:
+            #widget.delete( 'sel.first', 'sel.last' )
+         #except:
+            #widget.delete( 'insert', 'insert +1 chars' )
+      #elif event.keysym == 'Escape':
+         ## Clear the current selection
+         #pass
       
-      widget.sel_clear()
-      self._insert_x_pos = None
+      #widget.sel_clear()
+      #self._insert_x_pos = None
 
-   def typeControlCombo( self, event ):
-      import pickle
-      widget = event.widget
+   #def typeControlCombo( self, event ):
+      #import pickle
+      #widget = event.widget
       
-      if event.keysym == 'a':
-         # select all
-         widget.mark_set( 'anchor', '1.0' )
-         widget.mark_set( 'insert', 'end' )
-         widget.sel_update( )
-      elif event.keysym == 'c':
-         # copy
-         try:
-            content = widget.dump( 'sel.first', 'sel.last' )
-            result = pickle.dumps( content )
-            widget.clipboard_append( result )
-         except:
-            pass
-      elif event.keysym == 'r':
-         # Redo
-         try:
-            widget.edit_redo( )
-         except:
-            pass
-         widget.sel_clear( )
-      elif event.keysym == 'v':
-         # paste
-         try:
-            widget.sel_delete( )
-         except:
-            pass
+      #if event.keysym == 'a':
+         ## select all
+         #widget.mark_set( 'anchor', '1.0' )
+         #widget.mark_set( 'insert', 'end' )
+         #widget.sel_update( )
+      #elif event.keysym == 'c':
+         ## copy
+         #try:
+            #content = widget.dump( 'sel.first', 'sel.last' )
+            #result = pickle.dumps( content )
+            #widget.clipboard_append( result )
+         #except:
+            #pass
+      #elif event.keysym == 'r':
+         ## Redo
+         #try:
+            #widget.edit_redo( )
+         #except:
+            #pass
+         #widget.sel_clear( )
+      #elif event.keysym == 'v':
+         ## paste
+         #try:
+            #widget.sel_delete( )
+         #except:
+            #pass
          
-         try:
-            widget.mark_set( 'insert', 'sel.first' )
-            widget.delete( 'sel.first', 'sel.last' )
-         except:
-            pass
+         #try:
+            #widget.mark_set( 'insert', 'sel.first' )
+            #widget.delete( 'sel.first', 'sel.last' )
+         #except:
+            #pass
          
-         result = pickle.loads( widget.clipboard_get( ) )
-         widget.insert( 'insert', result )
-         widget.sel_clear( )
-      elif event.keysym == 'x':
-         # cut
-         try:
-            widget.sel_delete( )
-         except:
-            pass
+         #result = pickle.loads( widget.clipboard_get( ) )
+         #widget.insert( 'insert', result )
+         #widget.sel_clear( )
+      #elif event.keysym == 'x':
+         ## cut
+         #try:
+            #widget.sel_delete( )
+         #except:
+            #pass
          
-         try:
-            content = widget.dump( 'sel.first', 'sel.last' )
-            result = pickle.dumps( content )
-            widget.clipboard_append( result )
-            widget.delete( 'sel.first', 'sel.last' )
-            widget.ins_updateTags( )
-         except:
-            pass
-         widget.sel_clear( )
-      elif event.keysym == 'z':
-         # Undo
-         try:
-            widget.edit_undo( )
-         except:
-            pass
-         widget.sel_clear( )
+         #try:
+            #content = widget.dump( 'sel.first', 'sel.last' )
+            #result = pickle.dumps( content )
+            #widget.clipboard_append( result )
+            #widget.delete( 'sel.first', 'sel.last' )
+            #widget.ins_updateTags( )
+         #except:
+            #pass
+         #widget.sel_clear( )
+      #elif event.keysym == 'z':
+         ## Undo
+         #try:
+            #widget.edit_undo( )
+         #except:
+            #pass
+         #widget.sel_clear( )
       
-      self._insert_x_pos = None
+      #self._insert_x_pos = None
 
-   @bind( '<ButtonPress-1>' )
-   def click( self, event ):
-      event.widget.focus_set( )
+   #@bind( '<ButtonPress-1>' )
+   #def click( self, event ):
+      #event.widget.focus_set( )
       
-      if not self._shift and not self._control:
-         event.widget.sel_clear( )
-         event.widget.mark_set( 'anchor', 'current' )
+      #if not self._shift and not self._control:
+         #event.widget.sel_clear( )
+         #event.widget.mark_set( 'anchor', 'current' )
       
-      self._insert_x_pos = None
+      #self._insert_x_pos = None
 
-   @bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
-   def dragSelection( self, event ):
-      widget = event.widget
+   #@bind( '<B1-Motion>', '<Shift-Button1-Motion>' )
+   #def dragSelection( self, event ):
+      #widget = event.widget
       
-      if event.y < 0:
-         widget.yview_scroll( -1, 'units' )
-      elif event.y >= widget.winfo_height():
-         widget.yview_scroll( 1, 'units' )
+      #if event.y < 0:
+         #widget.yview_scroll( -1, 'units' )
+      #elif event.y >= widget.winfo_height():
+         #widget.yview_scroll( 1, 'units' )
       
-      if not widget.sel_isAnchorSet( ):
-         widget.mark_set( 'anchor', '@%d,%d' % (event.x+2, event.y) )
+      #if not widget.sel_isAnchorSet( ):
+         #widget.mark_set( 'anchor', '@%d,%d' % (event.x+2, event.y) )
       
-      widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
-      self._insert_x_pos = None
+      #widget.mark_set( 'insert', '@%d,%d' % (event.x+2, event.y) )
+      #self._insert_x_pos = None
 
-   @bind( '<ButtonRelease-1>' )
-   def moveCarrot_deselect( self, event ):
-      widget = event.widget
+   #@bind( '<ButtonRelease-1>' )
+   #def moveCarrot_deselect( self, event ):
+      #widget = event.widget
       
-      widget.focus_set( )
-      widget.grab_release( )
-      widget.mark_set( 'insert', 'current' )
-      self._insert_x_pos = None
+      #widget.focus_set( )
+      #widget.grab_release( )
+      #widget.mark_set( 'insert', 'current' )
+      #self._insert_x_pos = None
 
-   @bind( '<Double-ButtonPress-1>' )
-   def selectWord( self, event ):
-      event.widget.mark_set( 'anchor', 'insert wordstart' )
-      event.widget.mark_set( 'insert', 'insert wordend' )
-      self._insert_x_pos = None
+   #@bind( '<Double-ButtonPress-1>' )
+   #def selectWord( self, event ):
+      #event.widget.mark_set( 'anchor', 'insert wordstart' )
+      #event.widget.mark_set( 'insert', 'insert wordend' )
+      #self._insert_x_pos = None
 
-   @bind( '<Triple-ButtonPress-1>' )
-   def selectLine( self, event ):
-      event.widget.mark_set( 'anchor', 'insert linestart' )
-      event.widget.mark_set( 'insert', 'insert lineend' )
-      self._insert_x_pos = None
+   #@bind( '<Triple-ButtonPress-1>' )
+   #def selectLine( self, event ):
+      #event.widget.mark_set( 'anchor', 'insert linestart' )
+      #event.widget.mark_set( 'insert', 'insert lineend' )
+      #self._insert_x_pos = None
 
-   @bind( '<Button1-Leave>' )
-   def scrollView( self, event ):
-      widget = event.widget
+   #@bind( '<Button1-Leave>' )
+   #def scrollView( self, event ):
+      #widget = event.widget
       
-      if event.y < 0:
-         widget.yview_scroll( -1, 'units' )
-      elif event.y >= widget.winfo_height():
-         widget.yview_scroll( 1, 'units' )
+      #if event.y < 0:
+         #widget.yview_scroll( -1, 'units' )
+      #elif event.y >= widget.winfo_height():
+         #widget.yview_scroll( 1, 'units' )
       
-      widget.grab_set( )
+      #widget.grab_set( )
    
-   @bind( '<MouseWheel>' )
-   def wheelScroll( self, event ):
-      widget = event.widget
+   #@bind( '<MouseWheel>' )
+   #def wheelScroll( self, event ):
+      #widget = event.widget
       
-      if event.delta < 0:
-         widget.yview_scroll( 1, 'units' )
-      else:
-         widget.yview_scroll( -1, 'units' )
+      #if event.delta < 0:
+         #widget.yview_scroll( 1, 'units' )
+      #else:
+         #widget.yview_scroll( -1, 'units' )
    
 
 class EnhancedText( Tkinter.Text ):
@@ -319,8 +319,8 @@ class EnhancedText( Tkinter.Text ):
       options[ 'takefocus' ] = True
       Tkinter.Text.__init__( self, parent, **options )
       
-      controller = EnhancedTextController( )
-      controller.install( self )
+      #controller = EnhancedTextController( )
+      #controller.install( self )
 
    # Selection Operations
    def sel_clear( self ):
@@ -360,100 +360,100 @@ class EnhancedText( Tkinter.Text ):
       self.sel_clear( )
    
    # Display Lines
-   def dline_start( self, index ):
-      '''
-      Returns the index of the first character on the display line which
-      contains index.
-      '''
-      try:
-         x,y,width,height = self.bbox( index )
-         return self.index( '@%d,%d' % (0, y) )
-      except:
-         raise LineNotVisibleException
+   #def dline_start( self, index ):
+      #'''
+      #Returns the index of the first character on the display line which
+      #contains index.
+      #'''
+      #try:
+         #x,y,width,height = self.bbox( index )
+         #return self.index( '@%d,%d' % (0, y) )
+      #except:
+         #raise LineNotVisibleException
    
-   def dline_end( self, index ):
-      '''
-      Returns the index of the last character on the display line which
-      contains index.
-      '''
-      try:
-         x,y,width,height = self.bbox( index )
-         return self.index( '@%d,%d' % ( self.winfo_width(), y ) )
-      except:
-         raise LineNotVisibleException
+   #def dline_end( self, index ):
+      #'''
+      #Returns the index of the last character on the display line which
+      #contains index.
+      #'''
+      #try:
+         #x,y,width,height = self.bbox( index )
+         #return self.index( '@%d,%d' % ( self.winfo_width(), y ) )
+      #except:
+         #raise LineNotVisibleException
 
-   def dline_prev( self, index, useThisX=None ):
-      '''
-      Returns the index of the display-line immediately above the index
-      provided.  If useThisX is provided, the returned index is as close to x
-      as possible, otherwise, the x from bbox(index) is used.
-      '''
-      delta = 10
-      spacing = self.bbox( self.index( '@1,1' ) )[1]
-      minY = delta + spacing
+   #def dline_prev( self, index, useThisX=None ):
+      #'''
+      #Returns the index of the display-line immediately above the index
+      #provided.  If useThisX is provided, the returned index is as close to x
+      #as possible, otherwise, the x from bbox(index) is used.
+      #'''
+      #delta = 10
+      #spacing = self.bbox( self.index( '@1,1' ) )[1]
+      #minY = delta + spacing
       
-      x,y,width,height = self.bbox( index )
+      #x,y,width,height = self.bbox( index )
       
-      if useThisX:
-         x = useThisX
+      #if useThisX:
+         #x = useThisX
       
-      insertIndex = self.index( index )
-      newIndex = self.index( '@%d,%d' % ( x, y ) )
-      while self.compare( newIndex, '==', insertIndex) and self.compare(insertIndex, '>', '1.0'):
-         if y < minY:
-            self.yview_scroll( -1, 'units' )
-            x,y,width,height = self.bbox( insertIndex )
-         y -= delta
-         newIndex = self.index( '@%d,%d' % ( x, y ) )
+      #insertIndex = self.index( index )
+      #newIndex = self.index( '@%d,%d' % ( x, y ) )
+      #while self.compare( newIndex, '==', insertIndex) and self.compare(insertIndex, '>', '1.0'):
+         #if y < minY:
+            #self.yview_scroll( -1, 'units' )
+            #x,y,width,height = self.bbox( insertIndex )
+         #y -= delta
+         #newIndex = self.index( '@%d,%d' % ( x, y ) )
          
-         if self.index('@1,1') == '1.0':
-            lastIndexOnTopDisplayLine = self.dline_end( '1.0' )
-            if self.compare( newIndex, '<=', lastIndexOnTopDisplayLine ):
-               break
+         #if self.index('@1,1') == '1.0':
+            #lastIndexOnTopDisplayLine = self.dline_end( '1.0' )
+            #if self.compare( newIndex, '<=', lastIndexOnTopDisplayLine ):
+               #break
       
-      return newIndex
+      #return newIndex
    
-   def dline_next( self, index, useThisX=None ):
-      '''
-      Returns the index of the display-line immediately below the index
-      provided.  If useThisX is provided, the returned index is as close to x
-      as possible, otherwise, the x from bbox(index) is used.
-      '''
-      index = self.index( index )
-      self.see( index )
-      x,y,width,height,baseline = self.dlineinfo( index )
-      maxY = self.winfo_height() - 1
+   #def dline_next( self, index, useThisX=None ):
+      #'''
+      #Returns the index of the display-line immediately below the index
+      #provided.  If useThisX is provided, the returned index is as close to x
+      #as possible, otherwise, the x from bbox(index) is used.
+      #'''
+      #index = self.index( index )
+      #self.see( index )
+      #x,y,width,height,baseline = self.dlineinfo( index )
+      #maxY = self.winfo_height() - 1
       
-      if useThisX:
-         x = useThisX
+      #if useThisX:
+         #x = useThisX
       
-      newY = y + height + 1
-      while newY >= maxY:
-         self.yview_scroll( 1, 'units' )
-         self.see( index )
-         x,y,width,height,baseline = self.dlineinfo( index )
+      #newY = y + height + 1
+      #while newY >= maxY:
+         #self.yview_scroll( 1, 'units' )
+         #self.see( index )
+         #x,y,width,height,baseline = self.dlineinfo( index )
          
-         if useThisX:
-            x = useThisX
+         #if useThisX:
+            #x = useThisX
          
-         newY = y + height + 1
+         #newY = y + height + 1
       
-      newIndex = self.index( '@%d,%d' % (x, newY) )
-      while self.compare( newIndex, '==', index ) and self.compare( newIndex, '<', 'end -1 chars' ):
-         newY += 5
-         while newY >= maxY:
-            self.yview_scroll( 1, 'units' )
-            self.see( index )
-            x,y,width,height,baseline = self.dlineinfo( index )
+      #newIndex = self.index( '@%d,%d' % (x, newY) )
+      #while self.compare( newIndex, '==', index ) and self.compare( newIndex, '<', 'end -1 chars' ):
+         #newY += 5
+         #while newY >= maxY:
+            #self.yview_scroll( 1, 'units' )
+            #self.see( index )
+            #x,y,width,height,baseline = self.dlineinfo( index )
             
-            if useThisX:
-               x = useThisX
+            #if useThisX:
+               #x = useThisX
             
-            newY = y + height + 1
+            #newY = y + height + 1
          
-         newIndex = self.index( '@%d,%d' % (x,newY) )
+         #newIndex = self.index( '@%d,%d' % (x,newY) )
       
-      return newIndex
+      #return newIndex
    
    # Overloads
    def dump( self, index1='1.0', index2='end', command=None, omittedTags=None, omittedMarks=None, **options ):
@@ -569,10 +569,10 @@ class EnhancedText( Tkinter.Text ):
          if key not in ( 'tagon','tagoff','mark','text','image','window' ):
             raise Exception( "Invalid key in dump: %s" % key )
          
-         if not isinstance( val, (str,unicode) ):
+         if not isinstance( val, (bytes,unicode) ):
             raise Exception( "Invalid value in dump: %s" % val )
          
-         if not isinstance( index, (str,unicode) ):
+         if not isinstance( index, (bytes,unicode) ):
             raise Exception( "Invalid index in dump: %s" % index )
          
          try:

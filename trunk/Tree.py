@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import copy
 import uuid
 
@@ -8,16 +8,17 @@ class InvalidPathError( Exception ):
 
 
 class TreePath( object ):
+   __hash__ = None
    SEPARATOR   =   '.'
    
    def __init__( self, aPath=[] ):
-      assert isinstance( aPath, (str,unicode,list,uuid.UUID,TreePath) )
+      assert isinstance( aPath, (unicode,list,uuid.UUID,TreePath) )
       
       if isinstance( aPath, list ):
          self._path = copy.copy( aPath )
       elif isinstance( aPath, uuid.UUID ):
          self._path = [ aPath ]
-      elif isinstance( aPath, (str,unicode) ):
+      elif isinstance( aPath, unicode ):
          if aPath == '':
             self._path = [ ]
          else:
@@ -54,7 +55,7 @@ class TreePath( object ):
    
    def __add__( self, other ):
       assert isinstance( other, (TreePath,list,uuid.UUID) )
-      #assert isinstance( other, (TreePath,str,unicode,list,uuid.UUID) )
+      #assert isinstance( other, (TreePath,unicode,list,uuid.UUID) )
       assert isinstance( self._path, list )
       
       if isinstance( other, TreePath ):
@@ -69,7 +70,7 @@ class TreePath( object ):
          raise Exception( 'Bad Type' )
       #if isinstance( other, TreePath ):
          #return TreePath( self._path + other._path )
-      #elif isinstance( other, (str,unicode) ):
+      #elif isinstance( other, unicode ):
          #return TreePath( self._path + other.split( TreePath.SEPARATOR ) )
       #elif isinstance( other, list ):
          #return TreePath( self._path + other )
@@ -140,7 +141,7 @@ class Tree( object ):
    CHILD  = 2
 
    def __init__( self, title = None, article = None, subtrees = None ):
-      assert (title is None) or isinstance( title, (str,unicode) )
+      assert (title is None) or isinstance( title, unicode )
       assert (subtrees is None) or isinstance( subtrees, list )
       
       self.id       = uuid.uuid4()
@@ -165,7 +166,7 @@ class Tree( object ):
 
    def __str__( self ):
       assert isinstance( self.id,       uuid.UUID ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.title,    unicode ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       result = '(self.title ### self.article ### '
@@ -189,7 +190,7 @@ class Tree( object ):
       assert isinstance( aRelation, int      )
       
       assert isinstance( self.id,       uuid.UUID ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.title,    (bytes,unicode) ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       # Verify that aRefPath exists
@@ -237,7 +238,7 @@ class Tree( object ):
       assert isinstance( path, TreePath )
       
       assert isinstance( self.id,       uuid.UUID ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.title,    unicode ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       parentTree = self.subtree( path.parentPath( ) )
@@ -259,7 +260,7 @@ class Tree( object ):
       assert isinstance( path, TreePath )
       
       assert isinstance( self.id,       uuid.UUID ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.title,    (bytes,unicode) ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       if len(path) == 0:
@@ -278,8 +279,8 @@ class Tree( object ):
       #"""
       #assert isinstance( path, TreePath )
       
-      #assert isinstance( self.id,       (str,unicode) ) or ( self.id is None )
-      #assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      #assert isinstance( self.id,       unicode ) or ( self.id is None )
+      #assert isinstance( self.title,    unicode ) or ( self.title is None )
       #assert isinstance( self.subtrees, list          )
       
       #pathCopy = copy.copy( path )
@@ -287,8 +288,8 @@ class Tree( object ):
    
    #def _subtree( self, path ):
       #"""Implementation of subtree( )."""
-      #assert isinstance( self.id,       (str,unicode) ) or ( self.id is None )
-      #assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      #assert isinstance( self.id,       unicode ) or ( self.id is None )
+      #assert isinstance( self.title,    unicode ) or ( self.title is None )
       #assert isinstance( self.subtrees, list          )
       
       #if len(path) == 0:
@@ -305,8 +306,8 @@ class Tree( object ):
       """Find and return the sibling that preceeds path."""
       assert isinstance( path, TreePath )
       
-      assert isinstance( self.id,       (str,unicode,uuid.UUID) ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.id,       (unicode,uuid.UUID) ) or ( self.id is None )
+      assert isinstance( self.title,    unicode ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       parentPath = path.parentPath( )
@@ -322,8 +323,8 @@ class Tree( object ):
       """Find and return the sibling that follows that named by path."""
       assert isinstance( path, TreePath )
       
-      assert isinstance( self.id,       (str,unicode,uuid.UUID) ) or ( self.id is None )
-      assert isinstance( self.title,    (str,unicode) ) or ( self.title is None )
+      assert isinstance( self.id,       (unicode,uuid.UUID) ) or ( self.id is None )
+      assert isinstance( self.title,    unicode ) or ( self.title is None )
       assert isinstance( self.subtrees, list          )
       
       parentPath = path.parentPath( )

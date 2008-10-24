@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 """
 Standard Tags
 =============
@@ -153,10 +153,10 @@ class HTMLBuilder( object ):
       self.nestingStack  = None
          # list of tuple: ( entryName, isLast )
 
-   def locationStr( self, aSeparator = u' :: ' ):
+   def locationStr( self, aSeparator = ' :: ' ):
       return aSeparator.join( self.location )
       if len( self.location ) <= 1:
-         return u''
+         return ''
       
       locationStr = self.location[1]
       for locIdx in xrange( len( self.location ) - 2 ):
@@ -189,12 +189,12 @@ class HTMLBuilder( object ):
 
    def buildTreeElementStr( self, element, id = None ):
       if ( id is not None ):
-         return u"<img src=%s width=%d height=%d onclick=\"toggleFolder(\'folder%s\', this)\" />" % ( element[0], element[1], element[2], id )
+         return "<img src=%s width=%d height=%d onclick=\"toggleFolder(\'folder%s\', this)\" />" % ( element[0], element[1], element[2], id )
       else:
-         return u"<img src=%s width=%d height=%d />" % element
+         return "<img src=%s width=%d height=%d />" % element
 
    def buildTreeEntryStr( self, item, isLastInSubtree ):
-      result = u""
+      result = ""
       
       # Scope Lines
       # -----------
@@ -233,66 +233,66 @@ class HTMLBuilder( object ):
       for item in items:
          self.current = item
          
-         self.outline.write( u'<p>' )
+         self.outline.write( '<p>' )
          
          # Build the Outline Tree
          self.outline.write( self.buildTreeEntryStr( item, item == last ) )
          
          # Item
          if item.article:
-            if isinstance( item.article, (str,unicode) ):
-               item.article += u' '
+            if isinstance( item.article, unicode ):
+               item.article += ' '
             
             self._articleCount += 1
             
             articleName = item.title = self.procAndTrans( item.title )
             
             try:
-               anchor = u'<a href="%s#%s" target="baseframe">%s</a>' % (notesName, self._articleCount, articleName )
+               anchor = '<a href="%s#%s" target="baseframe">%s</a>' % (notesName, self._articleCount, articleName )
                anchorStr = str( anchor )
                self.outline.write( anchorStr )
             except:
                pass
             
-            self.procAndTrans( u'{{article( "%s", """ %s """, """ %s """ ):\n' % ( self._articleCount, articleName, self.locationStr( ) ) )
-            if isinstance( item.article, (str,unicode) ):
+            self.procAndTrans( '{{article( "%s", """ %s """, """ %s """ ):\n' % ( self._articleCount, articleName, self.locationStr( ) ) )
+            if isinstance( item.article, unicode ):
                for line in item.article.splitlines( True ):
                   self.procAndTrans( line )
             else:
-               result = u''
+               result = ''
                for key,val,index in item.article:
                   if key == 'text':
                      result += val
                self.procAndTrans( result )
-            self.procAndTrans( u'}}' )
+            self.procAndTrans( '}}' )
          
          else:
             self.outline.write( self.procAndTrans( item.title ) )
          
-         self.outline.write( u'</p>\n' )
+         self.outline.write( '</p>\n' )
          
          # subtrees
          if len(item.subtrees) > 0:
-            self.outline.write( u'<div id="folder%s">\n' % (item.id) )
+            self.outline.write( '<div id="folder%s">\n' % (item.id) )
             self.nestingStack.append( item == last )
             self._buildTree( item.subtrees, notesName )
             self.nestingStack.pop( )
-            self.outline.write( u'</div>\n' )
+            self.outline.write( '</div>\n' )
 
    def buildTree( self, outline, name, notesName ):
       print( "Generating tree..." )
       self.nestingStack = []
-      self.outline.write( self.procAndTrans( u'{{outline( "%s" ):' % name ) )
+      self.outline.write( self.procAndTrans( '{{outline( "%s" ):' % name ) )
       self._articleCount = 0
       self._buildTree( outline.subtrees, notesName )
-      self.outline.write( self.procAndTrans( u'}}' ) )
+      self.outline.write( self.procAndTrans( '}}' ) )
    
    def writeArticle( self, item ):
       articleName = item.title
       
       if isinstance( item.article, (list,tuple) ):
          import TkTools
-         result = u''
+         result = ''
          
          for key,val,index in item.article:
             if key == 'tagon':
@@ -309,14 +309,14 @@ class HTMLBuilder( object ):
          self.articles.write( result )
          return
       
-      begin = u'{{article( "%s", """ %s """, """ %s """ ):\n' % ( self._articleCount, articleName, self.locationStr( ) )
+      begin = '{{article( "%s", """ %s """, """ %s """ ):\n' % ( self._articleCount, articleName, self.locationStr( ) )
       self.articles.write( self.procAndTrans( begin ) )
       
       sectionBegun = False
       itemBegun    = False
       
       lineList     = item.article.splitlines( True )
-      item.article    = u""
+      item.article    = ""
       for line in lineList:
          if line.lstrip( )[0:2] == '[[':
             # Parse the delimiters
@@ -329,12 +329,12 @@ class HTMLBuilder( object ):
             title = line[ begPos + 2 : stylePos ]
             
             if title == 'Definition':
-               icon = u'{{icon.def}}'
+               icon = '{{icon.def}}'
             else:
-               icon = u''
+               icon = ''
             
             if line[ stylePos + 2 ] != ':':
-               style = u'text'
+               style = 'text'
                endPos = stylePos + 2
             else:
                stylePos += 3
@@ -348,11 +348,11 @@ class HTMLBuilder( object ):
             
             # splice the new substring
             if itemBegun:
-               line = MacroProcessor.splice( line, begPos, endPos, u'}} }} {{section( "%s%s", "%s" ):' % ( icon, title, style ) )
+               line = MacroProcessor.splice( line, begPos, endPos, '}} }} {{section( "%s%s", "%s" ):' % ( icon, title, style ) )
             elif sectionBegun:
-               line = MacroProcessor.splice( line, begPos, endPos, u'}} {{section( "%s%s", "%s" ):' % ( icon, title, style ) )
+               line = MacroProcessor.splice( line, begPos, endPos, '}} {{section( "%s%s", "%s" ):' % ( icon, title, style ) )
             else:
-               line = MacroProcessor.splice( line, begPos, endPos, u'{{section( "%s%s", "%s" ):' % ( icon, title, style ) )
+               line = MacroProcessor.splice( line, begPos, endPos, '{{section( "%s%s", "%s" ):' % ( icon, title, style ) )
             
             sectionBegun = True
             itemBegun    = False
@@ -363,21 +363,21 @@ class HTMLBuilder( object ):
             
             #splice the new substring
             if itemBegun:
-               line = MacroProcessor.splice( line, begPos, endPos, u'}} {{item:' )
+               line = MacroProcessor.splice( line, begPos, endPos, '}} {{item:' )
             else:
-               line = MacroProcessor.splice( line, begPos, endPos, u'{{item:' )
+               line = MacroProcessor.splice( line, begPos, endPos, '{{item:' )
             
             itemBegun = True
          
          # Process the line
          item.article += line
       
-      item.article += u'\n\n }}'
+      item.article += '\n\n }}'
       if itemBegun:
-         item.article += u' }}'
+         item.article += ' }}'
       if sectionBegun:
-         item.article += u' }}'
-      item.article += u'\n'
+         item.article += ' }}'
+      item.article += '\n'
       
       self.articles.write( self.procAndTrans( item.article ) )
 
@@ -390,8 +390,8 @@ class HTMLBuilder( object ):
          
          # Item
          if item.article:
-            if isinstance( item.article, (str,unicode) ):
-               item.article += u' '
+            if isinstance( item.article, unicode ):
+               item.article += ' '
             
             self._articleCount += 1
             try:
@@ -434,23 +434,23 @@ class HTMLBuilder( object ):
       try:
          #count = outline.count( )
          count = 1000
-         self.articles.write( self.procAndTrans( u'{{document("%s", "%d"):' % ( name, count ) ) )
+         self.articles.write( self.procAndTrans( '{{document("%s", "%d"):' % ( name, count ) ) )
          
          # Construct the Frame
-         self.frame.write( self.procAndTrans( u'{{frame( "%s", "%s", "%s" )}}' % ( name, outlineName, articlesName ) ) )
+         self.frame.write( self.procAndTrans( '{{frame( "%s", "%s", "%s" )}}' % ( name, outlineName, articlesName ) ) )
          
          # Construct the bodies
          if len( outline.subtrees) > 0:
             # Tree
             self.buildTree( outline, name, articlesName )
             
-            self.procAndTrans( u"""{{define( "see", ( "name" ), ( $\"\"\"<A HREF="#{{bookmark.{{see.name}}}}" TARGET="baseframe">\"\"\", $"</A>") )}}""" )
+            self.procAndTrans( """{{define( "see", ( "name" ), ( $\"\"\"<A HREF="#{{bookmark.{{see.name}}}}" TARGET="baseframe">\"\"\", $"</A>") )}}""" )
             
             # Articles
             print( "Generating articles..." )
             self.buildArticles( outline )
          
-         self.articles.write( self.procAndTrans( u'}}' ) )
+         self.articles.write( self.procAndTrans( '}}' ) )
          
          for key,val in self._msp._handler._macros.items( ):
             if key.startswith( 'bookmark.' ):
