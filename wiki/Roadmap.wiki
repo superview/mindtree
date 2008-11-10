@@ -1,3 +1,4 @@
+#labels Featured
 This document lists future versions and features.
 
 Version 0.1
