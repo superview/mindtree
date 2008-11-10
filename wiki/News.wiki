@@ -1,4 +1,4 @@
-#labels developer,enduser
+#labels Featured,developer,enduser
 =What's Going On with MindTree=
 
 Immediate work has begun on a complete rewrite of MindTree!  This rewrite will take MindTree the the next level: a true application for an end-user.  To do this, MindTree is being completely rewritten ground-up.  The new MindTree is written for Python 2.6 (with Python 3.0 in mind to make the transition to 3.0 easier).  The GUI is being rewritten using PyQt.  PyQt makes the addition of new features to MindTree considerably easier.  Future plans for MindTree will be to support Rich Text, Lists and Tables.
