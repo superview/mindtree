@@ -10,21 +10,24 @@ Version 0.1
    * Exception Reporting Dialog - For exceptions that can't be handled automatically.
 
 Version 0.2
-   * RTF
-   * distutils script
+   * Plugin Manager - Port the MindTreeTk PluginManager or use Qt Plugin system
+   * Backups - Implement backup folders/files like in MindTreeTk
+   * Import/Export Plugins
 
 Version 0.3
-   * Import/Export
-   * backup files in backup folder
+   * RTF - Convert all articles to RTF
+   * Text Style Toolbars - Implement toolbars for text styling
+   * distutils script - write an initial script for distutils
 
 Version 0.4
-   * Plugin Support
    * Spell Checking Plugin
    * Find/Replace Plugin
-   * py2exe
 
 Version 0.5
    * Help File
+
+Version 0.9 (Release Candidate)
+   * py2exe
 
 Version 1.0
    * All Capabilities of MindTree Tk
