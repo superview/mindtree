@@ -1,0 +1,46 @@
+#This document lists future versions and features.
+
+Version 0.1
+   * Layout
+      * Expanding splitters
+      * Tools area
+   * Shortcuts
+   * Menus
+   * Toolbars
+   * Drag & Drop
+   * Save/Save As...,Open,New
+   * Exception Reporting Dialog
+
+Version 0.2
+   * RTF
+   * distutils script
+
+Version 0.3
+   * Import/Export
+   * backup files in backup folder
+
+Version 0.4
+   * Plugin Support
+   * Spell Checking Plugin
+   * Find/Replace Plugin
+   * py2exe
+
+Version 0.5
+   * Help File
+
+Version 1.0
+   * All Capabilities of MindTree Tk
+
+Version 2.0
+   * All Capabilities originally targeted for next major release of MindTree Tk
+      * Printing
+      * Lists
+      * Tables
+
+Version 3.0
+   * Multiple Views
+      * Cut & Paste across
+      * Drag & Drop across
+      * Changes reflected across
+   * Customizable HTML exporting
+   * Pluggable Content Views/Handlers
