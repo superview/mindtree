@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui, Qt
-import mt2resources as RES
+import MTresources as RES
 
 
 def CALLBACK( callback, *args, **kwargs ):
@@ -14,7 +14,6 @@ class _KBTab( object ):
       self.buttons = [ ]
       
       self.gridLayoutWidget = QtGui.QWidget(parent)
-      #self.gridLayoutWidget.setGeometry(QtCore.QRect(9, 0, 641, 83))
       self.gridLayoutWidget.setObjectName( KeyboardWidget.generateName("gridLayoutWidget") )
       self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
       self.gridLayout.setObjectName( KeyboardWidget.generateName("gridLayout") )
@@ -62,14 +61,12 @@ class KeyboardWidget( QtGui.QTabWidget ):
       self.parent = parent
       self.keyboards = [ ]
       
-      #sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-      #sizePolicy.setHorizontalStretch(0)
-      #sizePolicy.setVerticalStretch(0)
-      #sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
-      #self.setSizePolicy(sizePolicy)
-      #self.setSizeIncrement(QtCore.QSize(1, 1))
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      sizePolicy.setVerticalStretch( 2 )
+      sizePolicy.setHorizontalStretch( 1 )
+      self.setSizePolicy(sizePolicy)
       self.setObjectName("tabWidget")
-      #self.setMinimumHeight( 200 )
+      self.setMinimumHeight( 180 )
       
       for kbTabName, kbRows in RES.KeyboardTabs.iteritems():
          self.addKeyboardTab( kbTabName, kbRows )

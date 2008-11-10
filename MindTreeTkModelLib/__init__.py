@@ -1,7 +1,7 @@
 from Project import Project
 from Outline import *
 
-def readMT1Model( filename, projectName ):
+def readMTTkModel( filename, projectName ):
    try:
       import pickle
       data = pickle.load( open( filename, 'rb' ) )
