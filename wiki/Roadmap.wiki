@@ -1,4 +1,4 @@
-#This document lists future versions and features.
+This document lists future versions and features.
 
 Version 0.1
    * Layout
