@@ -2,9 +2,9 @@
 This document lists future versions and features.
 
 Version 0.1
-   * Shortcuts - Get all the shortcuts working properly.
    * Save/Save As...,Open,New - get these algorithms working.
    * Menus - Put all the MindTreeTk menus in place, get them working.
+   * Shortcuts - Get all the shortcuts working properly.
    * Toolbars - Put all the MindTreeTk toolbar buttons in place and get them working.
    * Drag & Drop - Get it working withing a single outline widget
    * Exception Reporting Dialog - For exceptions that can't be handled automatically.
