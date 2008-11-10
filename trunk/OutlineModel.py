@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui
-import mt2resources as RES
+import MTresources as RES
 
 
 class InvalidIndexError( Exception ):
@@ -62,7 +62,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       QtCore.QAbstractItemModel.__init__(self, parent)
       
       if rootNode is None:
-         rootNode = TreeNode( [ 'OutlineName' ] )
+         rootNode = TreeNode( 'Untitled' )
          rootNode.appendChild( TreeNode( '', rootNode, '', 'text' ) )
       
       self._rootNode       = rootNode
@@ -195,6 +195,8 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       if role == QtCore.Qt.DisplayData:
          index.internalPointer().setTitle( value )
+         
+         self.emit( 'dataChanged(QModelIndex,QModelIndex)', index, index )
 
    def flags(self, index):
       if not index.isValid():
@@ -204,7 +206,11 @@ class OutlineModel(QtCore.QAbstractItemModel):
 
    def headerData(self, section, orientation, role):
       if (orientation == QtCore.Qt.Horizontal) and (role == QtCore.Qt.DisplayRole):
-         return QtCore.QVariant( self._rootNode.data(section) )
+         data = self._rootNode.data(section)
+         if isinstance( data, (str,unicode) ):
+            data = QtCore.QVariant( data )
+         return data
+         #return QtCore.QVariant( self._rootNode.data(section) )
       
       return QtCore.QVariant()
 

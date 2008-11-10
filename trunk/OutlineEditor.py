@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
-import mt2resources as RES
+import MTresources as RES
 
 class EntryEditor( QtGui.QWidget ):
    def __init__( parent ):
@@ -78,6 +78,8 @@ class OutlineEditor(object):
       
       self.splitter = QtGui.QSplitter(parent)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 0 )
       self.splitter.setSizePolicy(sizePolicy)
       self.splitter.setMinimumSize(QtCore.QSize(100, 100))
       self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -85,7 +87,9 @@ class OutlineEditor(object):
       self.splitter.setObjectName("splitter")
       
       self.outlineView = QtGui.QTreeView(self.splitter)
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 0 )
       self.outlineView.setSizePolicy(sizePolicy)
       self.outlineView.setMinimumSize(QtCore.QSize(100, 100))
       self.outlineView.setSizeIncrement(QtCore.QSize(1, 1))
@@ -103,20 +107,14 @@ class OutlineEditor(object):
       
       self.articleView = QtGui.QTextEdit(self.splitter)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 1 )
       self.articleView.setSizePolicy(sizePolicy)
       self.articleView.setMinimumSize(QtCore.QSize(100, 100))
       self.articleView.setFont( RES.articleFont )
       self.articleView.setObjectName("articleView")
       
       # Define Actions
-      #self.selectNextTreeNodeAction    = QtGui.QAction( self.outlineView )
-      #self.selectNextTreeNodeAction.setShortcuts( [ QtCore.Qt.Key_Down ] )
-      #QtCore.QObject.connect( self.selectNextTreeNodeAction, QtCore.SIGNAL('triggered()'), self.selectNextTreeNode )
-      
-      #self.selectPrevTreeNodeAction    = QtGui.QAction( self.outlineView )
-      #self.selectPrevTreeNodeAction.setShortcuts( [ QtCore.Qt.Key_Up ] )
-      #QtCore.QObject.connect( self.selectPrevTreeNodeAction, QtCore.SIGNAL('triggered()'), self.selectPrevTreeNode )
-      
       self.expandAllAction         = QtGui.QAction( self.outlineView )
       self.expandAllAction.setObjectName( 'actionExpandAll' )
       #self.expandAllAction.setShortcuts( [ ] )

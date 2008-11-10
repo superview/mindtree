@@ -1,12 +1,12 @@
 # Read and Convert a MindTree v1.0 Project file
 
 from OutlineModel import OutlineModel, TreeNode
-from MindTree1ModelLib import readMT1Model
+from MindTreeTkModelLib import readMTTkModel
 from PyQt4 import QtCore
 
 def convertProject( aProject ):
    newModelOutline = _convertProject( aProject.data._tree )
-   newModelOutline._title = QtCore.QVariant( unicode(aProject._title) )
+   newModelOutline.setTitle( QtCore.QVariant( unicode(aProject._title) ) )
    return newModelOutline
 
 def _convertProject( oldModelTreeNode, newModelParentNode=None ):
@@ -23,7 +23,7 @@ def _convertProject( oldModelTreeNode, newModelParentNode=None ):
       newModelTreeNode.appendChild( _convertProject(oldChildNode, newModelTreeNode) )
    return newModelTreeNode
 
-def importMT1Project( filename, projectName ):
-   mt1Model = readMT1Model( filename, projectName )
-   theConvertedProject = convertProject( mt1Model )
+def importMTTkProject( filename, projectName ):
+   mttkModel = readMTTkModel( filename, projectName )
+   theConvertedProject = convertProject( mttkModel )
    return OutlineModel( theConvertedProject )
