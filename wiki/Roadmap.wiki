@@ -2,6 +2,7 @@
 This document lists future versions and features.
 
 Version 0.1
+   * Change Tracking - Need to emit a Qt signal when the document changes.
    * Save/Save As...,Open,New - get these algorithms working.
    * Menus - Put all the MindTreeTk menus in place, get them working.
    * Shortcuts - Get all the shortcuts working properly.
