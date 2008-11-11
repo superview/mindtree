@@ -2,6 +2,14 @@ from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
 import MTresources as RES
 
+def exceptionPopup( self ):
+   import traceback
+   
+   msgBox = QtGui.QMessageBox( )
+   msgBox.setWindowTitle( 'Exception' )
+   msgBox.setText( traceback.format_exc( ) )
+   msgBox.exec_( )
+
 class EntryEditor( QtGui.QWidget ):
    def __init__( parent ):
       pass
@@ -68,26 +76,18 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
    def returnPressed( self ):
       self._outlineEditor.insertNewNodeAfter( )
 
-class OutlineEditor(object):
-   '''emits: modelChanged()'''
+class OutlineEditor(QtGui.QSplitter):
+   '''Emits: QtCore.SIGNAL("modelChanged()")'''
    def __init__( self, parent ):
-      self.splitter    = None
+      QtGui.QSplitter.__init__( self, parent )
+      
       self.outlineView = None
       self.articleView = None
       self.delegate    = None
       self.model       = None
+      self.currentArticleModified = False     # Has the article currently being edited been modified?
       
-      self.splitter = QtGui.QSplitter(parent)
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 1 )
-      sizePolicy.setHorizontalStretch( 0 )
-      self.splitter.setSizePolicy(sizePolicy)
-      self.splitter.setMinimumSize(QtCore.QSize(100, 100))
-      self.splitter.setOrientation(QtCore.Qt.Horizontal)
-      self.splitter.setChildrenCollapsible(False)
-      self.splitter.setObjectName("splitter")
-      
-      self.outlineView = QtGui.QTreeView(self.splitter)
+      self.outlineView = QtGui.QTreeView(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
@@ -100,13 +100,13 @@ class OutlineEditor(object):
       #self.outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
       self.outlineView.setAlternatingRowColors(True)
       #self.outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-      #########self.outlineView.setUniformRowHeights(True)
+      self.outlineView.setUniformRowHeights(True)
       self.outlineView.setSortingEnabled(False)
       self.outlineView.setObjectName("outlineView")
       self.delegate = OutlineEntryEditor_Delegate(self.outlineView, self)
       self.outlineView.setItemDelegate( self.delegate )
       
-      self.articleView = QtGui.QTextEdit(self.splitter)
+      self.articleView = QtGui.QTextEdit(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 1 )
@@ -179,7 +179,6 @@ class OutlineEditor(object):
    # Basic Operations
    def setModel( self, aModel ):
       self.model = aModel
-      self.ct    = 0
       self.swappingArticle = False
       
       self.articleView.clear( )
@@ -193,7 +192,7 @@ class OutlineEditor(object):
          
          QtCore.QObject.connect( self.outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self.model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
-         QtCore.QObject.connect( self.articleView, QtCore.SIGNAL( 'textChanged()' ), self.onModelChanged )
+         QtCore.QObject.connect( self.articleView, QtCore.SIGNAL( 'textChanged()' ), self.onArticleChanged )
       
       except:
          exceptionPopup( )
@@ -202,23 +201,32 @@ class OutlineEditor(object):
       self.selectionChanged( indexOfFirst )
 
    def insertNode( self, newParentIndex, newRow, newNode=None ):
-      self.model.insertNode( newParentIndex, newRow, newNode )
-      self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
-      self.onModelChanged()
+      try:
+         self.model.insertNode( newParentIndex, newRow, newNode )
+         self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+         self.onModelChanged()
+      except:
+         exceptionPopup( )
    
    def deleteNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self.outlineView.currentIndex()
-      
-      self.model.removeNode( nodeIndex )
-      self.onModelChanged()
+      try:
+         if nodeIndex is None:
+            nodeIndex = self.outlineView.currentIndex()
+         
+         self.model.removeNode( nodeIndex )
+         self.onModelChanged()
+      except:
+         exceptionPopup()
 
    def moveNode( self, nodeIndex, newParentIndex, newRow ):
-      self.model.moveNode( nodeIndex, newParentIndex, newRow )
-      self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
-      self.onModelChanged()
+      try:
+         self.model.moveNode( nodeIndex, newParentIndex, newRow )
+         self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+         self.onModelChanged()
+      except:
+         exceptionPopup()
 
-   # Slots
+   # Advanced Operations (built on top of Basic Operations)
    def selectionChanged( self, newSelection, oldSelection=None ):
       # Save the currently active article
       self.swappingArticle = True
@@ -233,7 +241,7 @@ class OutlineEditor(object):
             else:
                index = None
          
-         if index:
+         if index and self.currentArticleModified:
             theDocument = self.articleView.document()
             
             if theDocument.isEmpty():
@@ -250,6 +258,7 @@ class OutlineEditor(object):
       
       # Display the newly selected article
       if newSelection:
+         self.currentArticleModified = False
          if isinstance( newSelection, QtCore.QModelIndex ):
             index = newSelection
          else:
@@ -273,74 +282,111 @@ class OutlineEditor(object):
       self.swappingArticle = False
 
    def expandAll( self ):
-      self.outlineView.expandAll( )
+      try:
+         self.outlineView.expandAll( )
+      except:
+         exceptionPopup()
 
    def expandNode( self ):
-      self.outlineView.expand( self.outlineView.currentIndex() )
+      try:
+         self.outlineView.expand( self.outlineView.currentIndex() )
+      except:
+         exceptionPopup()
 
    def collapseAll( self ):
-      self.outlineView.collapseAll( )
+      try:
+         self.outlineView.collapseAll( )
+      except:
+         exceptionPopup()
 
    def collapseNode( self ):
-      self.outlineView.collapse( self.outlineView.currentIndex() )
+      try:
+         self.outlineView.collapse( self.outlineView.currentIndex() )
+      except:
+         exceptionPopup()
 
    def insertNewNodeBefore( self ):
-      index = self.outlineView.currentIndex()
-      self.insertNode( index.parent(), index.row() )
+      try:
+         index = self.outlineView.currentIndex()
+         self.insertNode( index.parent(), index.row() )
+      except:
+         exceptionPopup()
 
    def insertNewNodeAfter( self ):
-      index = self.outlineView.currentIndex()
-      self.insertNode( index.parent(), index.row() + 1 )
+      try:
+         index = self.outlineView.currentIndex()
+         self.insertNode( index.parent(), index.row() + 1 )
+      except:
+         exceptionPopup()
 
    def insertNewChild( self ):
-      index = self.outlineView.currentIndex()
-      self.insertNode( index, 0 )
+      try:
+         index = self.outlineView.currentIndex()
+         self.insertNode( index, 0 )
+      except:
+         exceptionPopup()
 
    def indentNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self.outlineView.currentIndex()
-      
-      theNodeRow = nodeIndex.row()
-      if theNodeRow == 0:
-         return
-      
-      theNewParent = nodeIndex.sibling( nodeIndex.row() - 1, 0 )
-      if len(theNewParent.internalPointer()._childNodes) == 0:
-         self.moveNode( nodeIndex, theNewParent, 0 )
+      try:
+         if nodeIndex is None:
+            nodeIndex = self.outlineView.currentIndex()
+         
+         theNodeRow = nodeIndex.row()
+         if theNodeRow == 0:
+            return
+         
+         theNewParent = nodeIndex.sibling( nodeIndex.row() - 1, 0 )
+         if len(theNewParent.internalPointer()._childNodes) == 0:
+            self.moveNode( nodeIndex, theNewParent, 0 )
+      except:
+         exceptionPopup()
 
    def dedentNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self.outlineView.currentIndex()
-      
-      if len(nodeIndex.parent().internalPointer()._childNodes) != 1:
-         return
-      
-      newParent = nodeIndex.parent().parent()
-      newRow    = nodeIndex.parent().row() + 1
-      self.moveNode( nodeIndex, newParent, newRow )
+      try:
+         if nodeIndex is None:
+            nodeIndex = self.outlineView.currentIndex()
+         
+         if len(nodeIndex.parent().internalPointer()._childNodes) != 1:
+            return
+         
+         newParent = nodeIndex.parent().parent()
+         newRow    = nodeIndex.parent().row() + 1
+         self.moveNode( nodeIndex, newParent, newRow )
+      except:
+         exceptionPopup()
 
    def moveNodeUp( self, nodeIndex=None ):
-      nodeIndex = nodeIndex
-      if nodeIndex is None:
-         nodeIndex = self.outlineView.currentIndex()
-      
-      theRow = nodeIndex.row()
-      if theRow == 0:
-         return
-      
-      self.moveNode( nodeIndex, nodeIndex.parent(), theRow - 1 )
+      try:
+         nodeIndex = nodeIndex
+         if nodeIndex is None:
+            nodeIndex = self.outlineView.currentIndex()
+         
+         theRow = nodeIndex.row()
+         if theRow == 0:
+            return
+         
+         self.moveNode( nodeIndex, nodeIndex.parent(), theRow - 1 )
+      except:
+         exceptionPopup()
 
    def moveNodeDown( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self.outlineView.currentIndex()
-      
-      theRow = nodeIndex.row()
-      if theRow >= len(nodeIndex.internalPointer()._parentNode._childNodes):
-         return
-      
-      self.moveNode( nodeIndex, nodeIndex.parent(), theRow + 1 )
+      try:
+         if nodeIndex is None:
+            nodeIndex = self.outlineView.currentIndex()
+         
+         theRow = nodeIndex.row()
+         if theRow >= len(nodeIndex.internalPointer()._parentNode._childNodes):
+            return
+         
+         self.moveNode( nodeIndex, nodeIndex.parent(), theRow + 1 )
+      except:
+         exceptionPopup()
+
+   # Slots
+   def onArticleChanged( self ):
+      if not self.swappingArticle:
+         self.currentArticleModified = True
+         self.onModelChanged( )
 
    def onModelChanged( self, index1=None, index2=None ):
-      if not self.swappingArticle:
-         print 'model changed', self.ct
-         self.ct += 1
+      self.emit( QtCore.SIGNAL('modelChanged()') )

@@ -61,13 +61,6 @@ class KeyboardWidget( QtGui.QTabWidget ):
       self.parent = parent
       self.keyboards = [ ]
       
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-      sizePolicy.setVerticalStretch( 2 )
-      sizePolicy.setHorizontalStretch( 1 )
-      self.setSizePolicy(sizePolicy)
-      self.setObjectName("tabWidget")
-      self.setMinimumHeight( 180 )
-      
       for kbTabName, kbRows in RES.KeyboardTabs.iteritems():
          self.addKeyboardTab( kbTabName, kbRows )
 
