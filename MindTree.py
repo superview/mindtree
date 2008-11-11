@@ -7,8 +7,13 @@ from Keyboard import KeyboardWidget
 
 
 class MindTree( QtGui.QMainWindow ):
+   UNTITLED_FILENAME_CT = 1
+   
    def __init__( self, parent=None ):
       QtGui.QMainWindow.__init__( self, parent )
+      self._filename = ''
+      self._modified = False   # Has the model been modified?
+      
       self.keyboards = [ ]
       
       self.setObjectName("MainWindow")
@@ -22,8 +27,8 @@ class MindTree( QtGui.QMainWindow ):
       QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
       QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
       QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
-      QtCore.QObject.connect( self.actionImport, QtCore.SIGNAL('triggered()'), self.importFile )
-      QtCore.QObject.connect( self.actionExport, QtCore.SIGNAL('triggered()'), self.exportFile )
+      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
+      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
       QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
       QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
 
@@ -33,16 +38,34 @@ class MindTree( QtGui.QMainWindow ):
       self.splitter.setGeometry(QtCore.QRect(0, 0, 901, 671))
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setHorizontalStretch( 1 )
-      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setVerticalStretch( 0 )
       self.splitter.setSizePolicy(sizePolicy)
       self.splitter.setOrientation(QtCore.Qt.Vertical)
       self.splitter.setChildrenCollapsible(False)
       self.splitter.setObjectName("splitter_2")
       self.splitter.setOpaqueResize( True )
       
+      # OutlineEditor Widget
       self.outlineEditor = OutlineEditor( self.splitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 0 )
+      self.outlineEditor.setSizePolicy(sizePolicy)
+      self.outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
+      self.outlineEditor.setOrientation(QtCore.Qt.Horizontal)
+      self.outlineEditor.setChildrenCollapsible(False)
+      self.outlineEditor.setObjectName("splitter")
       
+      QtCore.QObject.connect( self.outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
+      
+      # Keyboard Widget
       self.kb = KeyboardWidget( self.splitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      sizePolicy.setVerticalStretch( 2 )
+      sizePolicy.setHorizontalStretch( 1 )
+      self.kb.setSizePolicy(sizePolicy)
+      self.kb.setObjectName("tabWidget")
+      self.kb.setMinimumHeight( 180 )
       
       self.setCentralWidget(self.splitter)
       self.menubar = QtGui.QMenuBar(self)
@@ -145,8 +168,18 @@ class MindTree( QtGui.QMainWindow ):
       self.outlineEditor.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
       self.outlineEditor.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
 
+   def setModelToEdit( self, aModel, afilename ):
+      self.outlineEditor.setModel( aModel )
+      self._filename = afilename
+      self._modified = False
+      self.updateWindowTitle( )
+
+   def clearModified( self ):
+      self._modified = False
+      self.updateWindowTitle( )
+   
    def newFile( self ):
-      self.outlineEditor.setModel( OutlineModel( ) )
+      self.setModelToEdit( OutlineModel( ), self.generateUntitledFilename( ) )
 
    def openFile( self ):
       dlg = QtGui.QFileDialog( self, 'Open file...', 'f:\\mindtree data' )
@@ -162,7 +195,8 @@ class MindTree( QtGui.QMainWindow ):
          documentName = filename[0].upper() + filename[1:]
          
          theModel = importMTTkProject( fullFilename, documentName )
-         self.outlineEditor.setModel( theModel )
+         
+         self.setModelToEdit( theModel, fullFilename )
 
    def saveFile( self ):
       pass
@@ -179,6 +213,22 @@ class MindTree( QtGui.QMainWindow ):
    def close( self ):
       pass
 
+   def onModelChanged( self ):
+      self._modified = True
+      self.updateWindowTitle( )
+   
+   def updateWindowTitle( self ):
+      if self._modified:
+         windowTitleFormat = 'MindTree - [{0}] *'
+      else:
+         windowTitleFormat = 'MindTree - [{0}]'
+      
+      self.setWindowTitle( windowTitleFormat.format(self._filename) )
+   
+   def generateUntitledFilename( self ):
+      name = 'Untitled{0:02d}'.format( self.UNTITLED_FILENAME_CT )
+      self.UNTITLED_FILENAME_CT += 1
+      return name
 
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
@@ -189,7 +239,7 @@ if __name__ == "__main__":
    KeyboardWidget.theApp = app
 
    myapp = MindTree( )
-   myapp.setWindowTitle("MindTree Qt")
+   #myapp.setWindowTitle("MindTree Qt")
    myapp.newFile( )
    myapp.show( )
 

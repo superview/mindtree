@@ -195,9 +195,10 @@ class OutlineModel(QtCore.QAbstractItemModel):
          raise InvalidIndexError()
       
       if role == QtCore.Qt.DisplayRole:
-         index.internalPointer().setTitle( value )
-         
-         self.emit( QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'), index, index )
+         theTreeNode = index.internalPointer()
+         if theTreeNode.data( 0 ) != value:
+            theTreeNode.setTitle( value )
+            self.emit( QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'), index, index )
 
    def flags(self, index):
       if not index.isValid():
@@ -211,7 +212,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
          if isinstance( data, (str,unicode) ):
             data = QtCore.QVariant( data )
          return data
-         #return QtCore.QVariant( self._rootNode.data(section) )
       
       return QtCore.QVariant()
 
@@ -220,15 +220,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
    
    def removeRows( self, rowNum, count, parentIndex ):
       self.removeNode( self.index( rowNum, 0, parentIndex ) )
-      #parentNode     = parentIndex.internalPointer( )
-      #firstRowNum    = rowNum
-      #lastRowNum     = firstRowNum + count - 1
-      
-      #self.beginRemoveRows( parentIndex, firstRowNum, lastRowNum )
-      
-      #del parentNode._childNodes[ firstRowNum : lastRowNum ]
-      
-      #self.endRemoveRows( )
    
 
 
