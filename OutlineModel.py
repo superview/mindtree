@@ -60,6 +60,7 @@ class TreeNode( object ):
 class OutlineModel(QtCore.QAbstractItemModel):
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
+      self._rootNode    = None
       
       if rootNode is None:
          rootNode = TreeNode( 'Untitled' )
@@ -193,10 +194,10 @@ class OutlineModel(QtCore.QAbstractItemModel):
       if not index.isValid():
          raise InvalidIndexError()
       
-      if role == QtCore.Qt.DisplayData:
+      if role == QtCore.Qt.DisplayRole:
          index.internalPointer().setTitle( value )
          
-         self.emit( 'dataChanged(QModelIndex,QModelIndex)', index, index )
+         self.emit( QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'), index, index )
 
    def flags(self, index):
       if not index.isValid():
@@ -230,3 +231,5 @@ class OutlineModel(QtCore.QAbstractItemModel):
       #self.endRemoveRows( )
    
 
+
+   
