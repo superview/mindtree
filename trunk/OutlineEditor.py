@@ -60,7 +60,7 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
 
    def setModelData( self, editor, model, index ):
       newDataValue = self._entryEditor.text( )
-      index.internalPointer( ).setTitle( newDataValue )
+      model.setData( index, newDataValue, QtCore.Qt.DisplayRole )
 
    def updateEditorGeometry( self, editor, option, index ):
       self._entryEditor.setGeometry( option.rect )
@@ -69,6 +69,7 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
       self._outlineEditor.insertNewNodeAfter( )
 
 class OutlineEditor(object):
+   '''emits: modelChanged()'''
    def __init__( self, parent ):
       self.splitter    = None
       self.outlineView = None
@@ -178,6 +179,8 @@ class OutlineEditor(object):
    # Basic Operations
    def setModel( self, aModel ):
       self.model = aModel
+      self.ct    = 0
+      self.swappingArticle = False
       
       self.articleView.clear( )
       
@@ -189,6 +192,8 @@ class OutlineEditor(object):
          self.outlineView.setModel( aModel )
          
          QtCore.QObject.connect( self.outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
+         QtCore.QObject.connect( self.model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
+         QtCore.QObject.connect( self.articleView, QtCore.SIGNAL( 'textChanged()' ), self.onModelChanged )
       
       except:
          exceptionPopup( )
@@ -199,20 +204,25 @@ class OutlineEditor(object):
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       self.model.insertNode( newParentIndex, newRow, newNode )
       self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+      self.onModelChanged()
    
    def deleteNode( self, nodeIndex=None ):
       if nodeIndex is None:
          nodeIndex = self.outlineView.currentIndex()
       
       self.model.removeNode( nodeIndex )
+      self.onModelChanged()
 
    def moveNode( self, nodeIndex, newParentIndex, newRow ):
       self.model.moveNode( nodeIndex, newParentIndex, newRow )
       self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+      self.onModelChanged()
 
    # Slots
    def selectionChanged( self, newSelection, oldSelection=None ):
       # Save the currently active article
+      self.swappingArticle = True
+      
       if oldSelection:
          if isinstance( oldSelection, QtCore.QModelIndex ):
             index = oldSelection
@@ -259,6 +269,8 @@ class OutlineEditor(object):
                   self.articleView.setText( articleText )
                elif articleType == 'html':
                   self.articleView.setHtml( articleText )
+      
+      self.swappingArticle = False
 
    def expandAll( self ):
       self.outlineView.expandAll( )
@@ -328,4 +340,7 @@ class OutlineEditor(object):
       
       self.moveNode( nodeIndex, nodeIndex.parent(), theRow + 1 )
 
-
+   def onModelChanged( self, index1=None, index2=None ):
+      if not self.swappingArticle:
+         print 'model changed', self.ct
+         self.ct += 1
