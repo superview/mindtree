@@ -11,12 +11,14 @@ def CALLBACK( callback, *args, **kwargs ):
 
 class _KBTab( object ):
    def __init__( self, parent ):
-      self.buttons = [ ]
+      self._buttons          = [ ]
+      self._gridLayoutWidget = None
+      self._gridLayout       = None
       
-      self.gridLayoutWidget = QtGui.QWidget(parent)
-      self.gridLayoutWidget.setObjectName( KeyboardWidget.generateName("gridLayoutWidget") )
-      self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
-      self.gridLayout.setObjectName( KeyboardWidget.generateName("gridLayout") )
+      self._gridLayoutWidget = QtGui.QWidget(parent)
+      self._gridLayoutWidget.setObjectName( KeyboardWidget.generateName("gridLayoutWidget") )
+      self._gridLayout = QtGui.QGridLayout(self._gridLayoutWidget)
+      self._gridLayout.setObjectName( KeyboardWidget.generateName("gridLayout") )
 
    def addButtons( self, buttonRows ):
       for buttonRow in buttonRows:
@@ -24,11 +26,11 @@ class _KBTab( object ):
 
    def addButtonRow( self, buttons ):
       newButtonRow = [ ]
-      buttonRow    = len(self.buttons)
+      buttonRow    = len(self._buttons)
       buttonColumn = 0
       
       for buttonString in buttons:
-         theNewButton = QtGui.QToolButton( self.gridLayoutWidget )
+         theNewButton = QtGui.QToolButton( self._gridLayoutWidget )
          theNewButton.setObjectName( KeyboardWidget.generateName("keyboardButton") )
          theNewButton.setText( buttonString )
          theNewButton.setFocusPolicy( QtCore.Qt.NoFocus )
@@ -36,11 +38,11 @@ class _KBTab( object ):
          theNewButton.setAutoRaise( True )
          
          QtCore.QObject.connect( theNewButton, QtCore.SIGNAL('clicked()'), CALLBACK(self.clickedButton, buttonString) )
-         self.gridLayout.addWidget( theNewButton, buttonRow, buttonColumn, 1, 1 )
+         self._gridLayout.addWidget( theNewButton, buttonRow, buttonColumn, 1, 1 )
          newButtonRow.append( theNewButton )
          buttonColumn += 1
       
-      self.buttons.append( newButtonRow )
+      self._buttons.append( newButtonRow )
    
    def clickedButton( self, string ):
       w = KeyboardWidget.theApp.focusWidget( )
@@ -58,8 +60,7 @@ class KeyboardWidget( QtGui.QTabWidget ):
    def __init__( self, parent ):
       QtGui.QTabWidget.__init__( self, parent )
       
-      self.parent = parent
-      self.keyboards = [ ]
+      self._keyboards = [ ]
       
       for kbTabName, kbRows in RES.KeyboardTabs.iteritems():
          self.addKeyboardTab( kbTabName, kbRows )
@@ -70,11 +71,11 @@ class KeyboardWidget( QtGui.QTabWidget ):
       #kb.setMinimumHeight( 200 )
       self.addTab(kb, "")
       
-      self.setTabText( len(self.keyboards), name )
+      self.setTabText( len(self._keyboards), name )
       
       kb_tab = _KBTab( kb )
       kb_tab.addButtons( buttonRows )
-      self.keyboards.append( kb_tab )
+      self._keyboards.append( kb_tab )
    
    @staticmethod
    def generateName( prefix ):
