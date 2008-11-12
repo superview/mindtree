@@ -1,45 +1,44 @@
 #labels Featured
 This document lists future versions and features.
 
-Version 1.x
-   * These constituted the Tkinter implementation
-
 Version 1.1 (development tag)
-   * Save/Save As...,Open,New - Port & Integrate the MindTree 1.x TkApplicationFramework.
    * Shortcuts - Get all the shortcuts working properly.
    * Toolbars - Put all the MindTreeTk toolbar buttons in place and get them working.
-   * Drag & Drop - Get it working withing a single outline widget
+   * Drag & Drop - Get it working within a single outline widget
 
 Version 1.2 (development tag)
    * Plugin Manager - Port the MindTreeTk PluginManager or use Qt Plugin system
-   * Backups - Implement backup folders/files like in MindTreeTk
-   * Import/Export Plugins
 
 Version 1.3 (development tag)
-   * RTF - Convert all articles to RTF
-   * Text Style Toolbars - Implement toolbars for text styling
-   * distutils script - write an initial script for distutils
-
-Version 0.4 (development tag)
-   * Spell Checking Plugin
+   * Import/Export Plugins
+   * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
    * Find/Replace Plugin
 
-Version 0.5
+Version 1.5 (public beta)
+   * RTF - All articles in RTF
+   * distutils script - write an initial script for distutils
    * Help File
 
-Version 0.9 (Release Candidate)
+Version 1.6 (public beta)
+   * Text Styling Toolbars - implement toolbars for text styling
+
+Version 1.7 (public beta)
+   * Images in articles - support inserting images into articles
+
+Version 1.9 (Release Candidate)
    * py2exe
 
-Version 1.0
+Version 2.0 (Final Release)
    * All Capabilities of MindTree Tk
 
-Version 2.0
+Version 3.0 (Final Release)
    * All Capabilities originally targeted for next major release of MindTree Tk
       * Printing
       * Lists
       * Tables
 
-Version 3.0
+Version 3.0 (Final Release)
+   * Create an OutlineView widget (separate the article editor from the OutlineEditor widget)
    * Multiple Views
       * Cut & Paste across
       * Drag & Drop across
