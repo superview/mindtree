@@ -14,7 +14,8 @@ class MindTree( QtGui.QMainWindow ):
       self._filename = ''
       self._modified = False   # Has the model been modified?
       
-      self.keyboards = [ ]
+      self._outlineEditor = None
+      self._kb            = None
       
       self.setObjectName("MainWindow")
       self.resize(903, 719)
@@ -22,7 +23,7 @@ class MindTree( QtGui.QMainWindow ):
       sizePolicy.setHorizontalStretch( 1 )
       sizePolicy.setVerticalStretch( 1 )
       self.setSizePolicy(sizePolicy)
-      self.buildGUI( )
+      self._buildGUI( )
       
       QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
       QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
@@ -32,7 +33,7 @@ class MindTree( QtGui.QMainWindow ):
       QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
       QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
 
-   def buildGUI(self):
+   def _buildGUI(self):
       self.splitter = QtGui.QSplitter(self)
       self.splitter.setObjectName( 'centralwidget' )
       self.splitter.setGeometry(QtCore.QRect(0, 0, 901, 671))
@@ -46,26 +47,26 @@ class MindTree( QtGui.QMainWindow ):
       self.splitter.setOpaqueResize( True )
       
       # OutlineEditor Widget
-      self.outlineEditor = OutlineEditor( self.splitter )
+      self._outlineEditor = OutlineEditor( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
-      self.outlineEditor.setSizePolicy(sizePolicy)
-      self.outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
-      self.outlineEditor.setOrientation(QtCore.Qt.Horizontal)
-      self.outlineEditor.setChildrenCollapsible(False)
-      self.outlineEditor.setObjectName("splitter")
+      self._outlineEditor.setSizePolicy(sizePolicy)
+      self._outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
+      self._outlineEditor.setOrientation(QtCore.Qt.Horizontal)
+      self._outlineEditor.setChildrenCollapsible(False)
+      self._outlineEditor.setObjectName("splitter")
       
-      QtCore.QObject.connect( self.outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
+      QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
       
       # Keyboard Widget
-      self.kb = KeyboardWidget( self.splitter )
+      self._kb = KeyboardWidget( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
       sizePolicy.setVerticalStretch( 2 )
       sizePolicy.setHorizontalStretch( 1 )
-      self.kb.setSizePolicy(sizePolicy)
-      self.kb.setObjectName("tabWidget")
-      self.kb.setMinimumHeight( 180 )
+      self._kb.setSizePolicy(sizePolicy)
+      self._kb.setObjectName("tabWidget")
+      self._kb.setMinimumHeight( 180 )
       
       self.setCentralWidget(self.splitter)
       self.menubar = QtGui.QMenuBar(self)
@@ -113,20 +114,20 @@ class MindTree( QtGui.QMainWindow ):
       self.menuFile.addSeparator()
       self.menuFile.addAction(self.actionClose_2)
       
-      self.menuTree.addAction( self.outlineEditor.expandAllAction )
-      self.menuTree.addAction( self.outlineEditor.collapseAllAction )
-      self.menuTree.addAction( self.outlineEditor.expandNodeAction )
-      self.menuTree.addAction( self.outlineEditor.collapseNodeAction )
+      self.menuTree.addAction( self._outlineEditor.expandAllAction )
+      self.menuTree.addAction( self._outlineEditor.collapseAllAction )
+      self.menuTree.addAction( self._outlineEditor.expandNodeAction )
+      self.menuTree.addAction( self._outlineEditor.collapseNodeAction )
       self.menuTree.addSeparator()
-      self.menuTree.addAction( self.outlineEditor.insertNewNodeBeforeAction )
-      self.menuTree.addAction( self.outlineEditor.insertNewNodeAfterAction )
-      self.menuTree.addAction( self.outlineEditor.insertNewChildAction )
-      self.menuTree.addAction( self.outlineEditor.deleteNodeAction )
+      self.menuTree.addAction( self._outlineEditor.insertNewNodeBeforeAction )
+      self.menuTree.addAction( self._outlineEditor.insertNewNodeAfterAction )
+      self.menuTree.addAction( self._outlineEditor.insertNewChildAction )
+      self.menuTree.addAction( self._outlineEditor.deleteNodeAction )
       self.menuTree.addSeparator()
-      self.menuTree.addAction( self.outlineEditor.indentNodeAction )
-      self.menuTree.addAction( self.outlineEditor.dedentNodeAction )
-      self.menuTree.addAction( self.outlineEditor.moveNodeUpAction )
-      self.menuTree.addAction( self.outlineEditor.moveNodeDownAction )
+      self.menuTree.addAction( self._outlineEditor.indentNodeAction )
+      self.menuTree.addAction( self._outlineEditor.dedentNodeAction )
+      self.menuTree.addAction( self._outlineEditor.moveNodeUpAction )
+      self.menuTree.addAction( self._outlineEditor.moveNodeDownAction )
       
       self.menubar.addAction(self.menuFile.menuAction())
       self.menubar.addAction(self.menuTree.menuAction())
@@ -134,10 +135,10 @@ class MindTree( QtGui.QMainWindow ):
       self.menubar.addAction(self.menuTools.menuAction())
       self.menubar.addAction(self.menuHelp.menuAction())
       
-      self.retranslateUi()
+      self._retranslateUi()
       QtCore.QMetaObject.connectSlotsByName(self)
 
-   def retranslateUi(self):
+   def _retranslateUi(self):
       # Outline Menu
       self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MindTree", None, QtGui.QApplication.UnicodeUTF8))
       self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "Outline", None, QtGui.QApplication.UnicodeUTF8))
@@ -155,21 +156,21 @@ class MindTree( QtGui.QMainWindow ):
       self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
       
       # Tree Menu
-      self.outlineEditor.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.expandNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Expand Node", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.collapseNodeAction.setText(QtGui.QApplication.translate("MainWindow", "CollapseNode", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.insertNewNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "New Node Before", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.insertNewNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "New Node After", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.insertNewChildAction.setText(QtGui.QApplication.translate("MainWindow", "New Child", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.deleteNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Delete Subtree", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.indentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Indent Node", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.dedentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Dedent Node", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
-      self.outlineEditor.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.expandNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Expand Node", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.collapseNodeAction.setText(QtGui.QApplication.translate("MainWindow", "CollapseNode", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.insertNewNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "New Node Before", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.insertNewNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "New Node After", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.insertNewChildAction.setText(QtGui.QApplication.translate("MainWindow", "New Child", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.deleteNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Delete Subtree", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.indentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Indent Node", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.dedentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Dedent Node", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
 
    def setModelToEdit( self, aModel, afilename ):
-      self.outlineEditor.setModel( aModel )
+      self._outlineEditor.setModel( aModel )
       self._filename = afilename
       self._modified = False
       self.updateWindowTitle( )
@@ -179,40 +180,50 @@ class MindTree( QtGui.QMainWindow ):
       self.updateWindowTitle( )
    
    def newFile( self ):
+      if not self.closeFile( ):
+         return
+      
       self.setModelToEdit( OutlineModel( ), self.generateUntitledFilename( ) )
 
    def openFile( self ):
-      dlg = QtGui.QFileDialog( self, 'Open file...', 'f:\\mindtree data' )
-      dlg.setModal(True)
-      dlg.exec_()
-      filenames = dlg.selectedFiles( )
+      pass
+
+   def saveFile( self ):
+      if self._filename.startswith( 'Untitled' ):
+         return self.saveFileAs( )
       
-      if len(filenames) > 0:
+      self._outlineEditor.commitChanges( )
+      
+      
+   
+   def saveFileAs( self ):
+      self._outlineEditor.commitChanges( )
+      pass
+   
+   def importFile( self ):
+      if not self.closeFile( ):
+         return
+      
+      fullFilename = self._askopenfilename( 'f:\\mindtree data' )
+      if fullFilename is not None:
          from filesystemTools import splitFilePath
-         
-         fullFilename = unicode(filenames[0])
          disk,path,filename,extension = splitFilePath( fullFilename )
          documentName = filename[0].upper() + filename[1:]
          
          theModel = importMTTkProject( fullFilename, documentName )
          
          self.setModelToEdit( theModel, fullFilename )
-
-   def saveFile( self ):
-      pass
-   
-   def saveFileAs( self ):
-      pass
-   
-   def importFile( self ):
-      pass
    
    def exportFile( self ):
       pass
    
-   def close( self ):
-      pass
+   def closeFile( self ):
+      '''Returns False if the opteration is canceled or fails otherwise returns True.'''
+      return True
 
+   def exit( self ):
+      pass
+   
    def onModelChanged( self ):
       self._modified = True
       self.updateWindowTitle( )
@@ -230,6 +241,18 @@ class MindTree( QtGui.QMainWindow ):
       self.UNTITLED_FILENAME_CT += 1
       return name
 
+   def _askopenfilename( self, where ):
+      dlg = QtGui.QFileDialog( self, 'Open file...', where )
+      dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
+      dlg.setModal(True)
+      dlg.exec_()
+      filenames = dlg.selectedFiles( )
+      
+      if len(filenames) != 1:
+         return None
+      
+      return unicode(filenames[0])
+   
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
    import os.path
@@ -239,7 +262,6 @@ if __name__ == "__main__":
    KeyboardWidget.theApp = app
 
    myapp = MindTree( )
-   #myapp.setWindowTitle("MindTree Qt")
    myapp.newFile( )
    myapp.show( )
 

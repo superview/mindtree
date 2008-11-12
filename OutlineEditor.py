@@ -8,6 +8,7 @@ def exceptionPopup( self ):
    msgBox = QtGui.QMessageBox( )
    msgBox.setWindowTitle( 'Exception' )
    msgBox.setText( traceback.format_exc( ) )
+   msgBox.setIcon( QtGui.QMessageBox.Critical )
    msgBox.exec_( )
 
 class EntryEditor( QtGui.QWidget ):
@@ -81,118 +82,116 @@ class OutlineEditor(QtGui.QSplitter):
    def __init__( self, parent ):
       QtGui.QSplitter.__init__( self, parent )
       
-      self.outlineView = None
-      self.articleView = None
-      self.delegate    = None
-      self.model       = None
-      self.currentArticleModified = False     # Has the article currently being edited been modified?
+      self._outlineView            = None      # The TreeView widget
+      self._articleView            = None      # The TextEdit widget
+      self._model                  = None      # The model for the data
+      self._currentArticleModified = False     # Has the article currently being edited been modified?
       
-      self.outlineView = QtGui.QTreeView(self)
+      self._outlineView = QtGui.QTreeView(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
-      self.outlineView.setSizePolicy(sizePolicy)
-      self.outlineView.setMinimumSize(QtCore.QSize(100, 100))
-      self.outlineView.setSizeIncrement(QtCore.QSize(1, 1))
-      self.outlineView.setFont( RES.articleFont )
-      self.outlineView.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
-      #self.outlineView.setDragEnabled(True)
-      #self.outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
-      self.outlineView.setAlternatingRowColors(True)
-      #self.outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-      self.outlineView.setUniformRowHeights(True)
-      self.outlineView.setSortingEnabled(False)
-      self.outlineView.setObjectName("outlineView")
-      self.delegate = OutlineEntryEditor_Delegate(self.outlineView, self)
-      self.outlineView.setItemDelegate( self.delegate )
+      self._outlineView.setSizePolicy(sizePolicy)
+      self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
+      self._outlineView.setSizeIncrement(QtCore.QSize(1, 1))
+      self._outlineView.setFont( RES.articleFont )
+      self._outlineView.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+      #self._outlineView.setDragEnabled(True)
+      #self._outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+      self._outlineView.setAlternatingRowColors(True)
+      #self._outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+      self._outlineView.setUniformRowHeights(True)
+      self._outlineView.setSortingEnabled(False)
+      self._outlineView.setObjectName("outlineView")
+      self._outlineView.setItemDelegate( OutlineEntryEditor_Delegate(self._outlineView, self) )
       
-      self.articleView = QtGui.QTextEdit(self)
+      self._articleView = QtGui.QTextEdit(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 1 )
-      self.articleView.setSizePolicy(sizePolicy)
-      self.articleView.setMinimumSize(QtCore.QSize(100, 100))
-      self.articleView.setFont( RES.articleFont )
-      self.articleView.setObjectName("articleView")
+      self._articleView.setSizePolicy(sizePolicy)
+      self._articleView.setMinimumSize(QtCore.QSize(100, 100))
+      self._articleView.setFont( RES.articleFont )
+      self._articleView.setObjectName("articleView")
       
       # Define Actions
-      self.expandAllAction         = QtGui.QAction( self.outlineView )
+      self.expandAllAction         = QtGui.QAction( self._outlineView )
       self.expandAllAction.setObjectName( 'actionExpandAll' )
       #self.expandAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.expandAllAction, QtCore.SIGNAL('triggered()'), self.expandAll )
       
-      self.expandNodeAction            = QtGui.QAction( self.outlineView )
+      self.expandNodeAction            = QtGui.QAction( self._outlineView )
       self.expandNodeAction.setObjectName( 'actionExpandNode' )
       #self.expandNodeAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.expandNodeAction, QtCore.SIGNAL('triggered()'), self.expandNode )
       
-      self.collapseAllAction       = QtGui.QAction( self.outlineView )
+      self.collapseAllAction       = QtGui.QAction( self._outlineView )
       self.collapseAllAction.setObjectName( 'actionCollapseAll' )
       #self.collapseAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.collapseAllAction, QtCore.SIGNAL('triggered()'), self.collapseAll )
       
-      self.collapseNodeAction          = QtGui.QAction( self.outlineView )
+      self.collapseNodeAction          = QtGui.QAction( self._outlineView )
       self.collapseNodeAction.setObjectName( 'actionCollapseNode' )
       #self.collapseNodeAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.collapseNodeAction, QtCore.SIGNAL('triggered()'), self.collapseNode )
       
-      self.moveNodeUpAction            = QtGui.QAction( self.outlineView )
+      self.moveNodeUpAction            = QtGui.QAction( self._outlineView )
       self.moveNodeUpAction.setObjectName( 'actionMoveNodeUp' )
       self.moveNodeUpAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Up ] )
       QtCore.QObject.connect( self.moveNodeUpAction, QtCore.SIGNAL('triggered()'), self.moveNodeUp )
       
-      self.moveNodeDownAction          = QtGui.QAction( self.outlineView )
+      self.moveNodeDownAction          = QtGui.QAction( self._outlineView )
       self.moveNodeDownAction.setObjectName( 'actionMoveNodeDown' )
       self.moveNodeDownAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Down ] )
       QtCore.QObject.connect( self.moveNodeDownAction, QtCore.SIGNAL('triggered()'), self.moveNodeDown )
       
-      self.indentNodeAction            = QtGui.QAction( self.outlineView )
+      self.indentNodeAction            = QtGui.QAction( self._outlineView )
       self.indentNodeAction.setObjectName( 'actionIndentNode' )
       self.indentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Right, QtCore.Qt.Key_Tab ] )
       QtCore.QObject.connect( self.indentNodeAction, QtCore.SIGNAL('triggered()'), self.indentNode )
       
-      self.dedentNodeAction            = QtGui.QAction( self.outlineView )
+      self.dedentNodeAction            = QtGui.QAction( self._outlineView )
       self.dedentNodeAction.setObjectName( 'actionDedentNode' )
       self.dedentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ] )
       QtCore.QObject.connect( self.dedentNodeAction, QtCore.SIGNAL('triggered()'), self.dedentNode )
       
-      self.insertNewNodeBeforeAction   = QtGui.QAction( self.outlineView )
+      self.insertNewNodeBeforeAction   = QtGui.QAction( self._outlineView )
       self.insertNewNodeBeforeAction.setObjectName( 'actionInsertNewNodeBefore' )
       #self.insertNewNodeBeforeAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.insertNewNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeBefore )
       
-      self.insertNewNodeAfterAction    = QtGui.QAction( self.outlineView )
+      self.insertNewNodeAfterAction    = QtGui.QAction( self._outlineView )
       self.insertNewNodeAfterAction.setObjectName( 'actionInsertNewNodeAfter' )
       self.insertNewNodeAfterAction.setShortcuts( [ QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter ] )
       QtCore.QObject.connect( self.insertNewNodeAfterAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeAfter )
       
-      self.insertNewChildAction        = QtGui.QAction( self.outlineView )
+      self.insertNewChildAction        = QtGui.QAction( self._outlineView )
       self.insertNewChildAction.setObjectName( 'actionInsertNewChild' )
       #self.insertNewChildAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.insertNewChildAction, QtCore.SIGNAL('triggered()'), self.insertNewChild )
       
-      self.deleteNodeAction            = QtGui.QAction( self.outlineView )
+      self.deleteNodeAction            = QtGui.QAction( self._outlineView )
       self.deleteNodeAction.setObjectName( 'actionDeleteNode' )
       #self.deleteNodeAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.deleteNodeAction, QtCore.SIGNAL('triggered()'), self.deleteNode )
 
    # Basic Operations
    def setModel( self, aModel ):
-      self.model = aModel
+      self._model = aModel
       self.swappingArticle = False
       
-      self.articleView.clear( )
+      self._articleView.clear( )
       
       try:
          # Update and Validate the new model
          aModel.validateModel( )
          aModel.updateModel( )
          
-         self.outlineView.setModel( aModel )
+         self._outlineView.setModel( aModel )
          
-         QtCore.QObject.connect( self.outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
-         QtCore.QObject.connect( self.model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
-         QtCore.QObject.connect( self.articleView, QtCore.SIGNAL( 'textChanged()' ), self.onArticleChanged )
+         QtCore.QObject.connect( self._outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
+         QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
+         QtCore.QObject.connect( self._articleView, QtCore.SIGNAL( 'textChanged()' ), self.onArticleChanged )
       
       except:
          exceptionPopup( )
@@ -200,10 +199,29 @@ class OutlineEditor(QtGui.QSplitter):
       indexOfFirst = aModel.index( 0, 0, QtCore.QModelIndex() )
       self.selectionChanged( indexOfFirst )
 
+   def getModel( self ):
+      return self._model
+
+   def commitChanges( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex( )
+      
+      if self._currentArticleModified:
+         theDocument = self._articleView.document()
+         
+         if theDocument.isEmpty():
+            article     = ''
+            articleType = 'text'
+         else:
+            article     = unicode( theDocument.toHtml() )
+            articleType = 'html'
+         
+         index.internalPointer().setArticle( article, articleType )
+
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       try:
-         self.model.insertNode( newParentIndex, newRow, newNode )
-         self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+         self._model.insertNode( newParentIndex, newRow, newNode )
+         self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
       except:
          exceptionPopup( )
@@ -211,17 +229,17 @@ class OutlineEditor(QtGui.QSplitter):
    def deleteNode( self, nodeIndex=None ):
       try:
          if nodeIndex is None:
-            nodeIndex = self.outlineView.currentIndex()
+            nodeIndex = self._outlineView.currentIndex()
          
-         self.model.removeNode( nodeIndex )
+         self._model.removeNode( nodeIndex )
          self.onModelChanged()
       except:
          exceptionPopup()
 
    def moveNode( self, nodeIndex, newParentIndex, newRow ):
       try:
-         self.model.moveNode( nodeIndex, newParentIndex, newRow )
-         self.outlineView.setCurrentIndex( self.model.index(newRow, 0, newParentIndex) )
+         self._model.moveNode( nodeIndex, newParentIndex, newRow )
+         self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
       except:
          exceptionPopup()
@@ -241,24 +259,15 @@ class OutlineEditor(QtGui.QSplitter):
             else:
                index = None
          
-         if index and self.currentArticleModified:
-            theDocument = self.articleView.document()
-            
-            if theDocument.isEmpty():
-               article     = ''
-               articleType = 'text'
-            else:
-               article     = unicode( theDocument.toHtml() )
-               articleType = 'html'
-            
-            index.internalPointer().setArticle( article, articleType )
+         if index:
+            self.commitChanges( index )
       
       # Reinitialize the article widget
-      self.articleView.clear( )
+      self._articleView.clear( )
       
       # Display the newly selected article
       if newSelection:
-         self.currentArticleModified = False
+         self._currentArticleModified = False
          if isinstance( newSelection, QtCore.QModelIndex ):
             index = newSelection
          else:
@@ -275,53 +284,53 @@ class OutlineEditor(QtGui.QSplitter):
                articleType, articleText = OutlineNode.article( )
                
                if articleType == 'text':
-                  self.articleView.setText( articleText )
+                  self._articleView.setText( articleText )
                elif articleType == 'html':
-                  self.articleView.setHtml( articleText )
+                  self._articleView.setHtml( articleText )
       
       self.swappingArticle = False
 
    def expandAll( self ):
       try:
-         self.outlineView.expandAll( )
+         self._outlineView.expandAll( )
       except:
          exceptionPopup()
 
    def expandNode( self ):
       try:
-         self.outlineView.expand( self.outlineView.currentIndex() )
+         self._outlineView.expand( self._outlineView.currentIndex() )
       except:
          exceptionPopup()
 
    def collapseAll( self ):
       try:
-         self.outlineView.collapseAll( )
+         self._outlineView.collapseAll( )
       except:
          exceptionPopup()
 
    def collapseNode( self ):
       try:
-         self.outlineView.collapse( self.outlineView.currentIndex() )
+         self._outlineView.collapse( self._outlineView.currentIndex() )
       except:
          exceptionPopup()
 
    def insertNewNodeBefore( self ):
       try:
-         index = self.outlineView.currentIndex()
+         index = self._outlineView.currentIndex()
          self.insertNode( index.parent(), index.row() )
       except:
          exceptionPopup()
 
    def insertNewNodeAfter( self ):
       try:
-         index = self.outlineView.currentIndex()
+         index = self._outlineView.currentIndex()
          self.insertNode( index.parent(), index.row() + 1 )
       except:
          exceptionPopup()
 
    def insertNewChild( self ):
       try:
-         index = self.outlineView.currentIndex()
+         index = self._outlineView.currentIndex()
          self.insertNode( index, 0 )
       except:
          exceptionPopup()
@@ -329,7 +338,7 @@ class OutlineEditor(QtGui.QSplitter):
    def indentNode( self, nodeIndex=None ):
       try:
          if nodeIndex is None:
-            nodeIndex = self.outlineView.currentIndex()
+            nodeIndex = self._outlineView.currentIndex()
          
          theNodeRow = nodeIndex.row()
          if theNodeRow == 0:
@@ -344,7 +353,7 @@ class OutlineEditor(QtGui.QSplitter):
    def dedentNode( self, nodeIndex=None ):
       try:
          if nodeIndex is None:
-            nodeIndex = self.outlineView.currentIndex()
+            nodeIndex = self._outlineView.currentIndex()
          
          if len(nodeIndex.parent().internalPointer()._childNodes) != 1:
             return
@@ -359,7 +368,7 @@ class OutlineEditor(QtGui.QSplitter):
       try:
          nodeIndex = nodeIndex
          if nodeIndex is None:
-            nodeIndex = self.outlineView.currentIndex()
+            nodeIndex = self._outlineView.currentIndex()
          
          theRow = nodeIndex.row()
          if theRow == 0:
@@ -372,7 +381,7 @@ class OutlineEditor(QtGui.QSplitter):
    def moveNodeDown( self, nodeIndex=None ):
       try:
          if nodeIndex is None:
-            nodeIndex = self.outlineView.currentIndex()
+            nodeIndex = self._outlineView.currentIndex()
          
          theRow = nodeIndex.row()
          if theRow >= len(nodeIndex.internalPointer()._parentNode._childNodes):
@@ -385,7 +394,7 @@ class OutlineEditor(QtGui.QSplitter):
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:
-         self.currentArticleModified = True
+         self._currentArticleModified = True
          self.onModelChanged( )
 
    def onModelChanged( self, index1=None, index2=None ):
