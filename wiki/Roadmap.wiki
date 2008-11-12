@@ -5,8 +5,7 @@ Version 1.x
    * These constituted the Tkinter implementation
 
 Version 1.1 (development tag)
-   * Save/Save As...,Open,New - get these algorithms working.
-   * Menus - Put all the MindTreeTk menus in place, get them working.
+   * Save/Save As...,Open,New - Port & Integrate the MindTree 1.x TkApplicationFramework.
    * Shortcuts - Get all the shortcuts working properly.
    * Toolbars - Put all the MindTreeTk toolbar buttons in place and get them working.
    * Drag & Drop - Get it working withing a single outline widget
