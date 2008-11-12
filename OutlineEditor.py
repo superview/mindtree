@@ -4,6 +4,11 @@ import MTresources as RES
 
 from utilities import *
 
+# TODO
+# - Implement Ctrl-Right to Indent a node
+# - Implement Ctrl-Left to Dedent a node
+# - Modify OutlineEntryEditor_Delegate to display icon.
+
 class EntryEditor( QtGui.QWidget ):
    def __init__( parent ):
       pass
@@ -47,6 +52,16 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
       #self.box.addWidget( self._label       )
       #self.box.addWidget( self._entryEditor )
       #self.widget.setLayout( self.box )
+      
+      self.indentNodeAction            = QtGui.QAction( self._entryEditor )
+      self.indentNodeAction.setObjectName( 'actionIndentNode' )
+      self.indentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Right, QtCore.Qt.Key_Tab ] )
+      QtCore.QObject.connect( self.indentNodeAction, QtCore.SIGNAL('triggered()'), self._outlineEditor.indentNode )
+      
+      self.dedentNodeAction            = QtGui.QAction( self._entryEditor )
+      self.dedentNodeAction.setObjectName( 'actionDedentNode' )
+      self.dedentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ] )
+      QtCore.QObject.connect( self.dedentNodeAction, QtCore.SIGNAL('triggered()'), self._outlineEditor.dedentNode )
       
       self.widget.setFocusProxy( self._entryEditor )
       return self.widget
@@ -108,6 +123,31 @@ class OutlineEditor(QtGui.QSplitter):
       self._articleView.setObjectName("articleView")
       
       # Define Actions
+      self.cutNodeAction           = QtGui.QAction( self._outlineView )
+      self.cutNodeAction.setObjectName( 'actionCutNode' )
+      #self.cutNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.cutNodeAction, QtCore.SIGNAL('triggered()'), self.cutNode )
+      
+      self.copyNodeAction          = QtGui.QAction( self._outlineView )
+      self.copyNodeAction.setObjectName( 'actionCopyNode' )
+      #self.copyNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.copyNodeAction, QtCore.SIGNAL('triggered()'), self.copyNode )
+      
+      self.pasteNodeBeforeAction   = QtGui.QAction( self._outlineView )
+      self.pasteNodeBeforeAction.setObjectName( 'actionPasteNodeBefore' )
+      #self.pasteNodeBeforeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.pasteNodeBefore )
+      
+      self.pasteNodeAfterAction    = QtGui.QAction( self._outlineView )
+      self.pasteNodeAfterAction.setObjectName( 'actionPasteNodeAfter' )
+      #self.pasteNodeAfterAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeAfterAction, QtCore.SIGNAL('triggered()'), self.pasteNodeAfter )
+      
+      self.pasteNodeChildAction    = QtGui.QAction( self._outlineView )
+      self.pasteNodeChildAction.setObjectName( 'actionPasteNodeChild' )
+      #self.pasteNodeChildAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeChildAction, QtCore.SIGNAL('triggered()'), self.pasteNodeChild )
+      
       self.expandAllAction         = QtGui.QAction( self._outlineView )
       self.expandAllAction.setObjectName( 'actionExpandAll' )
       #self.expandAllAction.setShortcuts( [ ] )
@@ -141,11 +181,13 @@ class OutlineEditor(QtGui.QSplitter):
       self.indentNodeAction            = QtGui.QAction( self._outlineView )
       self.indentNodeAction.setObjectName( 'actionIndentNode' )
       self.indentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Right, QtCore.Qt.Key_Tab ] )
+      self.indentNodeAction.setShortcutContext( QtCore.Qt.WindowShortcut )
       QtCore.QObject.connect( self.indentNodeAction, QtCore.SIGNAL('triggered()'), self.indentNode )
       
       self.dedentNodeAction            = QtGui.QAction( self._outlineView )
       self.dedentNodeAction.setObjectName( 'actionDedentNode' )
       self.dedentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ] )
+      self.dedentNodeAction.setShortcutContext( QtCore.Qt.WindowShortcut )
       QtCore.QObject.connect( self.dedentNodeAction, QtCore.SIGNAL('triggered()'), self.dedentNode )
       
       self.insertNewNodeBeforeAction   = QtGui.QAction( self._outlineView )
@@ -383,6 +425,21 @@ class OutlineEditor(QtGui.QSplitter):
       except:
          exceptionPopup()
 
+   def cutNode( self ):
+      pass
+   
+   def copyNode( self ):
+      pass
+   
+   def pasteNodeBefore( self ):
+      pass
+   
+   def pasteNodeAfter( self ):
+      pass
+   
+   def pasteNodeChild( self ):
+      pass
+   
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:

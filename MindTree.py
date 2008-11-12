@@ -131,6 +131,12 @@ class MindTree( Application ):
       self.menuFile.addSeparator()
       self.menuFile.addAction(self.actionClose_2)
       
+      self.menuTree.addAction( self._outlineEditor.cutNodeAction )
+      self.menuTree.addAction( self._outlineEditor.copyNodeAction )
+      self.menuTree.addAction( self._outlineEditor.pasteNodeBeforeAction )
+      self.menuTree.addAction( self._outlineEditor.pasteNodeAfterAction )
+      self.menuTree.addAction( self._outlineEditor.pasteNodeChildAction )
+      self.menuTree.addSeparator()
       self.menuTree.addAction( self._outlineEditor.expandAllAction )
       self.menuTree.addAction( self._outlineEditor.collapseAllAction )
       self.menuTree.addAction( self._outlineEditor.expandNodeAction )
@@ -173,6 +179,11 @@ class MindTree( Application ):
       self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
       
       # Tree Menu
+      self._outlineEditor.cutNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Cut Node", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.copyNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Copy Node", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.pasteNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Before", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.pasteNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node After", None, QtGui.QApplication.UnicodeUTF8))
+      self._outlineEditor.pasteNodeChildAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Child", None, QtGui.QApplication.UnicodeUTF8))
       self._outlineEditor.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
       self._outlineEditor.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
       self._outlineEditor.expandNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Expand Node", None, QtGui.QApplication.UnicodeUTF8))
