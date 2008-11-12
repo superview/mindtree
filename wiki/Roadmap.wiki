@@ -8,6 +8,7 @@ Version 1.1 (development tag)
 
 Version 1.2 (development tag)
    * Plugin Manager - Port the MindTreeTk PluginManager or use Qt Plugin system
+   * Outline Context Menu
 
 Version 1.3 (development tag)
    * Import/Export Plugins
