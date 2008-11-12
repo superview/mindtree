@@ -2,14 +2,7 @@ from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
 import MTresources as RES
 
-def exceptionPopup( self ):
-   import traceback
-   
-   msgBox = QtGui.QMessageBox( )
-   msgBox.setWindowTitle( 'Exception' )
-   msgBox.setText( traceback.format_exc( ) )
-   msgBox.setIcon( QtGui.QMessageBox.Critical )
-   msgBox.exec_( )
+from utilities import *
 
 class EntryEditor( QtGui.QWidget ):
    def __init__( parent ):
@@ -185,7 +178,6 @@ class OutlineEditor(QtGui.QSplitter):
       try:
          # Update and Validate the new model
          aModel.validateModel( )
-         aModel.updateModel( )
          
          self._outlineView.setModel( aModel )
          

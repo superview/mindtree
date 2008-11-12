@@ -2,18 +2,35 @@ import sys
 from PyQt4 import QtCore, QtGui
 from OutlineEditor import OutlineEditor
 from OutlineModel import OutlineModel
+from ApplicationFramework import Application, Archiver
 from MindTreeTkImporter import importMTTkProject
 from Keyboard import KeyboardWidget
+import MTresources as RES
 
 
-class MindTree( QtGui.QMainWindow ):
+class MTTkImportingArchiver( Archiver ):
+   FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
+   FILE_EXTENSION    = 'mt'
+   
+   def __init__( self, parentWidget ):
+      Archiver.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, RES.PROJECT_WORKING_DIR )
+   
+   def _readFile( self, aFilename ):
+      from utilities import splitFilePath
+      disk,path,filename,extension = splitFilePath( aFilename )
+      documentName = filename[0].upper() + filename[1:]
+      
+      theModel = importMTTkProject( aFilename, documentName )
+      
+      return theModel
+   
+class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
    
-   def __init__( self, parent=None ):
-      QtGui.QMainWindow.__init__( self, parent )
-      self._filename = ''
-      self._modified = False   # Has the model been modified?
+   def __init__( self ):
+      Application.__init__( self, Archiver(self,RES.ARCHIVER_FILE_TYPES,RES.ARCHIVER_FILE_EXTENSION,RES.PROJECT_WORKING_DIR) )
       
+      self._MTTKimportingArchiver = MTTkImportingArchiver(self)
       self._outlineEditor = None
       self._kb            = None
       
@@ -169,94 +186,33 @@ class MindTree( QtGui.QMainWindow ):
       self._outlineEditor.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
       self._outlineEditor.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
 
-   def setModelToEdit( self, aModel, afilename ):
-      self._outlineEditor.setModel( aModel )
-      self._filename = afilename
-      self._modified = False
-      self.updateWindowTitle( )
-
-   def clearModified( self ):
-      self._modified = False
-      self.updateWindowTitle( )
-   
-   def newFile( self ):
-      if not self.closeFile( ):
-         return
-      
-      self.setModelToEdit( OutlineModel( ), self.generateUntitledFilename( ) )
-
-   def openFile( self ):
-      pass
-
-   def saveFile( self ):
-      if self._filename.startswith( 'Untitled' ):
-         return self.saveFileAs( )
-      
-      self._outlineEditor.commitChanges( )
-      
-      
-   
-   def saveFileAs( self ):
-      self._outlineEditor.commitChanges( )
-      pass
-   
    def importFile( self ):
-      if not self.closeFile( ):
-         return
-      
-      fullFilename = self._askopenfilename( 'f:\\mindtree data' )
-      if fullFilename is not None:
-         from filesystemTools import splitFilePath
-         disk,path,filename,extension = splitFilePath( fullFilename )
-         documentName = filename[0].upper() + filename[1:]
-         
-         theModel = importMTTkProject( fullFilename, documentName )
-         
-         self.setModelToEdit( theModel, fullFilename )
+      self.openFile( self._MTTKimportingArchiver )
    
    def exportFile( self ):
       pass
    
-   def closeFile( self ):
-      '''Returns False if the opteration is canceled or fails otherwise returns True.'''
-      return True
-
    def exit( self ):
       pass
    
-   def onModelChanged( self ):
-      self._modified = True
-      self.updateWindowTitle( )
+   # Required Overrides
+   def _makeDefaultModel( self ):
+      return OutlineModel( )
    
-   def updateWindowTitle( self ):
-      if self._modified:
-         windowTitleFormat = 'MindTree - [{0}] *'
-      else:
-         windowTitleFormat = 'MindTree - [{0}]'
-      
-      self.setWindowTitle( windowTitleFormat.format(self._filename) )
-   
-   def generateUntitledFilename( self ):
-      name = 'Untitled{0:02d}'.format( self.UNTITLED_FILENAME_CT )
-      self.UNTITLED_FILENAME_CT += 1
-      return name
+   def _setModelToEdit( self, aModel ):
+      self._outlineEditor.setModel( aModel )
+      Application._setModelToEdit( self, aModel )
 
-   def _askopenfilename( self, where ):
-      dlg = QtGui.QFileDialog( self, 'Open file...', where )
-      dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
-      dlg.setModal(True)
-      dlg.exec_()
-      filenames = dlg.selectedFiles( )
-      
-      if len(filenames) != 1:
-         return None
-      
-      return unicode(filenames[0])
+   def _updateWindowTitle( self, title ):
+      self.setWindowTitle( title )
    
+   def _commitDocument( self ):
+      self._outlineEditor.commitChanges( )
+
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
    import os.path
-   sys.path.append( os.path.join( sys.path[0], 'MindTreeTkModelLib' ) )
+   sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTreeTkModelLib' ) )
 
    app = QtGui.QApplication( sys.argv )
    KeyboardWidget.theApp = app

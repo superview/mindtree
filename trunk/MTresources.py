@@ -1,17 +1,33 @@
 from PyQt4 import QtCore, QtGui
+from utilities import splitFilePath
+import os
+import os.path
+
+#############
+# Startup Information
+STARTUP_DISK               = None
+STARTUP_PATH               = None
+STARTUP_NAME               = None
+STARTUP_EXT                = None
+STARTUP_DISK, STARTUP_PATH, STARTUP_NAME, STARTUP_EXT = splitFilePath( os.getcwd() )
+STARTUP_DISK               += os.sep
+
+#############
+# Main Application
+ARCHIVER_FILE_TYPES        = 'MindTree Outline File (*.mto);;All Files (*.*)'
+ARCHIVER_FILE_EXTENSION    = 'mto'
+
+#############
+# Project
+PROJECT_WORKING_DIR        = os.path.join( STARTUP_DISK, 'MindTree Data', 'Logic' )
+PROJECT_BACKUP_DIR         = 'backup'
 
 #############
 # TreeEditor
-treeFont = QtGui.QFont( 'Lucida Sans Unicode', 12 )
-articleFont = QtGui.QFont( 'Lucida Sans Unicode', 10 )
-emptyArticleIcon = 'resources\\images\\file.gif'
-fullArticleIcon  = 'resources\\images\\textfile.gif'
-
-# Key Bindings
-NEW_NEXT     = [ QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return ]
-MOVE_UP      = [ QtCore.Qt.CTRL + QtCore.Qt.Key_Up ]
-MOVE_DOWN    = [ QtCore.Qt.CTRL + QtCore.Qt.Key_Down ]
-MOVE_LEFT    = [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ]
+treeFont                   = QtGui.QFont( 'Lucida Sans Unicode', 12 )
+articleFont                = QtGui.QFont( 'Lucida Sans Unicode', 10 )
+emptyArticleIcon           = 'resources\\images\\file.gif'
+fullArticleIcon            = 'resources\\images\\textfile.gif'
 
 ################
 # KeyboardWidget
