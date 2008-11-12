@@ -68,9 +68,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       self._rootNode       = rootNode
 
-   def updateModel( self ):
-      pass
-   
    def validateModel( self ):
       pass
 

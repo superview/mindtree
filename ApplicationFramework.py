@@ -1,19 +1,25 @@
-from PyQt4 import QtGui
 from __future__ import print_function, unicode_literals
+from PyQt4 import QtGui
+import MTresources as RES
+
+from utilities import *
+
+
+class OperationCanceled( Exception ):
+   '''This exception is raised whenever a file operation is canceled.
+   This exception does not represent an error.  It's purpose is to cause
+   the call stack to be popped to return control to the Gui.'''
+   def __init__( self ):
+      Exception.__init__( self )
 
 
 class Project( object ):
    NAME_COUNTER = 0
-   CONFIG       = None
-   
+  
    def __init__( self, filename=None, data=None ):
       self._projectDir      = None
-      self._backupDir       = Project.CONFIG.get( 'Project', 'BackupDir' )
-      
       self._filename        = filename
-      
       self.modified         = False
-      
       self.data             = data      # The actual data in the project
       
       if filename is None:
@@ -26,9 +32,9 @@ class Project( object ):
    
    def backupDir( self, fullName=False ):
       if fullName:
-         return os.path.join( self._projectDir, self._backupDir )
+         return os.path.join( self._projectDir, RES.PROJECT_BACKUP_DIR )
       else:
-         return self._backupDir
+         return RES.PROJECT_BACKUP_DIR
    
    def filename( self, fullName=False ):
       if fullName:
@@ -37,9 +43,9 @@ class Project( object ):
          return self._filename
 
    def setFilename( self, filename ):
-      disk,path,name,extension = TkTools.splitFilePath( filename )
+      disk,path,name,extension = splitFilePath( filename )
       self._projectDir = os.path.join( disk, path )
-      self._backupDir  = os.path.join( self._projectDir, Project.CONFIG.get( 'Project', 'backupDir' ) )
+      self._backupDir  = os.path.join( self._projectDir, RES.PROJECT_BACKUP_DIR )
       self._filename   = name + extension
 
    def activateProjectDir( self ):
@@ -52,25 +58,26 @@ class Project( object ):
          return False
 
    def backup( self ):
-      shutil.copytree( self._projectDir, self._backupDir )
+      shutil.copytree( self._projectDir, RES.PROJECT_BACKUP_DIR )
    
    def genUntitledFilename( self ):
       Project.NAME_COUNTER += 1
-      return 'Untitled%d' % Project.NAME_COUNTER
+      return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
 
    def validateModel( self ):
       self.data.validateModel( )
 
-   def updateModel( self ):
-      self.data.updateModel( )
-   
 
 class Archiver( object ):
-   def __init__( self, fileTypes, defaultExtension, initialDir=None ):
+   def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
+      self._parentWidget     = parentWidget
       self._extension        = defaultExtension
       self._fileTypes        = fileTypes
       self._defaultExtension = defaultExtension
       self._initialDir       = initialDir
+      
+      if self._initialDir is None:
+         self._initialDir = os.getcwd()
    
    def setup( self, initialDir ):
       self._initialDir       = initialDir
@@ -79,14 +86,16 @@ class Archiver( object ):
       return self._defaultExtension
 
    def askopenfilename( self ):
-      dlg = QtGui.QFileDialog( self, 'Open file...', self._initialDir )
+      dlg = QtGui.QFileDialog( self._parentWidget, 'Open file...', self._initialDir, self._fileTypes )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
       dlg.setModal(True)
-      dlg.exec_()
+      if not dlg.exec_():
+         raise OperationCanceled()
+      
       filenames = dlg.selectedFiles( )
       
       if len(filenames) != 1:
-         return None
+         raise OperationCanceled()
       
       return unicode(filenames[0])
 
@@ -94,11 +103,14 @@ class Archiver( object ):
       dlg = QtGui.QFileDialog( self, 'Save file...', self._initialDir, self._defaultExtension )
       dlg.setAcceptMode( QtGui.QFileDialog.AcceptSave )
       dlg.setModal(True)
-      dlg.exec_()
+      
+      if not dlg.exec_():
+         raise OperationCanceled()
+      
       filenames = dlg.selectedFiles( )
       
-      if len(filenames) != 0:
-         return
+      if len(filenames) != 1:
+         raise OperationCanceled()
       
       return unicode(filenames[0])
 
@@ -113,9 +125,6 @@ class Archiver( object ):
       """
       filename = self.askopenfilename( )
       
-      if (filename is None) or (filename == ''):
-         return None
-      
       try:
          return Project( filename, self._readFile(filename) )
       except Exception, msg:
@@ -123,13 +132,15 @@ class Archiver( object ):
          msgBox.setWindowTitle( 'Error' )
          msgBox.setText( 'Unable to read file.\n\n  - {0}'.format(msg) )
          msgBox.setIcon( QtGui.QMessageBox.Critical )
-         return None
+         msgBox.exec_()
+         raise OperationCanceled()
       except:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
          msgBox.setText( 'An unknown error occured while trying to load file.' )
          msgBox.setIcon( QtGui.QMessageBox.Critical )
-         return None
+         msgBox.exec_()
+         raise OperationCanceled()
    
    def write( self, aProject, promptFilename=False ):
       """Write a document to a file.  The function may include user interaction,
@@ -162,13 +173,15 @@ class Archiver( object ):
          msgBox.setWindowTitle( 'Error' )
          msgBox.setText( 'The file is invalid.\n\n  - %s' % msg )
          msgBox.setIcon( QtGui.QMessageBox.Critical )
-         return None
+         msgBox.exec_()
+         raise OperationCanceled()
       except:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
          msgBox.setText( 'An unknown error occured while trying to load file.' )
          msgBox.setIcon( QtGui.QMessageBox.Critical )
-         return None
+         msgBox.exec_()
+         raise OperationCanceled()
       
       return filename
 
@@ -190,7 +203,7 @@ class Archiver( object ):
       pickle.dump( aDocument, f, -1 )
    
 
-class Application( Tix.Tk ):
+class Application( QtGui.QMainWindow ):
    '''File handling operations (new, open, save, etc.) can get quite confusing
    because there are so many cases which have overlapping solutions:
 
@@ -226,6 +239,8 @@ class Application( Tix.Tk ):
    '''
    # Management
    def __init__( self, anArchiver ):
+      QtGui.QMainWindow.__init__( self )
+      
       self._archiver   = anArchiver
       self._project    = None
       self._plugins    = None
@@ -234,66 +249,96 @@ class Application( Tix.Tk ):
       self._plugins = PluginManager( pluginDir )
 
    # Implementation
-   def new( self ):
-      self._closeCurrentProject( )
-      
-      self._project  = Project( data=self._makeDefaultModel( ) )
-      
-      self._setModelToEdit( self._project )
-      self.updateWindowTitle( )
+   def newFile( self ):
+      try:
+         self._closeCurrentProject( )
+         
+         self._project  = Project( data=self._makeDefaultModel( ) )
+         
+         self._setModelToEdit( self._project.data )
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"new" Operation Failed' )
    
-   def open( self, anArchiver=None ):
-      self._closeCurrentProject( )
-      
-      if anArchiver:
-         self._project = anArchiver.read( )
-      else:
-         self._project = self._archiver.read( )
-      
-      if self._project is None:
-         return False
-      
-      # Setup the project directory
-      self._project.activateProjectDir( )
-      
-      # Install the Model
-      self._setModelToEdit( self._project )
-      self.updateWindowTitle( )
+   def openFile( self, anArchiver=None ):
+      try:
+         self._closeCurrentProject( )
+         
+         if anArchiver:
+            self._project = anArchiver.read( )
+         else:
+            self._project = self._archiver.read( )
+         
+         if self._project is None:
+            return False
+         
+         # Setup the project directory
+         self._project.activateProjectDir( )
+         
+         # Install the Model
+         self._setModelToEdit( self._project.data )
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"open" Operation Failed' )
    
-   def save( self ):
-      if self._project.modified and self._project.backupDir():
-         self._project.backup()
-      
-      self._commitDocument( )
-      theDoc = self._project.data
-      if self._archiver.write( self._project, promptFilename=False ) is not None:
+   def saveFile( self ):
+      try:
+         if self._project.modified and self._project.backupDir():
+            self._project.backup()
+         
+         self._commitDocument( )
+         theDoc = self._project.data
+         self._archiver.write( self._project, promptFilename=False )
+         
          self._project.modified = False
-      
-      self.updateWindowTitle( )
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"save" Operation Failed' )
    
-   def saveAs( self, promptName=True, anArchiver=None ):
-      if self._project.modified and self._project.backupDir():
-         self._project.backup( )
-      
-      self._commitDocument( )
-      theDoc = self._project.data
-      
-      if anArchiver:
-         newName = anArchiver.write( self._project, promptFilename=True )
-      else:
-         newName = self._archiver.write( self._project, promptFilename=True )
-      
-      if newName is not None:
+   def saveFileAs( self, anArchiver=None ):
+      try:
+         if self._project.modified and self._project.backupDir():
+            self._project.backup( )
+         
+         self._commitDocument( )
+         theDoc = self._project.data
+         
+         if anArchiver:
+            newName = anArchiver.write( self._project, promptFilename=True )
+         else:
+            newName = self._archiver.write( self._project, promptFilename=True )
+         
          self._project = Project( filename=newName, data=self._project.data )
          self._project.activateProjectDir( )
-      
-      self.updateWindowTitle( )
+         
+         self._project.modified = False
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"save as" Operation Failed' )
    
-   def close( self ):
-      self._closeCurrentProject( )
+   def closeFile( self ):
+      try:
+         self.newFile()
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"close" Operation Failed' )
    
    def exit( self ):
-      self._closeCurrentProject( )
+      try:
+         self.newFile()
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( '"exit" Operation Failed' )
    
    def makeBackup( self ):
       import datetime
@@ -322,8 +367,7 @@ class Application( Tix.Tk ):
             if self._project.projectDir() and self._project.backupDir():
                self.backup()
             
-            if self.askSaveChanges( ) is None:
-               return None
+            self.askSaveChanges( )
       
       return True
 
@@ -345,11 +389,9 @@ class Application( Tix.Tk ):
          if response == QtGui.QMessageBox.Yes:
             self.saveAs( )
          elif response != QtGui.QMessageBox.No:
-            return None
-      
-      return True
+            raise OperationCanceled()
 
-   def onModified( self, event=None ):
+   def onModelChanged( self ):
       self._project.modified = True
       self.updateWindowTitle( )
    
@@ -365,14 +407,13 @@ class Application( Tix.Tk ):
       self._updateWindowTitle( theTitle ) 
 
    # Contract
-   def buildGUI( self ):
-      pass
-
    def _makeDefaultModel( self ):
       pass
    
-   def _setModelToEdit( self, aProject ):
-      pass
+   def _setModelToEdit( self, aModel ):
+      '''Overriding method should perform its operations and call this base
+      class method last.'''
+      self._project.modified = False
    
    def _updateWindowTitle( self, title ):
       pass

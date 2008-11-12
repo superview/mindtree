@@ -1,7 +1,7 @@
 # Read and Convert a MindTree v1.0 Project file
 
 from OutlineModel import OutlineModel, TreeNode
-from MindTreeTkModelLib import readMTTkModel
+from Plugins.MindTreeTkModelLib import readMTTkModel
 from PyQt4 import QtCore
 
 def convertProject( aProject ):
