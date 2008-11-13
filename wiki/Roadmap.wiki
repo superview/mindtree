@@ -2,13 +2,12 @@
 #labels Featured
 
 Version 1.1 (development tag)
-   * Shortcuts - Get all the shortcuts working properly.
-   * Toolbars - Put all the MindTreeTk toolbar buttons in place and get them working.
    * Outline Context Menu
 
 Version 1.2 (development tag)
    * Plugin Manager - Port the MindTreeTk PluginManager or use Qt Plugin system
    * Drag & Drop - Get it working within a single outline widget
+   * Shortcuts - 'Ctrl-Left' and 'Ctrl-Right' working properly.
 
 Version 1.3 (development tag)
    * Import/Export Plugins
