@@ -396,10 +396,7 @@ class Application( QtGui.QMainWindow ):
       self.updateWindowTitle( )
    
    def updateWindowTitle( self ):
-      theTitle = 'MindTree'
-      
-      if isinstance( self._project.filename, unicode ):
-         theTitle += ' - [{0}]'.format(self._project.filename)
+      theTitle = 'MindTree - [{0}]'.format(self._project.filename())
       
       if self._project.modified:
          theTitle += ' *'

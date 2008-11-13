@@ -386,35 +386,40 @@ class OutlineEditor(QtGui.QSplitter):
       # Undo
       self.editUndoAction = QtGui.QAction( self._outlineView )
       self.editUndoAction.setObjectName( 'actionEditUndo' )
-      self.editUndoAction.setText(QtGui.QApplication.translate("MainWindow", "Undo", None, QtGui.QApplication.UnicodeUTF8))
+      self.editUndoAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_EDIT_UNDO_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.editUndoAction.setIcon( QtGui.QIcon(RES.ACTION_EDIT_UNDO_ICON) )
       #self.editUndoAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.editUndoAction, QtCore.SIGNAL('triggered()'), self.editUndo )
       
       # Redo
       self.editRedoAction = QtGui.QAction( self._outlineView )
       self.editRedoAction.setObjectName( 'actionEditRedo' )
-      self.editRedoAction.setText(QtGui.QApplication.translate("MainWindow", "Redo", None, QtGui.QApplication.UnicodeUTF8))
+      self.editRedoAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_EDIT_REDO_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.editRedoAction.setIcon( QtGui.QIcon(RES.ACTION_EDIT_REDO_ICON) )
       #self.editRedoAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.editRedoAction, QtCore.SIGNAL('triggered()'), self.editRedo )
       
       # Cut Text
       self.articleCutAction = QtGui.QAction( self._outlineView )
       self.articleCutAction.setObjectName( 'actionArticleCut' )
-      self.articleCutAction.setText(QtGui.QApplication.translate("MainWindow", "Cut Text", None, QtGui.QApplication.UnicodeUTF8))
+      self.articleCutAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_CUT_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.articleCutAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_CUT_ICON) )
       #self.articleCutAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articleCutAction, QtCore.SIGNAL('trigger()'), self.articleCut )
       
       # Copy Text
       self.articleCopyAction = QtGui.QAction( self._outlineView )
       self.articleCopyAction.setObjectName( 'actionArticleCopy' )
-      self.articleCopyAction.setText(QtGui.QApplication.translate("MainWindow", "Copy Text", None, QtGui.QApplication.UnicodeUTF8))
+      self.articleCopyAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_COPY_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.articleCopyAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_COPY_ICON) )
       #self.articleCopyAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articleCopyAction, QtCore.SIGNAL('trigger()'), self.articleCopy )
       
       # Paste Text
       self.articlePasteAction = QtGui.QAction( self._outlineView )
       self.articlePasteAction.setObjectName( 'actionArticlePaste' )
-      self.articlePasteAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Text", None, QtGui.QApplication.UnicodeUTF8))
+      self.articlePasteAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_PASTE_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.articlePasteAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_PASTE_ICON) )
       #self.articlePasteAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articlePasteAction, QtCore.SIGNAL('trigger()'), self.articlePaste )
       
@@ -463,7 +468,8 @@ class OutlineEditor(QtGui.QSplitter):
       # Expand All Nodes
       self.expandAllAction         = QtGui.QAction( self._outlineView )
       self.expandAllAction.setObjectName( 'actionExpandAll' )
-      self.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
+      self.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_TREE_EXPANDALL_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.expandAllAction.setIcon( QtGui.QIcon(RES.ACTION_TREE_EXPANDALL_ICON) )
       #self.expandAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.expandAllAction, QtCore.SIGNAL('triggered()'), self.expandAll )
       
@@ -477,7 +483,8 @@ class OutlineEditor(QtGui.QSplitter):
       # Collapse All Nodes
       self.collapseAllAction       = QtGui.QAction( self._outlineView )
       self.collapseAllAction.setObjectName( 'actionCollapseAll' )
-      self.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
+      self.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_TREE_COLLAPSEALL_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.collapseAllAction.setIcon( QtGui.QIcon(RES.ACTION_TREE_COLLAPSEALL_ICON) )
       #self.collapseAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.collapseAllAction, QtCore.SIGNAL('triggered()'), self.collapseAll )
       
