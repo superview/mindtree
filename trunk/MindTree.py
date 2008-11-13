@@ -6,6 +6,7 @@ from ApplicationFramework import Application, Archiver
 from MindTreeTkImporter import importMTTkProject
 from Keyboard import KeyboardWidget
 import MTresources as RES
+from utilities import Action
 
 
 class MTTkImportingArchiver( Archiver ):
