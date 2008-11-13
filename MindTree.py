@@ -66,6 +66,7 @@ class MindTree( Application ):
       self.actionNew.setObjectName("actionNew")
       self.actionNew.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_NEW_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.actionNew.setIcon( QtGui.QIcon(RES.ACTION_FILE_NEW_ICON) )
+      self.actionNew.setStatusTip( RES.ACTION_FILE_NEW_STATUSTIP )
       QtCore.QObject.connect( self.actionNew,    QtCore.SIGNAL('triggered()'), self.newFile )
       
       # Open Outline
@@ -73,6 +74,7 @@ class MindTree( Application ):
       self.actionOpen.setObjectName("actionOpen")
       self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_OPEN_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.actionOpen.setIcon( QtGui.QIcon(RES.ACTION_FILE_OPEN_ICON) )
+      self.actionOpen.setStatusTip( RES.ACTION_FILE_OPEN_STATUSTIP )
       QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
       
       # Close Outline
@@ -85,6 +87,7 @@ class MindTree( Application ):
       self.actionSave = QtGui.QAction(self)
       self.actionSave.setObjectName("actionSave")
       self.actionSave.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_SAVE_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.actionSave.setStatusTip( RES.ACTION_FILE_SAVE_STATUSTIP )
       self.actionSave.setIcon( QtGui.QIcon(RES.ACTION_FILE_SAVE_ICON) )
       QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
       

@@ -23,14 +23,17 @@ STARTUP_DISK               += os.sep
 ARCHIVER_FILE_TYPES        = 'MindTree Outline File (*.mto);;All Files (*.*)'
 ARCHIVER_FILE_EXTENSION    = 'mto'
 
-ACTION_FILE_NEW_TEXT       = 'New'
-ACTION_FILE_NEW_ICON       = 'resources\\icons\\file_new.ico'
+ACTION_FILE_NEW_TEXT              = 'New'
+ACTION_FILE_NEW_ICON              = 'resources\\icons\\file_new.ico'
+ACTION_FILE_NEW_STATUSTIP         = 'Begin a new project.'
 
-ACTION_FILE_OPEN_TEXT      = 'Open...'
-ACTION_FILE_OPEN_ICON      = 'resources\\icons\\file_open.ico'
+ACTION_FILE_OPEN_TEXT             = 'Open...'
+ACTION_FILE_OPEN_ICON             = 'resources\\icons\\file_open.ico'
+ACTION_FILE_OPEN_STATUSTIP        = 'Open an existing project.'
 
-ACTION_FILE_SAVE_TEXT      = 'Save'
-ACTION_FILE_SAVE_ICON      = 'resources\\icons\\file_save.ico'
+ACTION_FILE_SAVE_TEXT             = 'Save'
+ACTION_FILE_SAVE_ICON             = 'resources\\icons\\file_save.ico'
+ACTION_FILE_SAVE_STATUSTIP        = 'Save the current project.'
 
 #############
 # Project
@@ -39,31 +42,38 @@ PROJECT_BACKUP_DIR         = 'backup'
 
 #############
 # TreeEditor
-treeFont                   = QtGui.QFont( 'Lucida Sans Unicode', 12 )
-articleFont                = QtGui.QFont( 'Lucida Sans Unicode', 10 )
-emptyArticleIcon           = 'resources\\images\\file.gif'
-fullArticleIcon            = 'resources\\images\\textfile.gif'
+treeFont                          = QtGui.QFont( 'Lucida Sans Unicode', 12 )
+articleFont                       = QtGui.QFont( 'Lucida Sans Unicode', 10 )
+emptyArticleIcon                  = 'resources\\images\\file.gif'
+fullArticleIcon                   = 'resources\\images\\textfile.gif'
 
-ACTION_EDIT_UNDO_TEXT      = 'Undo'
-ACTION_EDIT_UNDO_ICON      = 'resources\\icons\\edit_undo.ico'
+ACTION_EDIT_UNDO_TEXT             = 'Undo'
+ACTION_EDIT_UNDO_ICON             = 'resources\\icons\\edit_undo.ico'
+ACTION_EDIT_UNDO_STATUSTIP        = 'Undo the most recent change.'
 
-ACTION_EDIT_REDO_TEXT      = 'Redo'
-ACTION_EDIT_REDO_ICON      = 'resources\\icons\\edit_redo.ico'
+ACTION_EDIT_REDO_TEXT             = 'Redo'
+ACTION_EDIT_REDO_ICON             = 'resources\\icons\\edit_redo.ico'
+ACTION_EDIT_REDO_STATUSTIP        = 'Redo the most recent undo.'
 
-ACTION_ARTICLE_CUT_TEXT    = 'Cut Text'
-ACTION_ARTICLE_CUT_ICON    = 'resources\\icons\\edit_cut.ico'
+ACTION_ARTICLE_CUT_TEXT           = 'Cut Text'
+ACTION_ARTICLE_CUT_ICON           = 'resources\\icons\\edit_cut.ico'
+ACTION_ARTICLE_CUT_STATUSTIP      = 'Cut the selected text to the clipboard.'
 
-ACTION_ARTICLE_COPY_TEXT   = 'Copy Text'
-ACTION_ARTICLE_COPY_ICON   = 'resources\\icons\\edit_copy.ico'
+ACTION_ARTICLE_COPY_TEXT          = 'Copy Text'
+ACTION_ARTICLE_COPY_ICON          = 'resources\\icons\\edit_copy.ico'
+ACTION_ARTICLE_COPY_STATUSTIP     = 'Copy the selected text to the clipboard.'
 
-ACTION_ARTICLE_PASTE_TEXT  = 'Paste Text'
-ACTION_ARTICLE_PASTE_ICON  = 'resources\\icons\\edit_paste.ico'
+ACTION_ARTICLE_PASTE_TEXT         = 'Paste Text'
+ACTION_ARTICLE_PASTE_ICON         = 'resources\\icons\\edit_paste.ico'
+ACTION_ARTICLE_PASTE_STATUSTIP    = 'Paste the contents of the clipboard.'
 
-ACTION_TREE_EXPANDALL_TEXT = 'Expand All'
-ACTION_TREE_EXPANDALL_ICON = 'resources\\icons\\expand.ico'
+ACTION_TREE_EXPANDALL_TEXT        = 'Expand All'
+ACTION_TREE_EXPANDALL_ICON        = 'resources\\icons\\expand.ico'
+ACTION_TREE_EXPANDALL_STATUSTIP   = 'Expand all nodes of the outline.'
 
-ACTION_TREE_COLLAPSEALL_TEXT = 'Collapse All'
-ACTION_TREE_COLLAPSEALL_ICON = 'resources\\icons\\collapse.ico'
+ACTION_TREE_COLLAPSEALL_TEXT      = 'Collapse All'
+ACTION_TREE_COLLAPSEALL_ICON      = 'resources\\icons\\collapse.ico'
+ACTION_TREE_COLLAPSEALL_STATUSTIP = 'Collapse all nodes of the outline.'
 
 ################
 # KeyboardWidget
