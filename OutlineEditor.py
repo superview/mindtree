@@ -85,6 +85,19 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
    def returnPressed( self ):
       self._outlineEditor.insertNewNodeAfter( )
 
+class OutlineEditorWidget( QtGui.QTreeView ):
+   def __init__( self, parent ):
+      QtGui.QTreeView.__init__( self, parent )
+
+   def mousePressEvent( self, event ):
+      if event.button() == QtCore.Qt.RightButton:
+         qpoint = event.pos()
+         index = self.indexAt( qpoint )
+         node = index.internalPointer()
+         print( 'Right-Clicked on: {0}'.format(node._data[0]) )
+      else:
+         QtGui.QTreeView.mousePressEvent( self, event )
+
 class OutlineEditor(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")'''
    def __init__( self, parent ):
@@ -95,9 +108,7 @@ class OutlineEditor(QtGui.QSplitter):
       self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
-      self._defineActions( )
-      
-      self._outlineView = QtGui.QTreeView(self)
+      self._outlineView = OutlineEditorWidget(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
@@ -123,6 +134,8 @@ class OutlineEditor(QtGui.QSplitter):
       self._articleView.setMinimumSize(QtCore.QSize(100, 100))
       self._articleView.setFont( RES.articleFont )
       self._articleView.setObjectName("articleView")
+      
+      self._defineActions( )
 
    # Basic Operations
    def setModel( self, aModel ):
