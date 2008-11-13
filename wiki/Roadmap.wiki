@@ -1,5 +1,5 @@
+#summary This document lists future versions and features.
 #labels Featured
-This document lists future versions and features.
 
 Version 1.1 (development tag)
    * Shortcuts - Get all the shortcuts working properly.
