@@ -1,5 +1,5 @@
+#summary How can you help?
 #labels developer
-#What kinds of contributions are needed?
 
 = Introduction =
 
@@ -12,3 +12,4 @@ There are many ways that you can contribute.  If you are interested please conta
   * Write Unit Tests
   * Write Help Pages
   * Write Installers
+  * Report bugs
