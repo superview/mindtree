@@ -7,8 +7,7 @@ from PyQt4 import QtGui
 def exceptionPopup( ):
    msgBox = QtGui.QMessageBox( )
    msgBox.setWindowTitle( 'Exception' )
-   msgBox.setText( msg )
-   msgBox.setInformativeText( traceback.format_exc( ) )
+   msgBox.setText( traceback.format_exc( ) )
    msgBox.setIcon( QtGui.QMessageBox.Critical )
    msgBox.exec_( )
 

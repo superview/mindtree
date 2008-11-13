@@ -95,6 +95,8 @@ class OutlineEditor(QtGui.QSplitter):
       self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
+      self._defineActions( )
+      
       self._outlineView = QtGui.QTreeView(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
@@ -121,94 +123,6 @@ class OutlineEditor(QtGui.QSplitter):
       self._articleView.setMinimumSize(QtCore.QSize(100, 100))
       self._articleView.setFont( RES.articleFont )
       self._articleView.setObjectName("articleView")
-      
-      # Define Actions
-      self.cutNodeAction           = QtGui.QAction( self._outlineView )
-      self.cutNodeAction.setObjectName( 'actionCutNode' )
-      #self.cutNodeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.cutNodeAction, QtCore.SIGNAL('triggered()'), self.cutNode )
-      
-      self.copyNodeAction          = QtGui.QAction( self._outlineView )
-      self.copyNodeAction.setObjectName( 'actionCopyNode' )
-      #self.copyNodeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.copyNodeAction, QtCore.SIGNAL('triggered()'), self.copyNode )
-      
-      self.pasteNodeBeforeAction   = QtGui.QAction( self._outlineView )
-      self.pasteNodeBeforeAction.setObjectName( 'actionPasteNodeBefore' )
-      #self.pasteNodeBeforeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.pasteNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.pasteNodeBefore )
-      
-      self.pasteNodeAfterAction    = QtGui.QAction( self._outlineView )
-      self.pasteNodeAfterAction.setObjectName( 'actionPasteNodeAfter' )
-      #self.pasteNodeAfterAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.pasteNodeAfterAction, QtCore.SIGNAL('triggered()'), self.pasteNodeAfter )
-      
-      self.pasteNodeChildAction    = QtGui.QAction( self._outlineView )
-      self.pasteNodeChildAction.setObjectName( 'actionPasteNodeChild' )
-      #self.pasteNodeChildAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.pasteNodeChildAction, QtCore.SIGNAL('triggered()'), self.pasteNodeChild )
-      
-      self.expandAllAction         = QtGui.QAction( self._outlineView )
-      self.expandAllAction.setObjectName( 'actionExpandAll' )
-      #self.expandAllAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.expandAllAction, QtCore.SIGNAL('triggered()'), self.expandAll )
-      
-      self.expandNodeAction            = QtGui.QAction( self._outlineView )
-      self.expandNodeAction.setObjectName( 'actionExpandNode' )
-      #self.expandNodeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.expandNodeAction, QtCore.SIGNAL('triggered()'), self.expandNode )
-      
-      self.collapseAllAction       = QtGui.QAction( self._outlineView )
-      self.collapseAllAction.setObjectName( 'actionCollapseAll' )
-      #self.collapseAllAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.collapseAllAction, QtCore.SIGNAL('triggered()'), self.collapseAll )
-      
-      self.collapseNodeAction          = QtGui.QAction( self._outlineView )
-      self.collapseNodeAction.setObjectName( 'actionCollapseNode' )
-      #self.collapseNodeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.collapseNodeAction, QtCore.SIGNAL('triggered()'), self.collapseNode )
-      
-      self.moveNodeUpAction            = QtGui.QAction( self._outlineView )
-      self.moveNodeUpAction.setObjectName( 'actionMoveNodeUp' )
-      self.moveNodeUpAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Up ] )
-      QtCore.QObject.connect( self.moveNodeUpAction, QtCore.SIGNAL('triggered()'), self.moveNodeUp )
-      
-      self.moveNodeDownAction          = QtGui.QAction( self._outlineView )
-      self.moveNodeDownAction.setObjectName( 'actionMoveNodeDown' )
-      self.moveNodeDownAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Down ] )
-      QtCore.QObject.connect( self.moveNodeDownAction, QtCore.SIGNAL('triggered()'), self.moveNodeDown )
-      
-      self.indentNodeAction            = QtGui.QAction( self._outlineView )
-      self.indentNodeAction.setObjectName( 'actionIndentNode' )
-      self.indentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Right, QtCore.Qt.Key_Tab ] )
-      self.indentNodeAction.setShortcutContext( QtCore.Qt.WindowShortcut )
-      QtCore.QObject.connect( self.indentNodeAction, QtCore.SIGNAL('triggered()'), self.indentNode )
-      
-      self.dedentNodeAction            = QtGui.QAction( self._outlineView )
-      self.dedentNodeAction.setObjectName( 'actionDedentNode' )
-      self.dedentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ] )
-      self.dedentNodeAction.setShortcutContext( QtCore.Qt.WindowShortcut )
-      QtCore.QObject.connect( self.dedentNodeAction, QtCore.SIGNAL('triggered()'), self.dedentNode )
-      
-      self.insertNewNodeBeforeAction   = QtGui.QAction( self._outlineView )
-      self.insertNewNodeBeforeAction.setObjectName( 'actionInsertNewNodeBefore' )
-      #self.insertNewNodeBeforeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.insertNewNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeBefore )
-      
-      self.insertNewNodeAfterAction    = QtGui.QAction( self._outlineView )
-      self.insertNewNodeAfterAction.setObjectName( 'actionInsertNewNodeAfter' )
-      self.insertNewNodeAfterAction.setShortcuts( [ QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter ] )
-      QtCore.QObject.connect( self.insertNewNodeAfterAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeAfter )
-      
-      self.insertNewChildAction        = QtGui.QAction( self._outlineView )
-      self.insertNewChildAction.setObjectName( 'actionInsertNewChild' )
-      #self.insertNewChildAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.insertNewChildAction, QtCore.SIGNAL('triggered()'), self.insertNewChild )
-      
-      self.deleteNodeAction            = QtGui.QAction( self._outlineView )
-      self.deleteNodeAction.setObjectName( 'actionDeleteNode' )
-      #self.deleteNodeAction.setShortcuts( [ ] )
-      QtCore.QObject.connect( self.deleteNodeAction, QtCore.SIGNAL('triggered()'), self.deleteNode )
 
    # Basic Operations
    def setModel( self, aModel ):
@@ -440,6 +354,24 @@ class OutlineEditor(QtGui.QSplitter):
    def pasteNodeChild( self ):
       pass
    
+   def editUndo( self ):
+      pass
+   
+   def editRedo( self ):
+      pass
+
+   def articleCut( self ):
+      pass
+   
+   def articleCopy( self ):
+      pass
+   
+   def articlePaste( self ):
+      pass
+   
+   def articleSelectAll( self ):
+      pass
+   
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:
@@ -448,3 +380,167 @@ class OutlineEditor(QtGui.QSplitter):
 
    def onModelChanged( self, index1=None, index2=None ):
       self.emit( QtCore.SIGNAL('modelChanged()') )
+
+   # Implementation
+   def _defineActions( self ):
+      # Undo
+      self.editUndoAction = QtGui.QAction( self._outlineView )
+      self.editUndoAction.setObjectName( 'actionEditUndo' )
+      self.editUndoAction.setText(QtGui.QApplication.translate("MainWindow", "Undo", None, QtGui.QApplication.UnicodeUTF8))
+      #self.editUndoAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.editUndoAction, QtCore.SIGNAL('triggered()'), self.editUndo )
+      
+      # Redo
+      self.editRedoAction = QtGui.QAction( self._outlineView )
+      self.editRedoAction.setObjectName( 'actionEditRedo' )
+      self.editRedoAction.setText(QtGui.QApplication.translate("MainWindow", "Redo", None, QtGui.QApplication.UnicodeUTF8))
+      #self.editRedoAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.editRedoAction, QtCore.SIGNAL('triggered()'), self.editRedo )
+      
+      # Cut Text
+      self.articleCutAction = QtGui.QAction( self._outlineView )
+      self.articleCutAction.setObjectName( 'actionArticleCut' )
+      self.articleCutAction.setText(QtGui.QApplication.translate("MainWindow", "Cut Text", None, QtGui.QApplication.UnicodeUTF8))
+      #self.articleCutAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.articleCutAction, QtCore.SIGNAL('trigger()'), self.articleCut )
+      
+      # Copy Text
+      self.articleCopyAction = QtGui.QAction( self._outlineView )
+      self.articleCopyAction.setObjectName( 'actionArticleCopy' )
+      self.articleCopyAction.setText(QtGui.QApplication.translate("MainWindow", "Copy Text", None, QtGui.QApplication.UnicodeUTF8))
+      #self.articleCopyAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.articleCopyAction, QtCore.SIGNAL('trigger()'), self.articleCopy )
+      
+      # Paste Text
+      self.articlePasteAction = QtGui.QAction( self._outlineView )
+      self.articlePasteAction.setObjectName( 'actionArticlePaste' )
+      self.articlePasteAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Text", None, QtGui.QApplication.UnicodeUTF8))
+      #self.articlePasteAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.articlePasteAction, QtCore.SIGNAL('trigger()'), self.articlePaste )
+      
+      # Select All Text
+      self.articleSelectAllAction = QtGui.QAction( self._outlineView )
+      self.articleSelectAllAction.setObjectName( 'actionSelectAll' )
+      self.articleSelectAllAction.setText(QtGui.QApplication.translate("MainWindow", "Select All Text", None, QtGui.QApplication.UnicodeUTF8))
+      #self.articleSelectAllAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.articleSelectAllAction, QtCore.SIGNAL('trigger()'), self.articleSelectAll )
+      
+      # Cut Node
+      self.cutNodeAction           = QtGui.QAction( self._outlineView )
+      self.cutNodeAction.setObjectName( 'actionCutNode' )
+      self.cutNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Cut Node", None, QtGui.QApplication.UnicodeUTF8))
+      #self.cutNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.cutNodeAction, QtCore.SIGNAL('triggered()'), self.cutNode )
+      
+      # Copy Node
+      self.copyNodeAction          = QtGui.QAction( self._outlineView )
+      self.copyNodeAction.setObjectName( 'actionCopyNode' )
+      self.copyNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Copy Node", None, QtGui.QApplication.UnicodeUTF8))
+      #self.copyNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.copyNodeAction, QtCore.SIGNAL('triggered()'), self.copyNode )
+      
+      # Paste Node Before
+      self.pasteNodeBeforeAction   = QtGui.QAction( self._outlineView )
+      self.pasteNodeBeforeAction.setObjectName( 'actionPasteNodeBefore' )
+      self.pasteNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Before", None, QtGui.QApplication.UnicodeUTF8))
+      #self.pasteNodeBeforeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.pasteNodeBefore )
+      
+      # Paste Node After
+      self.pasteNodeAfterAction    = QtGui.QAction( self._outlineView )
+      self.pasteNodeAfterAction.setObjectName( 'actionPasteNodeAfter' )
+      self.pasteNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node After", None, QtGui.QApplication.UnicodeUTF8))
+      #self.pasteNodeAfterAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeAfterAction, QtCore.SIGNAL('triggered()'), self.pasteNodeAfter )
+      
+      # Past Node as Child
+      self.pasteNodeChildAction    = QtGui.QAction( self._outlineView )
+      self.pasteNodeChildAction.setObjectName( 'actionPasteNodeChild' )
+      self.pasteNodeChildAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Child", None, QtGui.QApplication.UnicodeUTF8))
+      #self.pasteNodeChildAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.pasteNodeChildAction, QtCore.SIGNAL('triggered()'), self.pasteNodeChild )
+      
+      # Expand All Nodes
+      self.expandAllAction         = QtGui.QAction( self._outlineView )
+      self.expandAllAction.setObjectName( 'actionExpandAll' )
+      self.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
+      #self.expandAllAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.expandAllAction, QtCore.SIGNAL('triggered()'), self.expandAll )
+      
+      # Expand Node
+      self.expandNodeAction            = QtGui.QAction( self._outlineView )
+      self.expandNodeAction.setObjectName( 'actionExpandNode' )
+      self.expandNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Expand Node", None, QtGui.QApplication.UnicodeUTF8))
+      #self.expandNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.expandNodeAction, QtCore.SIGNAL('triggered()'), self.expandNode )
+      
+      # Collapse All Nodes
+      self.collapseAllAction       = QtGui.QAction( self._outlineView )
+      self.collapseAllAction.setObjectName( 'actionCollapseAll' )
+      self.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
+      #self.collapseAllAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.collapseAllAction, QtCore.SIGNAL('triggered()'), self.collapseAll )
+      
+      # Collapse Node
+      self.collapseNodeAction          = QtGui.QAction( self._outlineView )
+      self.collapseNodeAction.setObjectName( 'actionCollapseNode' )
+      self.collapseNodeAction.setText(QtGui.QApplication.translate("MainWindow", "CollapseNode", None, QtGui.QApplication.UnicodeUTF8))
+      #self.collapseNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.collapseNodeAction, QtCore.SIGNAL('triggered()'), self.collapseNode )
+      
+      # Move Node Up
+      self.moveNodeUpAction            = QtGui.QAction( self._outlineView )
+      self.moveNodeUpAction.setObjectName( 'actionMoveNodeUp' )
+      self.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
+      self.moveNodeUpAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Up ] )
+      QtCore.QObject.connect( self.moveNodeUpAction, QtCore.SIGNAL('triggered()'), self.moveNodeUp )
+      
+      # Move Node Down
+      self.moveNodeDownAction          = QtGui.QAction( self._outlineView )
+      self.moveNodeDownAction.setObjectName( 'actionMoveNodeDown' )
+      self.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
+      self.moveNodeDownAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Down ] )
+      QtCore.QObject.connect( self.moveNodeDownAction, QtCore.SIGNAL('triggered()'), self.moveNodeDown )
+      
+      # Indent Node
+      self.indentNodeAction            = QtGui.QAction( self._outlineView )
+      self.indentNodeAction.setObjectName( 'actionIndentNode' )
+      self.indentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Right, QtCore.Qt.Key_Tab ] )
+      self.indentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Indent Node", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.indentNodeAction, QtCore.SIGNAL('triggered()'), self.indentNode )
+      
+      # Dedent Node
+      self.dedentNodeAction            = QtGui.QAction( self._outlineView )
+      self.dedentNodeAction.setObjectName( 'actionDedentNode' )
+      self.dedentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Dedent Node", None, QtGui.QApplication.UnicodeUTF8))
+      self.dedentNodeAction.setShortcuts( [ QtCore.Qt.CTRL + QtCore.Qt.Key_Left, QtCore.Qt.SHIFT + QtCore.Qt.Key_Tab ] )
+      QtCore.QObject.connect( self.dedentNodeAction, QtCore.SIGNAL('triggered()'), self.dedentNode )
+      
+      # Insert New Node Before
+      self.insertNewNodeBeforeAction   = QtGui.QAction( self._outlineView )
+      self.insertNewNodeBeforeAction.setObjectName( 'actionInsertNewNodeBefore' )
+      self.insertNewNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "New Node Before", None, QtGui.QApplication.UnicodeUTF8))
+      #self.insertNewNodeBeforeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.insertNewNodeBeforeAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeBefore )
+      
+      # Insert New Node After
+      self.insertNewNodeAfterAction    = QtGui.QAction( self._outlineView )
+      self.insertNewNodeAfterAction.setObjectName( 'actionInsertNewNodeAfter' )
+      self.insertNewNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "New Node After", None, QtGui.QApplication.UnicodeUTF8))
+      self.insertNewNodeAfterAction.setShortcuts( [ QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter ] )
+      QtCore.QObject.connect( self.insertNewNodeAfterAction, QtCore.SIGNAL('triggered()'), self.insertNewNodeAfter )
+      
+      # Insert New Child Node
+      self.insertNewChildAction        = QtGui.QAction( self._outlineView )
+      self.insertNewChildAction.setObjectName( 'actionInsertNewChild' )
+      self.insertNewChildAction.setText(QtGui.QApplication.translate("MainWindow", "New Child", None, QtGui.QApplication.UnicodeUTF8))
+      #self.insertNewChildAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.insertNewChildAction, QtCore.SIGNAL('triggered()'), self.insertNewChild )
+      
+      # Delete Node
+      self.deleteNodeAction            = QtGui.QAction( self._outlineView )
+      self.deleteNodeAction.setObjectName( 'actionDeleteNode' )
+      self.deleteNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Delete Subtree", None, QtGui.QApplication.UnicodeUTF8))
+      #self.deleteNodeAction.setShortcuts( [ ] )
+      QtCore.QObject.connect( self.deleteNodeAction, QtCore.SIGNAL('triggered()'), self.deleteNode )
+

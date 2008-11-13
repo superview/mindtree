@@ -260,7 +260,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"new" Operation Failed' )
+         exceptionPopup( )
    
    def openFile( self, anArchiver=None ):
       try:
@@ -283,7 +283,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"open" Operation Failed' )
+         exceptionPopup( )
    
    def saveFile( self ):
       try:
@@ -299,7 +299,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"save" Operation Failed' )
+         exceptionPopup( )
    
    def saveFileAs( self, anArchiver=None ):
       try:
@@ -322,7 +322,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"save as" Operation Failed' )
+         exceptionPopup( )
    
    def closeFile( self ):
       try:
@@ -330,7 +330,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"close" Operation Failed' )
+         exceptionPopup( )
    
    def exit( self ):
       try:
@@ -338,7 +338,7 @@ class Application( QtGui.QMainWindow ):
       except OperationCanceled:
          pass
       except:
-         exceptionPopup( '"exit" Operation Failed' )
+         exceptionPopup( )
    
    def makeBackup( self ):
       import datetime
@@ -377,10 +377,10 @@ class Application( QtGui.QMainWindow ):
       """
       self._commitDocument( )
       
-      if self._modified:
+      if self._project.modified:
          msgBox = QtGui.QMessageBox( )
          msgBox.setWindowTitle( 'Warning' )
-         msgBox.setText( 'Do you want to save the changes to {0}'.format(self._filename) )
+         msgBox.setText( 'Do you want to save the changes to {0}'.format(self._project._filename) )
          msgBox.setIcon( QtGui.QMessageBox.Question )
          msgBox.setStandardButtons( QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel )
          msgBox.setDefaultButton( QtGui.QMessageBox.Yes )

@@ -29,6 +29,9 @@ class MindTree( Application ):
    
    def __init__( self ):
       Application.__init__( self, Archiver(self,RES.ARCHIVER_FILE_TYPES,RES.ARCHIVER_FILE_EXTENSION,RES.PROJECT_WORKING_DIR) )
+      self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MindTree", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self._defineActions( )
       
       self._MTTKimportingArchiver = MTTkImportingArchiver(self)
       self._outlineEditor = None
@@ -42,15 +45,10 @@ class MindTree( Application ):
       self.setSizePolicy(sizePolicy)
       self._buildGUI( )
       
-      QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
-      QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
-      QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
-      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
-      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
-      QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
-      QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
 
    def _buildGUI(self):
+      self._defineActions( )
+      
       self.splitter = QtGui.QSplitter(self)
       self.splitter.setObjectName( 'centralwidget' )
       self.splitter.setGeometry(QtCore.QRect(0, 0, 901, 671))
@@ -86,40 +84,49 @@ class MindTree( Application ):
       self._kb.setMinimumHeight( 180 )
       
       self.setCentralWidget(self.splitter)
+      
+      # Menubar
       self.menubar = QtGui.QMenuBar(self)
       self.menubar.setObjectName("menubar")
+      self.setMenuBar(self.menubar)
+      
       self.menuFile = QtGui.QMenu(self.menubar)
       self.menuFile.setObjectName("menuFile")
+      self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.menuEdit = QtGui.QMenu(self.menubar)
+      self.menuEdit.setObjectName("MenuEdit")
+      self.menuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
+      
       self.menuTree = QtGui.QMenu(self.menubar)
       self.menuTree.setObjectName("menuTree")
+      self.menuTree.setTitle(QtGui.QApplication.translate("MainWindow", "Tree", None, QtGui.QApplication.UnicodeUTF8))
+      
       self.menuArticle = QtGui.QMenu(self.menubar)
       self.menuArticle.setObjectName("menuArticle")
+      self.menuArticle.setTitle(QtGui.QApplication.translate("MainWindow", "Article", None, QtGui.QApplication.UnicodeUTF8))
+      
       self.menuTools = QtGui.QMenu(self.menubar)
       self.menuTools.setObjectName("menuTools")
+      self.menuTools.setTitle(QtGui.QApplication.translate("MainWindow", "Tools", None, QtGui.QApplication.UnicodeUTF8))
+      
       self.menuHelp = QtGui.QMenu(self.menubar)
       self.menuHelp.setObjectName("menuHelp")
-      self.setMenuBar(self.menubar)
+      self.menuHelp.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.menubar.addAction(self.menuFile.menuAction())
+      self.menubar.addAction(self.menuEdit.menuAction())
+      self.menubar.addAction(self.menuTree.menuAction())
+      self.menubar.addAction(self.menuArticle.menuAction())
+      self.menubar.addAction(self.menuTools.menuAction())
+      self.menubar.addAction(self.menuHelp.menuAction())
+      
+      # Statusbar
       self.statusbar = QtGui.QStatusBar(self)
       self.statusbar.setObjectName("statusbar")
       self.setStatusBar(self.statusbar)
       
       # Outline Menu
-      self.actionNew = QtGui.QAction(self)
-      self.actionNew.setObjectName("actionNew")
-      self.actionOpen = QtGui.QAction(self)
-      self.actionOpen.setObjectName("actionOpen")
-      self.actionClose = QtGui.QAction(self)
-      self.actionClose.setObjectName("actionClose")
-      self.actionSave = QtGui.QAction(self)
-      self.actionSave.setObjectName("actionSave")
-      self.actionSave_as = QtGui.QAction(self)
-      self.actionSave_as.setObjectName("actionSave_as")
-      self.actionImport = QtGui.QAction(self)
-      self.actionImport.setObjectName("actionImport")
-      self.actionExport = QtGui.QAction(self)
-      self.actionExport.setObjectName("actionExport")
-      self.actionClose_2 = QtGui.QAction(self)
-      self.actionClose_2.setObjectName("actionClose_2")
       self.menuFile.addAction(self.actionNew)
       self.menuFile.addAction(self.actionOpen)
       self.menuFile.addAction(self.actionClose)
@@ -131,6 +138,11 @@ class MindTree( Application ):
       self.menuFile.addSeparator()
       self.menuFile.addAction(self.actionClose_2)
       
+      # Edit Menu
+      self.menuEdit.addAction(self._outlineEditor.editUndoAction)
+      self.menuEdit.addAction(self._outlineEditor.editRedoAction)
+      
+      # Tree Menu
       self.menuTree.addAction( self._outlineEditor.cutNodeAction )
       self.menuTree.addAction( self._outlineEditor.copyNodeAction )
       self.menuTree.addAction( self._outlineEditor.pasteNodeBeforeAction )
@@ -152,58 +164,23 @@ class MindTree( Application ):
       self.menuTree.addAction( self._outlineEditor.moveNodeUpAction )
       self.menuTree.addAction( self._outlineEditor.moveNodeDownAction )
       
-      self.menubar.addAction(self.menuFile.menuAction())
-      self.menubar.addAction(self.menuTree.menuAction())
-      self.menubar.addAction(self.menuArticle.menuAction())
-      self.menubar.addAction(self.menuTools.menuAction())
-      self.menubar.addAction(self.menuHelp.menuAction())
+      # Article Menu
+      self.menuArticle.addAction( self._outlineEditor.articleCutAction )
+      self.menuArticle.addAction( self._outlineEditor.articleCopyAction )
+      self.menuArticle.addAction( self._outlineEditor.articlePasteAction )
+      self.menuArticle.addSeparator()
+      self.menuArticle.addAction( self._outlineEditor.articleSelectAllAction )
       
-      self._retranslateUi()
+      # Help Menu
+      self.menuHelp.addAction( self.actionHelp )
+      self.menuHelp.addAction( self.actionAbout )
+      
       QtCore.QMetaObject.connectSlotsByName(self)
-
-   def _retranslateUi(self):
-      # Outline Menu
-      self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MindTree", None, QtGui.QApplication.UnicodeUTF8))
-      self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "Outline", None, QtGui.QApplication.UnicodeUTF8))
-      self.menuTree.setTitle(QtGui.QApplication.translate("MainWindow", "Tree", None, QtGui.QApplication.UnicodeUTF8))
-      self.menuArticle.setTitle(QtGui.QApplication.translate("MainWindow", "Article", None, QtGui.QApplication.UnicodeUTF8))
-      self.menuTools.setTitle(QtGui.QApplication.translate("MainWindow", "Tools", None, QtGui.QApplication.UnicodeUTF8))
-      self.menuHelp.setTitle(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionNew.setText(QtGui.QApplication.translate("MainWindow", "New", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", "Open...", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionClose.setText(QtGui.QApplication.translate("MainWindow", "Close", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionSave.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionSave_as.setText(QtGui.QApplication.translate("MainWindow", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionImport.setText(QtGui.QApplication.translate("MainWindow", "Import...", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionExport.setText(QtGui.QApplication.translate("MainWindow", "Export...", None, QtGui.QApplication.UnicodeUTF8))
-      self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
-      
-      # Tree Menu
-      self._outlineEditor.cutNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Cut Node", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.copyNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Copy Node", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.pasteNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Before", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.pasteNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node After", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.pasteNodeChildAction.setText(QtGui.QApplication.translate("MainWindow", "Paste Node Child", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", "Expand All", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", "Collapse All", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.expandNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Expand Node", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.collapseNodeAction.setText(QtGui.QApplication.translate("MainWindow", "CollapseNode", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.insertNewNodeBeforeAction.setText(QtGui.QApplication.translate("MainWindow", "New Node Before", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.insertNewNodeAfterAction.setText(QtGui.QApplication.translate("MainWindow", "New Node After", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.insertNewChildAction.setText(QtGui.QApplication.translate("MainWindow", "New Child", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.deleteNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Delete Subtree", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.indentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Indent Node", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.dedentNodeAction.setText(QtGui.QApplication.translate("MainWindow", "Dedent Node", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.moveNodeUpAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Up", None, QtGui.QApplication.UnicodeUTF8))
-      self._outlineEditor.moveNodeDownAction.setText(QtGui.QApplication.translate("MainWindow", "Move Node Down", None, QtGui.QApplication.UnicodeUTF8))
 
    def importFile( self ):
       self.openFile( self._MTTKimportingArchiver )
    
    def exportFile( self ):
-      pass
-   
-   def exit( self ):
       pass
    
    # Required Overrides
@@ -219,6 +196,66 @@ class MindTree( Application ):
    
    def _commitDocument( self ):
       self._outlineEditor.commitChanges( )
+
+   # Implementation
+   def _defineActions( self ):
+      # New Outline
+      self.actionNew = QtGui.QAction(self)
+      self.actionNew.setObjectName("actionNew")
+      self.actionNew.setText(QtGui.QApplication.translate("MainWindow", "New", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionNew,    QtCore.SIGNAL('triggered()'), self.newFile )
+      
+      # Open Outline
+      self.actionOpen = QtGui.QAction(self)
+      self.actionOpen.setObjectName("actionOpen")
+      self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", "Open...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
+      
+      # Close Outline
+      self.actionClose = QtGui.QAction(self)
+      self.actionClose.setObjectName("actionClose")
+      self.actionClose.setText(QtGui.QApplication.translate("MainWindow", "Close", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
+      
+      # Save Outline
+      self.actionSave = QtGui.QAction(self)
+      self.actionSave.setObjectName("actionSave")
+      self.actionSave.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
+      
+      # Save Outline As
+      self.actionSave_as = QtGui.QAction(self)
+      self.actionSave_as.setObjectName("actionSave_as")
+      self.actionSave_as.setText(QtGui.QApplication.translate("MainWindow", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
+      
+      # Import Outline
+      self.actionImport = QtGui.QAction(self)
+      self.actionImport.setObjectName("actionImport")
+      self.actionImport.setText(QtGui.QApplication.translate("MainWindow", "Import...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
+      
+      # Export Outline
+      self.actionExport = QtGui.QAction(self)
+      self.actionExport.setObjectName("actionExport")
+      self.actionExport.setText(QtGui.QApplication.translate("MainWindow", "Export...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
+      
+      # Close
+      self.actionClose_2 = QtGui.QAction(self)
+      self.actionClose_2.setObjectName("actionClose_2")
+      self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
+      
+      # Help
+      self.actionHelp = QtGui.QAction(self)
+      self.actionHelp.setObjectName("actionHelp")
+      self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.actionAbout = QtGui.QAction(self)
+      self.actionAbout.setObjectName("actionAbout")
+      self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
+
 
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
