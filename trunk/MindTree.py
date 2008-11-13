@@ -23,69 +23,114 @@ class MTTkImportingArchiver( Archiver ):
       theModel = importMTTkProject( aFilename, documentName )
       
       return theModel
-   
+
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
-   
+
    def __init__( self ):
       Application.__init__( self, Archiver(self,RES.ARCHIVER_FILE_TYPES,RES.ARCHIVER_FILE_EXTENSION,RES.PROJECT_WORKING_DIR) )
-      self.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MindTree", None, QtGui.QApplication.UnicodeUTF8))
       
-      self._defineActions( )
+      self.setObjectName("MainWindow")
       
       self._MTTKimportingArchiver = MTTkImportingArchiver(self)
       self._outlineEditor = None
       self._kb            = None
       
-      self.setObjectName("MainWindow")
-      self.resize(903, 719)
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setHorizontalStretch( 1 )
-      sizePolicy.setVerticalStretch( 1 )
-      self.setSizePolicy(sizePolicy)
+      self._defineActions( )
       self._buildGUI( )
+
+   def importFile( self ):
+      self.openFile( self._MTTKimportingArchiver )
+   
+   def exportFile( self ):
+      pass
+   
+   # Required Overrides
+   def _makeDefaultModel( self ):
+      return OutlineModel( )
+   
+   def _setModelToEdit( self, aModel ):
+      self._outlineEditor.setModel( aModel )
+      Application._setModelToEdit( self, aModel )
+
+   def _updateWindowTitle( self, title ):
+      self.setWindowTitle( title )
+   
+   def _commitDocument( self ):
+      self._outlineEditor.commitChanges( )
+
+   # Implementation
+   def _defineActions( self ):
+      # New Outline
+      self.actionNew = QtGui.QAction(self)
+      self.actionNew.setObjectName("actionNew")
+      self.actionNew.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_NEW_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.actionNew.setIcon( QtGui.QIcon(RES.ACTION_FILE_NEW_ICON) )
+      QtCore.QObject.connect( self.actionNew,    QtCore.SIGNAL('triggered()'), self.newFile )
       
+      # Open Outline
+      self.actionOpen = QtGui.QAction(self)
+      self.actionOpen.setObjectName("actionOpen")
+      self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_OPEN_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.actionOpen.setIcon( QtGui.QIcon(RES.ACTION_FILE_OPEN_ICON) )
+      QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
+      
+      # Close Outline
+      self.actionClose = QtGui.QAction(self)
+      self.actionClose.setObjectName("actionClose")
+      self.actionClose.setText(QtGui.QApplication.translate("MainWindow", "Close", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
+      
+      # Save Outline
+      self.actionSave = QtGui.QAction(self)
+      self.actionSave.setObjectName("actionSave")
+      self.actionSave.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_SAVE_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.actionSave.setIcon( QtGui.QIcon(RES.ACTION_FILE_SAVE_ICON) )
+      QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
+      
+      # Save Outline As
+      self.actionSave_as = QtGui.QAction(self)
+      self.actionSave_as.setObjectName("actionSave_as")
+      self.actionSave_as.setText(QtGui.QApplication.translate("MainWindow", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
+      
+      # Import Outline
+      self.actionImport = QtGui.QAction(self)
+      self.actionImport.setObjectName("actionImport")
+      self.actionImport.setText(QtGui.QApplication.translate("MainWindow", "Import...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
+      
+      # Export Outline
+      self.actionExport = QtGui.QAction(self)
+      self.actionExport.setObjectName("actionExport")
+      self.actionExport.setText(QtGui.QApplication.translate("MainWindow", "Export...", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
+      
+      # Close
+      self.actionClose_2 = QtGui.QAction(self)
+      self.actionClose_2.setObjectName("actionClose_2")
+      self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
+      
+      # Help
+      self.actionHelp = QtGui.QAction(self)
+      self.actionHelp.setObjectName("actionHelp")
+      self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.actionAbout = QtGui.QAction(self)
+      self.actionAbout.setObjectName("actionAbout")
+      self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
 
    def _buildGUI(self):
-      self._defineActions( )
+      self._buildCentralWidget( )
       
-      self.splitter = QtGui.QSplitter(self)
-      self.splitter.setObjectName( 'centralwidget' )
-      self.splitter.setGeometry(QtCore.QRect(0, 0, 901, 671))
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setHorizontalStretch( 1 )
-      sizePolicy.setVerticalStretch( 0 )
-      self.splitter.setSizePolicy(sizePolicy)
-      self.splitter.setOrientation(QtCore.Qt.Vertical)
-      self.splitter.setChildrenCollapsible(False)
-      self.splitter.setObjectName("splitter_2")
-      self.splitter.setOpaqueResize( True )
+      self._buildMenubar( )
+      self._buildToolbars( )
+      self._buildStatusBar( )
       
-      # OutlineEditor Widget
-      self._outlineEditor = OutlineEditor( self.splitter )
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 1 )
-      sizePolicy.setHorizontalStretch( 0 )
-      self._outlineEditor.setSizePolicy(sizePolicy)
-      self._outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
-      self._outlineEditor.setOrientation(QtCore.Qt.Horizontal)
-      self._outlineEditor.setChildrenCollapsible(False)
-      self._outlineEditor.setObjectName("splitter")
-      
-      QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
-      
-      # Keyboard Widget
-      self._kb = KeyboardWidget( self.splitter )
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-      sizePolicy.setVerticalStretch( 2 )
-      sizePolicy.setHorizontalStretch( 1 )
-      self._kb.setSizePolicy(sizePolicy)
-      self._kb.setObjectName("tabWidget")
-      self._kb.setMinimumHeight( 180 )
-      
-      self.setCentralWidget(self.splitter)
-      
-      # Menubar
+      QtCore.QMetaObject.connectSlotsByName(self)
+
+   def _buildMenubar( self ):
       self.menubar = QtGui.QMenuBar(self)
       self.menubar.setObjectName("menubar")
       self.setMenuBar(self.menubar)
@@ -120,11 +165,6 @@ class MindTree( Application ):
       self.menubar.addAction(self.menuArticle.menuAction())
       self.menubar.addAction(self.menuTools.menuAction())
       self.menubar.addAction(self.menuHelp.menuAction())
-      
-      # Statusbar
-      self.statusbar = QtGui.QStatusBar(self)
-      self.statusbar.setObjectName("statusbar")
-      self.setStatusBar(self.statusbar)
       
       # Outline Menu
       self.menuFile.addAction(self.actionNew)
@@ -174,88 +214,71 @@ class MindTree( Application ):
       # Help Menu
       self.menuHelp.addAction( self.actionHelp )
       self.menuHelp.addAction( self.actionAbout )
-      
-      QtCore.QMetaObject.connectSlotsByName(self)
-
-   def importFile( self ):
-      self.openFile( self._MTTKimportingArchiver )
    
-   def exportFile( self ):
-      pass
+   def _buildStatusBar( self ):
+      self.statusbar = QtGui.QStatusBar(self)
+      self.statusbar.setObjectName("statusbar")
+      self.setStatusBar(self.statusbar)
    
-   # Required Overrides
-   def _makeDefaultModel( self ):
-      return OutlineModel( )
+   def _buildToolbars( self ):
+      self._filetoolbar = QtGui.QToolBar( 'fileToolbar', self )
+      self._filetoolbar.addAction( self.actionNew )
+      self._filetoolbar.addAction( self.actionOpen )
+      self._filetoolbar.addAction( self.actionSave )
+      self.addToolBar( self._filetoolbar )
+      
+      self._articletoolbar = QtGui.QToolBar( 'articleToolbar', self )
+      self._articletoolbar.addAction( self._outlineEditor.articleCutAction )
+      self._articletoolbar.addAction( self._outlineEditor.articleCopyAction )
+      self._articletoolbar.addAction( self._outlineEditor.articlePasteAction )
+      self.addToolBar( self._articletoolbar )
+      
+      self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
+      self._edittoolbar.addAction( self._outlineEditor.editUndoAction )
+      self._edittoolbar.addAction( self._outlineEditor.editRedoAction )
+      self.addToolBar( self._edittoolbar )
+      
+      self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
+      self._treetoolbar.addAction( self._outlineEditor.expandAllAction )
+      self._treetoolbar.addAction( self._outlineEditor.collapseAllAction )
+      self.addToolBar( self._treetoolbar )
    
-   def _setModelToEdit( self, aModel ):
-      self._outlineEditor.setModel( aModel )
-      Application._setModelToEdit( self, aModel )
-
-   def _updateWindowTitle( self, title ):
-      self.setWindowTitle( title )
-   
-   def _commitDocument( self ):
-      self._outlineEditor.commitChanges( )
-
-   # Implementation
-   def _defineActions( self ):
-      # New Outline
-      self.actionNew = QtGui.QAction(self)
-      self.actionNew.setObjectName("actionNew")
-      self.actionNew.setText(QtGui.QApplication.translate("MainWindow", "New", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionNew,    QtCore.SIGNAL('triggered()'), self.newFile )
+   def _buildCentralWidget( self ):
+      self.splitter = QtGui.QSplitter(self)
+      self.splitter.setObjectName( 'centralwidget' )
+      self.splitter.setGeometry(QtCore.QRect(0, 0, 901, 671))
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setHorizontalStretch( 1 )
+      sizePolicy.setVerticalStretch( 0 )
+      self.splitter.setSizePolicy(sizePolicy)
+      self.splitter.setOrientation(QtCore.Qt.Vertical)
+      self.splitter.setChildrenCollapsible(False)
+      self.splitter.setObjectName("splitter_2")
+      self.splitter.setOpaqueResize( True )
       
-      # Open Outline
-      self.actionOpen = QtGui.QAction(self)
-      self.actionOpen.setObjectName("actionOpen")
-      self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", "Open...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
+      # OutlineEditor Widget
+      self._outlineEditor = OutlineEditor( self.splitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 0 )
+      self._outlineEditor.setSizePolicy(sizePolicy)
+      self._outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
+      self._outlineEditor.setOrientation(QtCore.Qt.Horizontal)
+      self._outlineEditor.setChildrenCollapsible(False)
+      self._outlineEditor.setObjectName("splitter")
       
-      # Close Outline
-      self.actionClose = QtGui.QAction(self)
-      self.actionClose.setObjectName("actionClose")
-      self.actionClose.setText(QtGui.QApplication.translate("MainWindow", "Close", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
+      QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
       
-      # Save Outline
-      self.actionSave = QtGui.QAction(self)
-      self.actionSave.setObjectName("actionSave")
-      self.actionSave.setText(QtGui.QApplication.translate("MainWindow", "Save", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
+      # Keyboard Widget
+      self._kb = KeyboardWidget( self.splitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      sizePolicy.setVerticalStretch( 2 )
+      sizePolicy.setHorizontalStretch( 1 )
+      self._kb.setSizePolicy(sizePolicy)
+      self._kb.setObjectName("tabWidget")
+      self._kb.setMinimumHeight( 180 )
       
-      # Save Outline As
-      self.actionSave_as = QtGui.QAction(self)
-      self.actionSave_as.setObjectName("actionSave_as")
-      self.actionSave_as.setText(QtGui.QApplication.translate("MainWindow", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
-      
-      # Import Outline
-      self.actionImport = QtGui.QAction(self)
-      self.actionImport.setObjectName("actionImport")
-      self.actionImport.setText(QtGui.QApplication.translate("MainWindow", "Import...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
-      
-      # Export Outline
-      self.actionExport = QtGui.QAction(self)
-      self.actionExport.setObjectName("actionExport")
-      self.actionExport.setText(QtGui.QApplication.translate("MainWindow", "Export...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
-      
-      # Close
-      self.actionClose_2 = QtGui.QAction(self)
-      self.actionClose_2.setObjectName("actionClose_2")
-      self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
-      
-      # Help
-      self.actionHelp = QtGui.QAction(self)
-      self.actionHelp.setObjectName("actionHelp")
-      self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
-      
-      self.actionAbout = QtGui.QAction(self)
-      self.actionAbout.setObjectName("actionAbout")
-      self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
-
+      self.setCentralWidget(self.splitter)
 
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
@@ -266,6 +289,12 @@ if __name__ == "__main__":
    KeyboardWidget.theApp = app
 
    myapp = MindTree( )
+   myapp.resize(903, 719)
+   sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+   sizePolicy.setHorizontalStretch( 1 )
+   sizePolicy.setVerticalStretch( 1 )
+   myapp.setSizePolicy(sizePolicy)
+   
    myapp.newFile( )
    myapp.show( )
 
