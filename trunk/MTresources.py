@@ -4,6 +4,12 @@ import os
 import os.path
 
 #############
+# Application Information
+APP_NAME                   = 'MindTree'
+APP_VERSION                = '1.1'
+APP_BUILD                  = '20081112-2342'
+
+#############
 # Startup Information
 STARTUP_DISK               = None
 STARTUP_PATH               = None
