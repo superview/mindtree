@@ -388,6 +388,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.editUndoAction.setObjectName( 'actionEditUndo' )
       self.editUndoAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_EDIT_UNDO_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.editUndoAction.setIcon( QtGui.QIcon(RES.ACTION_EDIT_UNDO_ICON) )
+      self.editUndoAction.setStatusTip( RES.ACTION_EDIT_UNDO_STATUSTIP )
       #self.editUndoAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.editUndoAction, QtCore.SIGNAL('triggered()'), self.editUndo )
       
@@ -396,6 +397,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.editRedoAction.setObjectName( 'actionEditRedo' )
       self.editRedoAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_EDIT_REDO_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.editRedoAction.setIcon( QtGui.QIcon(RES.ACTION_EDIT_REDO_ICON) )
+      self.editRedoAction.setStatusTip( RES.ACTION_EDIT_REDO_STATUSTIP )
       #self.editRedoAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.editRedoAction, QtCore.SIGNAL('triggered()'), self.editRedo )
       
@@ -404,6 +406,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.articleCutAction.setObjectName( 'actionArticleCut' )
       self.articleCutAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_CUT_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.articleCutAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_CUT_ICON) )
+      self.articleCutAction.setStatusTip( RES.ACTION_ARTICLE_CUT_STATUSTIP )
       #self.articleCutAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articleCutAction, QtCore.SIGNAL('trigger()'), self.articleCut )
       
@@ -412,6 +415,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.articleCopyAction.setObjectName( 'actionArticleCopy' )
       self.articleCopyAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_COPY_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.articleCopyAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_COPY_ICON) )
+      self.articleCopyAction.setStatusTip( RES.ACTION_ARTICLE_COPY_STATUSTIP )
       #self.articleCopyAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articleCopyAction, QtCore.SIGNAL('trigger()'), self.articleCopy )
       
@@ -420,6 +424,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.articlePasteAction.setObjectName( 'actionArticlePaste' )
       self.articlePasteAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_ARTICLE_PASTE_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.articlePasteAction.setIcon( QtGui.QIcon(RES.ACTION_ARTICLE_PASTE_ICON) )
+      self.articlePasteAction.setStatusTip( RES.ACTION_ARTICLE_PASTE_STATUSTIP )
       #self.articlePasteAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.articlePasteAction, QtCore.SIGNAL('trigger()'), self.articlePaste )
       
@@ -470,6 +475,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.expandAllAction.setObjectName( 'actionExpandAll' )
       self.expandAllAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_TREE_EXPANDALL_TEXT, None, QtGui.QApplication.UnicodeUTF8))
       self.expandAllAction.setIcon( QtGui.QIcon(RES.ACTION_TREE_EXPANDALL_ICON) )
+      self.expandAllAction.setStatusTip( RES.ACTION_TREE_EXPANDALL_STATUSTIP )
       #self.expandAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.expandAllAction, QtCore.SIGNAL('triggered()'), self.expandAll )
       
@@ -484,6 +490,7 @@ class OutlineEditor(QtGui.QSplitter):
       self.collapseAllAction       = QtGui.QAction( self._outlineView )
       self.collapseAllAction.setObjectName( 'actionCollapseAll' )
       self.collapseAllAction.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_TREE_COLLAPSEALL_TEXT, None, QtGui.QApplication.UnicodeUTF8))
+      self.collapseAllAction.setStatusTip( RES.ACTION_TREE_COLLAPSEALL_STATUSTIP )
       self.collapseAllAction.setIcon( QtGui.QIcon(RES.ACTION_TREE_COLLAPSEALL_ICON) )
       #self.collapseAllAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.collapseAllAction, QtCore.SIGNAL('triggered()'), self.collapseAll )
