@@ -88,6 +88,7 @@ class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
 class OutlineEditorWidget( QtGui.QTreeView ):
    def __init__( self, parent ):
       QtGui.QTreeView.__init__( self, parent )
+      self.setAcceptDrops( True )
 
    def mousePressEvent( self, event ):
       if event.button() == QtCore.Qt.RightButton:
@@ -95,7 +96,32 @@ class OutlineEditorWidget( QtGui.QTreeView ):
          index = self.indexAt( point )
          self.emit( QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), event.globalPos(), index )
       else:
+         if event.button() == QtCore.Qt.LeftButton:
+            self._dragStartPosition = event.pos()
+            self._dragStartIndex    = self.indexAt( event.pos() )
+         
          QtGui.QTreeView.mousePressEvent( self, event )
+
+   def mouseMoveEvent( self, event ):
+      if event.button() != QtCore.Qt.LeftButton:
+         return
+      
+      if (event.pos() - self._dragStartPosition) < QtGui.QApplication.startDragDistance():
+         return
+      
+      drag = QtGui.QDrag( self )
+      mimeData = QtCore.QMimeData( )
+      mimeData.setText( 'x' )
+      drag.setMimeData( mimeData )
+      
+      dropAction = drag.exec_( )
+
+   def dragEnterEvent( self ):
+      pass
+
+   def dropEvent( self ):
+      pass
+
 
 class OutlineEditor(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")'''
