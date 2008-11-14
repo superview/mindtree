@@ -91,10 +91,9 @@ class OutlineEditorWidget( QtGui.QTreeView ):
 
    def mousePressEvent( self, event ):
       if event.button() == QtCore.Qt.RightButton:
-         qpoint = event.pos()
-         index = self.indexAt( qpoint )
-         node = index.internalPointer()
-         print( 'Right-Clicked on: {0}'.format(node._data[0]) )
+         point = event.pos()
+         index = self.indexAt( point )
+         self.emit( QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), event.globalPos(), index )
       else:
          QtGui.QTreeView.mousePressEvent( self, event )
 
@@ -108,34 +107,10 @@ class OutlineEditor(QtGui.QSplitter):
       self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
-      self._outlineView = OutlineEditorWidget(self)
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 1 )
-      sizePolicy.setHorizontalStretch( 0 )
-      self._outlineView.setSizePolicy(sizePolicy)
-      self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
-      self._outlineView.setSizeIncrement(QtCore.QSize(1, 1))
-      self._outlineView.setFont( RES.articleFont )
-      self._outlineView.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
-      #self._outlineView.setDragEnabled(True)
-      #self._outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
-      self._outlineView.setAlternatingRowColors(True)
-      #self._outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-      self._outlineView.setUniformRowHeights(True)
-      self._outlineView.setSortingEnabled(False)
-      self._outlineView.setObjectName("outlineView")
-      self._outlineView.setItemDelegate( OutlineEntryEditor_Delegate(self._outlineView, self) )
-      
-      self._articleView = QtGui.QTextEdit(self)
-      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 1 )
-      sizePolicy.setHorizontalStretch( 1 )
-      self._articleView.setSizePolicy(sizePolicy)
-      self._articleView.setMinimumSize(QtCore.QSize(100, 100))
-      self._articleView.setFont( RES.articleFont )
-      self._articleView.setObjectName("articleView")
-      
-      self._defineActions( )
+      self._buildGui( )
+
+   def getFixedMenus( self ):
+      return ( self.menuTree, self.menuArticle )
 
    # Basic Operations
    def setModel( self, aModel ):
@@ -394,7 +369,48 @@ class OutlineEditor(QtGui.QSplitter):
    def onModelChanged( self, index1=None, index2=None ):
       self.emit( QtCore.SIGNAL('modelChanged()') )
 
+   def entryRightClicked( self, point, index ):
+      self._outlineView.setCurrentIndex( index )
+      self.menuTree.popup(point)
+
    # Implementation
+   def _buildGui( self ):
+      self._buildWidgets( )
+      
+      self._defineActions( )
+      
+      self._buildMenus( )
+
+   def _buildWidgets( self ):
+      self._outlineView = OutlineEditorWidget(self)
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 0 )
+      self._outlineView.setSizePolicy(sizePolicy)
+      self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
+      self._outlineView.setSizeIncrement(QtCore.QSize(1, 1))
+      self._outlineView.setFont( RES.articleFont )
+      self._outlineView.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
+      #self._outlineView.setDragEnabled(True)
+      #self._outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
+      self._outlineView.setAlternatingRowColors(True)
+      #self._outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+      self._outlineView.setUniformRowHeights(True)
+      self._outlineView.setSortingEnabled(False)
+      self._outlineView.setObjectName("outlineView")
+      self._outlineView.setItemDelegate( OutlineEntryEditor_Delegate(self._outlineView, self) )
+      
+      self._articleView = QtGui.QTextEdit(self)
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 1 )
+      self._articleView.setSizePolicy(sizePolicy)
+      self._articleView.setMinimumSize(QtCore.QSize(100, 100))
+      self._articleView.setFont( RES.articleFont )
+      self._articleView.setObjectName("articleView")
+      
+      QtCore.QObject.connect( self._outlineView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
+
    def _defineActions( self ):
       # Undo
       self.editUndoAction = QtGui.QAction( self._outlineView )
@@ -571,3 +587,40 @@ class OutlineEditor(QtGui.QSplitter):
       #self.deleteNodeAction.setShortcuts( [ ] )
       QtCore.QObject.connect( self.deleteNodeAction, QtCore.SIGNAL('triggered()'), self.deleteNode )
 
+   def _buildMenus( self ):
+      # Tree Menu
+      self.menuTree = QtGui.QMenu(self)
+      self.menuTree.setObjectName("menuTree")
+      self.menuTree.setTitle(QtGui.QApplication.translate("MainWindow", "Tree", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.menuTree.addAction( self.cutNodeAction )
+      self.menuTree.addAction( self.copyNodeAction )
+      self.menuTree.addAction( self.pasteNodeBeforeAction )
+      self.menuTree.addAction( self.pasteNodeAfterAction )
+      self.menuTree.addAction( self.pasteNodeChildAction )
+      self.menuTree.addSeparator()
+      self.menuTree.addAction( self.expandAllAction )
+      self.menuTree.addAction( self.collapseAllAction )
+      self.menuTree.addAction( self.expandNodeAction )
+      self.menuTree.addAction( self.collapseNodeAction )
+      self.menuTree.addSeparator()
+      self.menuTree.addAction( self.insertNewNodeBeforeAction )
+      self.menuTree.addAction( self.insertNewNodeAfterAction )
+      self.menuTree.addAction( self.insertNewChildAction )
+      self.menuTree.addAction( self.deleteNodeAction )
+      self.menuTree.addSeparator()
+      self.menuTree.addAction( self.indentNodeAction )
+      self.menuTree.addAction( self.dedentNodeAction )
+      self.menuTree.addAction( self.moveNodeUpAction )
+      self.menuTree.addAction( self.moveNodeDownAction )
+      
+      # Article Menu
+      self.menuArticle = QtGui.QMenu(self)
+      self.menuArticle.setObjectName("menuArticle")
+      self.menuArticle.setTitle(QtGui.QApplication.translate("MainWindow", "Article", None, QtGui.QApplication.UnicodeUTF8))
+      
+      self.menuArticle.addAction( self.articleCutAction )
+      self.menuArticle.addAction( self.articleCopyAction )
+      self.menuArticle.addAction( self.articlePasteAction )
+      self.menuArticle.addSeparator()
+      self.menuArticle.addAction( self.articleSelectAllAction )
