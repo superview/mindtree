@@ -37,6 +37,40 @@ def splitFilePath( path ):
    return disk, path, filename, extension
 
 
+def defAction( name, parent, handlerObj=None, handlerFn=None, text=None, statustip=None, tooltip=None, icon=None, shortcuts=None, font=None ):
+   if handlerFn is None:
+      if handlerObj is None:
+         handlerObj = parent
+      
+      handlerFn = handlerObj.__getattribute__( name )
+   
+   # Create the action
+   theAction = QtGui.QAction( parent )
+   theAction.setObjectName( name )
+   QtCore.QObject.connect( theAction, QtCore.SIGNAL('triggered()'), handlerFn )
+   
+   # Populate the resources
+   if text is not None:
+      theAction.setText( QtGui.QApplication.translate("MainWindow", text, None, QtGui.QApplication.UnicodeUTF8) )
+   
+   if statustip is not None:
+      theAction.setStatusTip( QtGui.QApplication.translate("MainWindow", statustip, None, QtGui.QApplication.UnicodeUTF8) )
+   
+   if tooltip is not None:
+      theAction.setToolTip( QtGui.QApplication.translate("MainWindow", tooltip, None, QtGui.QApplication.UnicodeUTF8) )
+
+   if icon is not None:
+      theAction.setIcon( QtGui.QIcon(icon) )
+
+   if shortcuts is not None:
+      theAction.setShortcuts( shortcuts )
+   
+   if font is not None:
+      theAction.setFont( font )
+   
+   return theAction
+
+
 class Action( object ):
    def __init__( self, actionName, **options ):
       self._name = actionName

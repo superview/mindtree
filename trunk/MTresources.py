@@ -1,27 +1,40 @@
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore, QtGui, pyqtconfig
 from utilities import splitFilePath
 import os
 import os.path
+import sys
 
 #############
 # Application Information
-APP_NAME                   = 'MindTree'
-APP_VERSION                = '1.1'
-APP_BUILD                  = '20081112-2342'
+APP_NAME                          = 'MindTree'
+APP_VERSION                       = '1.2'
+APP_BUILD                         = '20081112-2342'
+APP_RELEASE_DATE                  = 'November 12, 2008'
+
+PYTHON_VERSION                    = '{0}.{1}'.format( *sys.version_info[0:2] )
+
+# Test the Execution Environment
+pythonVersion = sys.version_info[ 0 : 2 ]
+
+for index in range(len(pythonVersion)):
+   if pythonVersion[index] != sys.version_info[index]:
+      print( 'This version of MindTree requires Python version {0}'.format( PYTHON_VERSION ) )
+      exit( )
+
 
 #############
 # Startup Information
-STARTUP_DISK               = None
-STARTUP_PATH               = None
-STARTUP_NAME               = None
-STARTUP_EXT                = None
+STARTUP_DISK                      = None
+STARTUP_PATH                      = None
+STARTUP_NAME                      = None
+STARTUP_EXT                       = None
 STARTUP_DISK, STARTUP_PATH, STARTUP_NAME, STARTUP_EXT = splitFilePath( os.getcwd() )
-STARTUP_DISK               += os.sep
+STARTUP_DISK                     += os.sep
 
 #############
 # Main Application
-ARCHIVER_FILE_TYPES        = 'MindTree Outline File (*.mto);;All Files (*.*)'
-ARCHIVER_FILE_EXTENSION    = 'mto'
+ARCHIVER_FILE_TYPES               = 'MindTree Outline File (*.mto);;All Files (*.*)'
+ARCHIVER_FILE_EXTENSION           = 'mto'
 
 ACTION_FILE_NEW_TEXT              = 'New'
 ACTION_FILE_NEW_ICON              = 'resources\\icons\\file_new.ico'
@@ -37,8 +50,8 @@ ACTION_FILE_SAVE_STATUSTIP        = 'Save the current project.'
 
 #############
 # Project
-PROJECT_WORKING_DIR        = os.path.join( STARTUP_DISK, 'MindTree Data', 'Logic' )
-PROJECT_BACKUP_DIR         = 'backup'
+PROJECT_WORKING_DIR               = os.path.join( STARTUP_DISK, 'MindTree Data', 'Logic' )
+PROJECT_BACKUP_DIR                = 'backup'
 
 #############
 # TreeEditor
@@ -47,33 +60,33 @@ articleFont                       = QtGui.QFont( 'Lucida Sans Unicode', 10 )
 emptyArticleIcon                  = 'resources\\images\\file.gif'
 fullArticleIcon                   = 'resources\\images\\textfile.gif'
 
-ACTION_EDIT_UNDO_TEXT             = 'Undo'
-ACTION_EDIT_UNDO_ICON             = 'resources\\icons\\edit_undo.ico'
-ACTION_EDIT_UNDO_STATUSTIP        = 'Undo the most recent change.'
+#ACTION_EDIT_UNDO_TEXT             = 'Undo'
+#ACTION_EDIT_UNDO_ICON             = 'resources\\icons\\edit_undo.ico'
+#ACTION_EDIT_UNDO_STATUSTIP        = 'Undo the most recent change.'
 
-ACTION_EDIT_REDO_TEXT             = 'Redo'
-ACTION_EDIT_REDO_ICON             = 'resources\\icons\\edit_redo.ico'
-ACTION_EDIT_REDO_STATUSTIP        = 'Redo the most recent undo.'
+#ACTION_EDIT_REDO_TEXT             = 'Redo'
+#ACTION_EDIT_REDO_ICON             = 'resources\\icons\\edit_redo.ico'
+#ACTION_EDIT_REDO_STATUSTIP        = 'Redo the most recent undo.'
 
-ACTION_ARTICLE_CUT_TEXT           = 'Cut Text'
-ACTION_ARTICLE_CUT_ICON           = 'resources\\icons\\edit_cut.ico'
-ACTION_ARTICLE_CUT_STATUSTIP      = 'Cut the selected text to the clipboard.'
+#ACTION_ARTICLE_CUT_TEXT           = 'Cut Text'
+#ACTION_ARTICLE_CUT_ICON           = 'resources\\icons\\edit_cut.ico'
+#ACTION_ARTICLE_CUT_STATUSTIP      = 'Cut the selected text to the clipboard.'
 
-ACTION_ARTICLE_COPY_TEXT          = 'Copy Text'
-ACTION_ARTICLE_COPY_ICON          = 'resources\\icons\\edit_copy.ico'
-ACTION_ARTICLE_COPY_STATUSTIP     = 'Copy the selected text to the clipboard.'
+#ACTION_ARTICLE_COPY_TEXT          = 'Copy Text'
+#ACTION_ARTICLE_COPY_ICON          = 'resources\\icons\\edit_copy.ico'
+#ACTION_ARTICLE_COPY_STATUSTIP     = 'Copy the selected text to the clipboard.'
 
-ACTION_ARTICLE_PASTE_TEXT         = 'Paste Text'
-ACTION_ARTICLE_PASTE_ICON         = 'resources\\icons\\edit_paste.ico'
-ACTION_ARTICLE_PASTE_STATUSTIP    = 'Paste the contents of the clipboard.'
+#ACTION_ARTICLE_PASTE_TEXT         = 'Paste Text'
+#ACTION_ARTICLE_PASTE_ICON         = 'resources\\icons\\edit_paste.ico'
+#ACTION_ARTICLE_PASTE_STATUSTIP    = 'Paste the contents of the clipboard.'
 
-ACTION_TREE_EXPANDALL_TEXT        = 'Expand All'
-ACTION_TREE_EXPANDALL_ICON        = 'resources\\icons\\expand.ico'
-ACTION_TREE_EXPANDALL_STATUSTIP   = 'Expand all nodes of the outline.'
+#ACTION_TREE_EXPANDALL_TEXT        = 'Expand All'
+#ACTION_TREE_EXPANDALL_ICON        = 'resources\\icons\\expand.ico'
+#ACTION_TREE_EXPANDALL_STATUSTIP   = 'Expand all nodes of the outline.'
 
-ACTION_TREE_COLLAPSEALL_TEXT      = 'Collapse All'
-ACTION_TREE_COLLAPSEALL_ICON      = 'resources\\icons\\collapse.ico'
-ACTION_TREE_COLLAPSEALL_STATUSTIP = 'Collapse all nodes of the outline.'
+#ACTION_TREE_COLLAPSEALL_TEXT      = 'Collapse All'
+#ACTION_TREE_COLLAPSEALL_ICON      = 'resources\\icons\\collapse.ico'
+#ACTION_TREE_COLLAPSEALL_STATUSTIP = 'Collapse all nodes of the outline.'
 
 ################
 # KeyboardWidget
@@ -208,3 +221,5 @@ KeyboardTabs = { 'Logic': [ # Logic
                               ]
                           ],
                }
+
+

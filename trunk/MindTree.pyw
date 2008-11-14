@@ -1,13 +1,18 @@
+from __future__ import print_function, unicode_literals
+from future_builtins import *
 import sys
+sys.py3kwarning = True
+import MTresources as RES
+
 from PyQt4 import QtCore, QtGui
 from OutlineEditor import OutlineEditor
 from OutlineModel import OutlineModel
 from ApplicationFramework import Application, Archiver
 from MindTreeTkImporter import importMTTkProject
 from Keyboard import KeyboardWidget
-import MTresources as RES
 from utilities import Action
 
+print( 3 )
 
 class MTTkImportingArchiver( Archiver ):
    FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
@@ -171,6 +176,7 @@ class MindTree( Application ):
       self.actionAbout = QtGui.QAction(self)
       self.actionAbout.setObjectName("actionAbout")
       self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
+      QtCore.QObject.connect( self.actionAbout, QtCore.SIGNAL("triggered()"), self.helpAbout )
 
    def _buildMenus( self ):
       self.menubar = QtGui.QMenuBar(self)
@@ -248,7 +254,16 @@ class MindTree( Application ):
       self.statusbar = QtGui.QStatusBar(self)
       self.statusbar.setObjectName("statusbar")
       self.setStatusBar(self.statusbar)
-   
+
+   def helpAbout( self ):
+      msg = 'Product name: {name}\nVersion: {version}\nBuild: {build}'.format( name=RES.APP_NAME, version=RES.APP_VERSION, build=RES.APP_BUILD )
+      
+      msgBox = QtGui.QMessageBox( self )
+      msgBox.setWindowTitle( 'About MindTree' )
+      msgBox.setIcon( QtGui.QMessageBox.Information )
+      msgBox.setText( RES.APP_NAME )
+      msgBox.setInformativeText( msg )
+      msgBox.exec_()
 
 if __name__ == "__main__":
    # Hack to be able to move the MindTree v1.x Model Library into a subdirectory

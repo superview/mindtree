@@ -430,7 +430,6 @@ import imp
 
 class PluginManager( object ):
    PKG_INIT = '__init__' + os.path.extsep + 'py'
-   CONFIG   = None
    
    def __init__( self, pluginDir ):
       self._plugins        = { }
@@ -517,6 +516,9 @@ from PluginFramework import Plugin
 
 class MyPlugin( Plugin ):
    NAME             = 'Build'
+   VERSION          = ( 1, 5 )
+   BUILD_DATE       = ( 2008, 11, 26 )
+   
    DEFAULT_SETTINGS = {
                          option : value,
                          ...
