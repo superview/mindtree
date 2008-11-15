@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
-import MTresources as RES
+from ApplicationFramework import RES
+import os.path
 
 
 class InvalidIndexError( Exception ):
@@ -67,6 +68,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
          rootNode.appendChild( TreeNode( '', rootNode, '', 'text' ) )
       
       self._rootNode       = rootNode
+      
+      self.emptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
+      self.fullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
 
    def validateModel( self ):
       pass
@@ -175,11 +179,10 @@ class OutlineModel(QtCore.QAbstractItemModel):
          article = item.article()
          
          if (article[1] is None) or (article[1] == ''):
-            iconFilename = RES.emptyArticleIcon
+            return self.emptyArticleIcon
          else:
-            iconFilename = RES.fullArticleIcon
+            return self.fullArticleIcon
          
-         return QtCore.QVariant( QtGui.QIcon(iconFilename) )
          #pic = QtGui.QPicture()
          #x = pic.load(iconFilename)
          #return QtCore.QVariant(pic)

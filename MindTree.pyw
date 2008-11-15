@@ -2,50 +2,38 @@ from __future__ import print_function, unicode_literals
 from future_builtins import *
 import sys
 sys.py3kwarning = True
-import MTresources as RES
+#import MTresources as RES
 
 from PyQt4 import QtCore, QtGui
-from OutlineEditor import OutlineEditor
+from OutlineView import OutlineView
 from OutlineModel import OutlineModel
-from ApplicationFramework import Application, Archiver
-from MindTreeTkImporter import importMTTkProject
+from ApplicationFramework import Application, Archiver, RES
 from Keyboard import KeyboardWidget
-from utilities import Action
+from utilities import *
 
-print( 3 )
-
-class MTTkImportingArchiver( Archiver ):
-   FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
-   FILE_EXTENSION    = 'mt'
-   
-   def __init__( self, parentWidget ):
-      Archiver.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, RES.PROJECT_WORKING_DIR )
-   
-   def _readFile( self, aFilename ):
-      from utilities import splitFilePath
-      disk,path,filename,extension = splitFilePath( aFilename )
-      documentName = filename[0].upper() + filename[1:]
-      
-      theModel = importMTTkProject( aFilename, documentName )
-      
-      return theModel
 
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
 
    def __init__( self ):
-      Application.__init__( self, Archiver(self,RES.ARCHIVER_FILE_TYPES,RES.ARCHIVER_FILE_EXTENSION,RES.PROJECT_WORKING_DIR) )
+      fileTypes  = RES.get( 'Application', 'fileTypes'     )
+      fileExts   = RES.get( 'Application', 'fileExtension' )
+      workingDir = RES.get( 'Project',     'directory'     )
+      
+      Application.__init__( self, Archiver(self,fileTypes,fileExts,workingDir) )
       
       self.setObjectName("MainWindow")
       
-      self._MTTKimportingArchiver = MTTkImportingArchiver(self)
+      self._MT1Importer   = None
       self._outlineEditor = None
       self._kb            = None
       
       self._buildGUI( )
 
    def importFile( self ):
-      self.openFile( self._MTTKimportingArchiver )
+      if self._MT1Importer is None:
+         self._MT1Importer = self._plugins.makePlugin( 'MindTree1Importer', self )
+      self.openFile( self._MT1Importer )
    
    def exportFile( self ):
       pass
@@ -89,8 +77,8 @@ class MindTree( Application ):
       self.splitter.setObjectName("splitter_2")
       self.splitter.setOpaqueResize( True )
       
-      # OutlineEditor Widget
-      self._outlineEditor = OutlineEditor( self.splitter )
+      # OutlineView Widget
+      self._outlineEditor = OutlineView( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
@@ -114,69 +102,16 @@ class MindTree( Application ):
       self.setCentralWidget(self.splitter)
 
    def _defineActions( self ):
-      # New Outline
-      self.actionNew = QtGui.QAction(self)
-      self.actionNew.setObjectName("actionNew")
-      self.actionNew.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_NEW_TEXT, None, QtGui.QApplication.UnicodeUTF8))
-      self.actionNew.setIcon( QtGui.QIcon(RES.ACTION_FILE_NEW_ICON) )
-      self.actionNew.setStatusTip( RES.ACTION_FILE_NEW_STATUSTIP )
-      QtCore.QObject.connect( self.actionNew,    QtCore.SIGNAL('triggered()'), self.newFile )
-      
-      # Open Outline
-      self.actionOpen = QtGui.QAction(self)
-      self.actionOpen.setObjectName("actionOpen")
-      self.actionOpen.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_OPEN_TEXT, None, QtGui.QApplication.UnicodeUTF8))
-      self.actionOpen.setIcon( QtGui.QIcon(RES.ACTION_FILE_OPEN_ICON) )
-      self.actionOpen.setStatusTip( RES.ACTION_FILE_OPEN_STATUSTIP )
-      QtCore.QObject.connect( self.actionOpen,    QtCore.SIGNAL('triggered()'), self.openFile )
-      
-      # Close Outline
-      self.actionClose = QtGui.QAction(self)
-      self.actionClose.setObjectName("actionClose")
-      self.actionClose.setText(QtGui.QApplication.translate("MainWindow", "Close", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionClose,   QtCore.SIGNAL("triggered()"), self.close )
-      
-      # Save Outline
-      self.actionSave = QtGui.QAction(self)
-      self.actionSave.setObjectName("actionSave")
-      self.actionSave.setText(QtGui.QApplication.translate("MainWindow", RES.ACTION_FILE_SAVE_TEXT, None, QtGui.QApplication.UnicodeUTF8))
-      self.actionSave.setStatusTip( RES.ACTION_FILE_SAVE_STATUSTIP )
-      self.actionSave.setIcon( QtGui.QIcon(RES.ACTION_FILE_SAVE_ICON) )
-      QtCore.QObject.connect( self.actionSave,    QtCore.SIGNAL('triggered()'), self.saveFile )
-      
-      # Save Outline As
-      self.actionSave_as = QtGui.QAction(self)
-      self.actionSave_as.setObjectName("actionSave_as")
-      self.actionSave_as.setText(QtGui.QApplication.translate("MainWindow", "Save as...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionSave_as, QtCore.SIGNAL('triggered()'), self.saveFileAs )
-      
-      # Import Outline
-      self.actionImport = QtGui.QAction(self)
-      self.actionImport.setObjectName("actionImport")
-      self.actionImport.setText(QtGui.QApplication.translate("MainWindow", "Import...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionImport,  QtCore.SIGNAL('triggered()'), self.importFile )
-      
-      # Export Outline
-      self.actionExport = QtGui.QAction(self)
-      self.actionExport.setObjectName("actionExport")
-      self.actionExport.setText(QtGui.QApplication.translate("MainWindow", "Export...", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionExport,  QtCore.SIGNAL('triggered()'), self.exportFile )
-      
-      # Close
-      self.actionClose_2 = QtGui.QAction(self)
-      self.actionClose_2.setObjectName("actionClose_2")
-      self.actionClose_2.setText(QtGui.QApplication.translate("MainWindow", "Exit", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionClose_2, QtCore.SIGNAL("triggered()"), self.close )
-      
-      # Help
-      self.actionHelp = QtGui.QAction(self)
-      self.actionHelp.setObjectName("actionHelp")
-      self.actionHelp.setText(QtGui.QApplication.translate("MainWindow", "Help", None, QtGui.QApplication.UnicodeUTF8))
-      
-      self.actionAbout = QtGui.QAction(self)
-      self.actionAbout.setObjectName("actionAbout")
-      self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
-      QtCore.QObject.connect( self.actionAbout, QtCore.SIGNAL("triggered()"), self.helpAbout )
+      self.actionNew       = RES.installAction( 'newFile',    self )
+      self.actionOpen      = RES.installAction( 'openFile',   self )
+      self.actionClose     = RES.installAction( 'closeFile',  self )
+      self.actionSave      = RES.installAction( 'saveFile',   self )
+      self.actionSave_as   = RES.installAction( 'saveFileAs', self )
+      self.actionImport    = RES.installAction( 'importFile', self )
+      self.actionExport    = RES.installAction( 'exportFile', self )
+      self.actionExit      = RES.installAction( 'exit',       self )
+      self.actionHelp      = RES.installAction( 'help',       self )
+      self.actionAbout     = RES.installAction( 'helpAbout',  self )
 
    def _buildMenus( self ):
       self.menubar = QtGui.QMenuBar(self)
@@ -217,7 +152,7 @@ class MindTree( Application ):
       self.menuFile.addAction(self.actionImport)
       self.menuFile.addAction(self.actionExport)
       self.menuFile.addSeparator()
-      self.menuFile.addAction(self.actionClose_2)
+      self.menuFile.addAction(self.actionExit)
       
       # Edit Menu
       self.menuEdit.addAction(self._outlineEditor.editUndoAction)
@@ -255,6 +190,9 @@ class MindTree( Application ):
       self.statusbar.setObjectName("statusbar")
       self.setStatusBar(self.statusbar)
 
+   def help( self ):
+      pass
+   
    def helpAbout( self ):
       msg = 'Product name: {name}\nVersion: {version}\nBuild: {build}'.format( name=RES.APP_NAME, version=RES.APP_VERSION, build=RES.APP_BUILD )
       
@@ -265,15 +203,24 @@ class MindTree( Application ):
       msgBox.setInformativeText( msg )
       msgBox.exec_()
 
+
 if __name__ == "__main__":
-   # Hack to be able to move the MindTree v1.x Model Library into a subdirectory
    import os.path
    sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTreeTkModelLib' ) )
 
    app = QtGui.QApplication( sys.argv )
-   KeyboardWidget.theApp = app
 
+   splash = QtGui.QSplashScreen( QtGui.QPixmap('resources/images/splash.gif') )
+   splash.show( )
+   app.processEvents( )
+   
+   KeyboardWidget.theApp = app
+   
+   RES.read( [ 'MindTreeRes.ini', 'MindTreeConfig.ini' ] )
+   
    myapp = MindTree( )
+   myapp.initializePlugins( 'plugins')
+   
    myapp.resize(903, 719)
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
    sizePolicy.setHorizontalStretch( 1 )
@@ -282,5 +229,6 @@ if __name__ == "__main__":
    
    myapp.newFile( )
    myapp.show( )
+   splash.finish( myapp )
 
    sys.exit( app.exec_() )
