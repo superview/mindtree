@@ -38,7 +38,7 @@ Version 3.0 (Final Release)
       * Tables
    * Full Undo/Redo (tree editing and across editing of different articles)
 
-Version 3.0 (Final Release)
+Version 4.0 (Final Release)
    * Create an OutlineView widget (separate the article editor from the OutlineEditor widget)
    * Multiple Views
       * Cut & Paste across
