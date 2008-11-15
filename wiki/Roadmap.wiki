@@ -26,7 +26,7 @@ Version 1.7 (public beta)
    * Images in articles - support inserting images into articles
 
 Version 1.9 (public release Candidate)
-   * py2exe
+   * py2exe - Get an independent build/executable working.
 
 Version 2.0 (Final Release)
    * All Capabilities of MindTree Tk
