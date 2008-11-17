@@ -1,35 +1,34 @@
 #summary This document lists future versions and features.
 #labels Featured
 
-Version 1.2 (development tag)
+1.6 - internal (Focus: Outline Editing)
    * Drag & Drop - Get it working within a single outline widget
+   * Cut & Paste - cut & paste subtrees
+   * file operations (save,open,etc.)
    * Shortcuts - 'Ctrl-Left' and 'Ctrl-Right' aren't working properly.
 
-Version 1.3 (development tag)
+1.7 - internal (Focus: Article Editing)
+   * RTF - All articles in RTF
+   * Toolbars - implement toolbars for text styling
+   * Shortcuts
+   * Menu Items
+   * Images - support inserting images into articles
+   * Cut & Paste - cut & paste text in an article
+   * Undo/Redo
+
+1.8 - public alpha (Focus: Plugins)
+   * Tool box - create the tabbed tool box
    * Import/Export Plugins
    * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
    * Find/Replace Plugin
 
-Version 1.4 (development tag)
-   * Subtree Cut & Paste
-   * Article Undo/Redo
-
-Version 1.5 (public alpha)
-   * RTF - All articles in RTF
+1.9 - public beta (Focus: Distribution)
    * distutils script - write an initial script for distutils
+   * py2exe - Get an independent build/executable working.
    * Help File
 
-Version 1.6 (public beta)
-   * Text Styling Toolbars - implement toolbars for text styling
-
-Version 1.7 (public beta)
-   * Images in articles - support inserting images into articles
-
-Version 1.9 (public release Candidate)
-   * py2exe - Get an independent build/executable working.
-
 Version 2.0 (Final Release)
-   * All Capabilities of MindTree Tk
+   * All Capabilities of MindTree 1.0
 
 Version 3.0 (Final Release)
    * All Capabilities originally targeted for next major release of MindTree Tk
