@@ -7,112 +7,121 @@ from utilities import *
 # TODO
 # - Implement Ctrl-Right to Indent a node
 # - Implement Ctrl-Left to Dedent a node
-# - Modify OutlineEntryEditor_Delegate to display icon.
 
-class EntryEditor( QtGui.QWidget ):
-   def __init__( parent ):
-      pass
-   
-   def setText( self, text ):
-      pass
-   
-   def setIcon( self, anIcon ):
-      pass
-   
-   def getText( self ):
-      pass
-
-
-class OutlineEntryEditor_Delegate( QtGui.QItemDelegate ):
-   def __init__( self, parent, outlineEditor ):
-      self._entryEditor     = None
-      self._outlineEditor   = outlineEditor
-      
+class OutlineView_Delegate( QtGui.QItemDelegate ):
+   def __init__( self, parent ):
       QtGui.QItemDelegate.__init__( self, parent )
-
+   
    def createEditor( self, parent, option, index ):
-      if index.column() != 0:
-         return None
-      
-      # Original
-      #self._entryEditor = QtGui.QLineEdit( parent )
-      #self._entryEditor.setFrame( False )
-      #return self._entryEditor
-      
-      # New
-      self.widget = QtGui.QWidget( parent )
-      #self.box = QtGui.QHBoxLayout( self.widget )
-      
-      #self._label       = QtGui.QToolButton( self.widget )
-      #self._label.setAutoRaise( True )
-      
-      self._entryEditor = QtGui.QLineEdit( self.widget )
-      #self._entryEditor.setFrame( False )
-      
-      #self.box.addWidget( self._label       )
-      #self.box.addWidget( self._entryEditor )
-      #self.widget.setLayout( self.box )
-      
-      self.widget.setFocusProxy( self._entryEditor )
-      return self.widget
-
+      return QtGui.QItemDelegate.createEditor( self, parent, option, index )
+   
    def setEditorData( self, editor, index ):
-      # New
-      #icon = index.model().data( index, QtCore.Qt.DecorationRole ).toPyObject()
-      #self._label.setIcon( icon )
-      
-      # Original
-      dataToEdit = index.internalPointer( ).data( 0 )
-      self._entryEditor.setText( dataToEdit )
-
+      editor.setText( index.internalPointer().data(0) )
+   
    def setModelData( self, editor, model, index ):
-      newDataValue = self._entryEditor.text( )
-      model.setData( index, newDataValue, QtCore.Qt.DisplayRole )
-
-   def updateEditorGeometry( self, editor, option, index ):
-      self._entryEditor.setGeometry( option.rect )
-
-   def returnPressed( self ):
-      self._outlineEditor.insertNewNodeAfter( )
+      model.setData( index, editor.text(), QtCore.Qt.DisplayRole )
+   
 
 class OutlineViewWidget( QtGui.QTreeView ):
    '''Emits: entryRightClicked(QPoint,QModelIndex)'''
    def __init__( self, parent ):
       QtGui.QTreeView.__init__( self, parent )
+      
+      alternatingRowColors = RES.getboolean('OutlineView','alternatingRowColors')
+      
+      # Drag and Drop
+      self.setDragEnabled( True )
       self.setAcceptDrops( True )
+      self.setDropIndicatorShown( True )
+      self.setDragDropMode( QtGui.QAbstractItemView.InternalMove )
+      
+      # Entry Editing
+      self.setItemDelegate( OutlineView_Delegate(self) )
+      self.setEditTriggers( QtGui.QAbstractItemView.SelectedClicked |
+                            QtGui.QAbstractItemView.CurrentChanged )
+      
+      # Appearance
+      self.setAlternatingRowColors( alternatingRowColors )
+      self.setUniformRowHeights(True)
+      
+      # Behavior Settings
+      self.setSelectionMode( QtGui.QAbstractItemView.SingleSelection )
+      self.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+      self.setSortingEnabled(False)
 
+   # Drag and Drop
    def mousePressEvent( self, event ):
       if event.button() == QtCore.Qt.RightButton:
          point = event.pos()
          index = self.indexAt( point )
          self.emit( QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), event.globalPos(), index )
       else:
+         import copy
          if event.button() == QtCore.Qt.LeftButton:
-            self._dragStartPosition = event.pos()
-            self._dragStartIndex    = self.indexAt( event.pos() )
+            self._dragStartPosition = copy.copy( event.pos() )
+            print( 'Clicked {0}'.format(self._dragStartPosition) )
          
          QtGui.QTreeView.mousePressEvent( self, event )
 
    def mouseMoveEvent( self, event ):
-      if event.button() != QtCore.Qt.LeftButton:
+      # Are we doing a drag?
+      if not (event.buttons() & QtCore.Qt.LeftButton):
          return
       
-      if (event.pos() - self._dragStartPosition) < QtGui.QApplication.startDragDistance():
+      if (event.pos() - self._dragStartPosition).manhattanLength() < QtGui.QApplication.startDragDistance():
          return
       
+      # Encode the node and stuff it into a drag object
+      dragStartIndex = self.indexAt( self._dragStartPosition )
+      mimeData = self.model().mimifyNode( dragStartIndex )
       drag = QtGui.QDrag( self )
-      mimeData = QtCore.QMimeData( )
-      mimeData.setText( 'x' )
       drag.setMimeData( mimeData )
       
-      dropAction = drag.exec_( )
+      # Execute the drag (this is blocking)
+      dropAction = drag.exec_( QtCore.Qt.MoveAction )
+      
+      # If the drag was successful, remove the node
+      if dropAction == QtCore.Qt.MoveAction:
+         self.model().removeNode( dragStartIndex )
 
-   def dragEnterEvent( self ):
-      pass
+   def dragMoveEvent( self, event ):
+      print( 'Drag Move' )
+      QtGui.QTreeView.dragMoveEvent( self, event )
 
-   def dropEvent( self ):
-      pass
+   def dragEnterEvent( self, event ):
+      print( 'Entered' )
+      if event.mimeData().hasFormat( RES.get('OutlineView','nodeMimeType') ):
+         event.acceptProposedAction( )
 
+   def dragLeaveEvent( self, event ):
+      QtGui.QTreeView.dragLeaveEvent( self, event )
+
+   def dropEvent( self, event ):
+      if event.source() is self:
+         if event.possibleActions() & QtCore.Qt.MoveAction:
+            event.acceptProposedAction()
+            
+            print( 'Dropping' )
+            # Determine the drop location
+            point = event.pos()
+            index = self.indexAt( point )
+            
+            newParent = index.parent()
+            if newParent is None:
+               newParent = QtCore.QModelIndex()
+            
+            newRow = index.row()
+            
+            # Extract the node
+            mimeData = event.mimeData()
+            if not mimeData.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+               return
+            
+            node = self.model().demimifyNode(mimeData)
+            
+            # Insert the node
+            self.model().insertNode( newParent, newRow, node )
+            return
 
 class OutlineView(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")'''
@@ -376,7 +385,7 @@ class OutlineView(QtGui.QSplitter):
    
    def articleSelectAll( self ):
       pass
-   
+
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:
@@ -403,6 +412,7 @@ class OutlineView(QtGui.QSplitter):
       articleFont = RES.getFont( 'ArticleView', 'Font' )
       
       self._outlineView = OutlineViewWidget(self)
+      self._outlineView.setObjectName("outlineView")
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
@@ -410,15 +420,6 @@ class OutlineView(QtGui.QSplitter):
       self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
       self._outlineView.setSizeIncrement(QtCore.QSize(1, 1))
       self._outlineView.setFont( outlineFont )
-      self._outlineView.setEditTriggers(QtGui.QAbstractItemView.AllEditTriggers)
-      #self._outlineView.setDragEnabled(True)
-      #self._outlineView.setDragDropMode(QtGui.QAbstractItemView.DragDrop)
-      self._outlineView.setAlternatingRowColors(True)
-      #self._outlineView.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-      self._outlineView.setUniformRowHeights(True)
-      self._outlineView.setSortingEnabled(False)
-      self._outlineView.setObjectName("outlineView")
-      self._outlineView.setItemDelegate( OutlineEntryEditor_Delegate(self._outlineView, self) )
       
       self._articleView = QtGui.QTextEdit(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -452,13 +453,9 @@ class OutlineView(QtGui.QSplitter):
       self.indentNodeAction       = RES.installAction( 'indentNode',       self._outlineView, self )
       self.dedentNodeAction       = RES.installAction( 'dedentNode',       self._outlineView, self )
       self.insertNewNodeBeforeAction = RES.installAction( 'insertNewNodeBefore', self._outlineView, self )
-      #self.insertNewNodeAfterAction  = RES.installAction( 'insertNewNodeAfter',  self._outlineView, self )
+      self.insertNewNodeAfterAction  = RES.installAction( 'insertNewNodeAfter',  self._outlineView, self )
       self.insertNewChildAction   = RES.installAction( 'insertNewChild',   self._outlineView, self )
       self.deleteNodeAction       = RES.installAction( 'deleteNode',       self._outlineView, self )
-      
-      self.insertNewNodeAfterAction = defAction( 'insertNewNodeAfter', self._outlineView, self,
-                                                 text='New Node After',
-                                                 shortcuts=[ 'Return', 'Enter' ] )
 
    def _buildMenus( self ):
       # Tree Menu
