@@ -27,6 +27,7 @@ class TreeNode( object ):
       self.setContents( title, article, articleType )
 
    def appendChild(self, node):
+      node._parentNode = self
       self._childNodes.append(node)
 
    def data( self, column ):
@@ -76,6 +77,10 @@ class OutlineModel(QtCore.QAbstractItemModel):
       pass
 
    def insertNode( self, newParentIndex, newRow, newNode=None ):
+      '''Insert newNode as a new child node of parent.  It becomes the
+      nth child node (determined by newRow).  Existing child nodes are pushed up (e.g. the current
+      nth child becomes the (n+1)th child).  If newRow == -1If newRow >= num children, newNode is
+      added at the end of the list of child nodes.'''
       # Get the parent Node
       theParentNode = newParentIndex.internalPointer()
       if theParentNode is None:
@@ -84,7 +89,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       # Validate the row
       children = theParentNode._childNodes
       if (newRow < 0) or (newRow > len(children)):
-         raise InvalidRowError( )
+         return False
       
       # Get the node to be inserted
       if newNode is None:
@@ -96,6 +101,8 @@ class OutlineModel(QtCore.QAbstractItemModel):
       self.beginInsertRows( newParentIndex, newRow, newRow )
       children.insert( newRow, newNode )
       self.endInsertRows( )
+      
+      return True
    
    def removeNode( self, index ):
       parentIndex = index.parent()
@@ -109,12 +116,15 @@ class OutlineModel(QtCore.QAbstractItemModel):
       # Validate the row
       children = theParentNode._childNodes
       if (row < 0) or (row > len(children)):
-         raise InvalidRowError( )
+         return False
+         #raise InvalidRowError( )
       
       # Remove the node
       self.beginRemoveRows( parentIndex, row, row )
       del children[ row ]
       self.endRemoveRows( )
+      
+      return True
 
    def moveNode( self, theNodeIndex, newParentIndex, newRow ):
       if not theNodeIndex.isValid():
@@ -125,6 +135,26 @@ class OutlineModel(QtCore.QAbstractItemModel):
       self.removeNode( theNodeIndex )
       self.insertNode( newParentIndex, newRow, theNode )
    
+   def mimifyNode( self, index ):
+      # Since nodes contain refs to their parents, it's importnat to
+      # first set that ref to None to prevent the whole tree from being
+      # pickled.  After pickling, the ref to the parent is restored.
+      import pickle
+      node = index.internalPointer()
+      nodeParent = node._parentNode
+      node._parentNode = None
+      encodedData = pickle.dumps( node )
+      node._parentNode = nodeParent
+      
+      mimeObject = QtCore.QMimeData( )
+      mimeObject.setData( RES.get('OutlineView','nodeMimeType'), encodedData )
+      return mimeObject
+
+   def demimifyNode( self, mimeObject ):
+      import pickle
+      encodedData = mimeObject.data( RES.get('OutlineView','nodeMimeType') )
+      return pickle.loads( encodedData )
+
    # Basic Overrides
    def index(self, row, column, parentIndex):
       if row < 0 or column < 0 or row >= self.rowCount(parentIndex) or column >= self.columnCount(parentIndex):
@@ -192,19 +222,28 @@ class OutlineModel(QtCore.QAbstractItemModel):
    # Editing Overrides
    def setData( self, index, value, role ):
       if not index.isValid():
-         raise InvalidIndexError()
+         return False
       
       if role == QtCore.Qt.DisplayRole:
+         if isinstance(value,(str,unicode,QtCore.QString)):
+            value = unicode(value)
+         elif value.type() != QtCore.QVariant.String:
+            value = unicode(value.toString())
+         else:
+            return True
+         
          theTreeNode = index.internalPointer()
          if theTreeNode.data( 0 ) != value:
             theTreeNode.setTitle( value )
             self.emit( QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'), index, index )
+      
+      return True
 
    def flags(self, index):
       if not index.isValid():
          return QtCore.Qt.ItemIsEnabled
       
-      return QtCore.Qt.ItemIsEditable | QtCore.QAbstractItemModel.flags( self, index )
+      return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.QAbstractItemModel.flags( self, index )
 
    def headerData(self, section, orientation, role):
       if (orientation == QtCore.Qt.Horizontal) and (role == QtCore.Qt.DisplayRole):
@@ -216,11 +255,49 @@ class OutlineModel(QtCore.QAbstractItemModel):
       return QtCore.QVariant()
 
    def insertRows( self, rowNum, count, parentIndex ):
-      self.insertNode( parentIndex, rowNum, 1 )
+      return self.insertNode( parentIndex, rowNum )
    
    def removeRows( self, rowNum, count, parentIndex ):
-      self.removeNode( self.index( rowNum, 0, parentIndex ) )
+      return self.removeNode( self.index( rowNum, 0, parentIndex ) )
    
+   # Drag and Drop Overrides
+   def mimeTypes( self ):
+      return [ RES.get('OutlineView','nodeMimeType') ]
 
+   #def mimeData( self, indexList ):
+      #from copy import deepcopy
+      
+      #mimeData = QtCore.QMimeData( )
+      
+      #if len(indexList) != 1:
+         #return False
+      
+      #index = indexList[0]
+      
+      #return self.mimifyNode( index )
+   
+   #def dropMimeData( self, mimeData, action, row, column, nodeIndex ):
+      #if action == QtCore.Qt.IgnoreAction:
+         #return True
+      
+      #if not mimeData.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+         #return False
+      
+      #if not nodeIndex.isValid():
+         #return False
+      
+      #newParent = nodeIndex.parent()
+      #if newParent is None:
+         #newParent = QtCore.QModelIndex()
+      
+      #newRow = nodeIndex.row()
+      
+      #node = self.demimifyNode( mimeData )
+      #self.insertNode( newParent, newRow, node )
+      
+      #return True
+
+   def supportedDropActions( self ):
+      return QtCore.Qt.MoveAction
 
    

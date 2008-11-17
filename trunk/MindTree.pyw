@@ -2,7 +2,6 @@ from __future__ import print_function, unicode_literals
 from future_builtins import *
 import sys
 sys.py3kwarning = True
-#import MTresources as RES
 
 from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
