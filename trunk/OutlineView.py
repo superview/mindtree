@@ -32,7 +32,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
       # Drag and Drop
       self.setDragEnabled( True )
       self.setAcceptDrops( True )
-      self.setDropIndicatorShown( True )
+      #self.setDropIndicatorShown( True )
       self.setDragDropMode( QtGui.QAbstractItemView.InternalMove )
       
       # Entry Editing
@@ -48,6 +48,12 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self.setSelectionMode( QtGui.QAbstractItemView.SingleSelection )
       self.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
       self.setSortingEnabled(False)
+      self.setTabKeyNavigation(False)
+      
+      # Drag and Drop Cursors
+      self.insertBefore_cursor  = RES.getDragCursor('OutlineView','DnD_insertBeforeCursor')
+      self.insertAfter_cursor   = RES.getDragCursor('OutlineView','DnD_insertAfterCursor')
+      self.insertChild_cursor   = RES.getDragCursor('OutlineView','DnD_insertChildCursor')
 
    # Drag and Drop
    def mousePressEvent( self, event ):
@@ -74,19 +80,20 @@ class OutlineViewWidget( QtGui.QTreeView ):
       # Encode the node and stuff it into a drag object
       dragStartIndex = self.indexAt( self._dragStartPosition )
       mimeData = self.model().mimifyNode( dragStartIndex )
-      drag = QtGui.QDrag( self )
-      drag.setMimeData( mimeData )
+      self.drag = QtGui.QDrag( self )
+      self.drag.setMimeData( mimeData )
       
       # Execute the drag (this is blocking)
-      dropAction = drag.exec_( QtCore.Qt.MoveAction )
+      dropAction = self.drag.exec_( QtCore.Qt.MoveAction )
       
       # If the drag was successful, remove the node
       if dropAction == QtCore.Qt.MoveAction:
          self.model().removeNode( dragStartIndex )
 
    def dragMoveEvent( self, event ):
-      print( 'Drag Move' )
-      QtGui.QTreeView.dragMoveEvent( self, event )
+      index,relation = self._dnd_insertionPos( event )
+      self.setSelection( QtCore.QRect( event.pos(), event.pos() ), QtGui.QItemSelectionModel.ClearAndSelect )
+      self._selectCursor( relation )
 
    def dragEnterEvent( self, event ):
       print( 'Entered' )
@@ -121,7 +128,41 @@ class OutlineViewWidget( QtGui.QTreeView ):
             
             # Insert the node
             self.model().insertNode( newParent, newRow, node )
-            return
+
+   def _dnd_insertionPos( self, evt ):
+      # Find the closest entry to the mouse
+      mousePos               = evt.pos()
+      indexOfentryUnderMouse = self.indexAt( mousePos )
+      
+      # Is the cursur above or below the midpoint of this entry
+      rectOfEntryUnderMouse  = self.visualRect( indexOfentryUnderMouse )
+      min_y = rectOfEntryUnderMouse.y()
+      max_y = min_y + rectOfEntryUnderMouse.height()
+      mid_y = (min_y + max_y) / 2
+      if mousePos.y() <= mid_y:
+         # Before
+         return ( indexOfentryUnderMouse, 'before' )
+      else:
+         # After (may be sibling or child)
+         if mousePos.x() >= rectOfEntryUnderMouse.x() + RES.getint('OutlineView','DnD_siblingChildBound'):
+            return ( indexOfentryUnderMouse, 'child' )
+         else:
+            return ( indexOfentryUnderMouse, 'after' )
+
+   def _selectCursor( self, rel ):
+      if rel == 'before':
+         cursor = self.insertBefore_cursor
+         print( '   -> before' )
+      elif rel == 'after':
+         cursor = self.insertAfter_cursor
+         print( '   -> after' )
+      else:
+         cursor = self.insertChild_cursor
+         print( '   -> child' )
+      
+      self.drag.setDragCursor( cursor[0], QtCore.Qt.CopyAction + QtCore.Qt.MoveAction )
+      self.drag.setHotSpot( cursor[1] )
+
 
 class OutlineView(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")'''

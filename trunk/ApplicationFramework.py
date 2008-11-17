@@ -49,11 +49,61 @@ class Resources( SafeConfigParser ):
       return os.path.normpath( self.get(section,option) )
 
    def getFont( self, section, option ):
-      return Resources.fontStringToFont( self.get(section,option) )
-
+      elements = self.getMultipartResource(section,option)
+      numElements = len(elements)
+      
+      fontFamily = elements[0]
+      
+      if numElements >= 2:
+         fontSize = int(elements[1])
+      else:
+         fontSize = 8
+      
+      if numElements >= 3:
+         fontWeight = elements[2].upper()
+         if fontWeight in [ '1', 'YES', 'TRUE', 'BOLD' ]:
+            fontWeight = QtGui.QFont.Bold
+         else:
+            try:
+               fontWeight = int(fontWeight)
+            except:
+               fontWeight = -1
+      else:
+         fontWeight = -1
+      
+      if numElements >= 4:
+         fontSlant = elements[3].upper()
+         fontSlant = fontItalic in [ '1', 'YES', 'TRUE', 'ITALIC' ]
+      else:
+         fontSlant = False
+      
+      return QtGui.QFont( fontFamily, fontSize, fontWeight, fontSlant )
+   
    def getIcon( self, section, option ):
       return QtGui.QIcon( self.get(section,option) )
    
+   def getPixmap( self, section, option ):
+      return QtGui.QPixmap( self.get(section,option) )
+   
+   def getCursor( self, section, option ):
+      filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
+      hotspotX = int(hotspotX)
+      hotspotY = int(hotspotY)
+      pixmap = QtGui.QPixmap( filename )
+      cur    = QtGui.QCursor( pixmap, hotspotX, hotspotY )
+      return cur
+
+   def getDragCursor( self, section, option ):
+      filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
+      hotspotX = int(hotspotX)
+      hotspotY = int(hotspotY)
+      pixmap = QtGui.QPixmap( filename )
+      hotspot = QtCore.QPoint( hotspotX, hotspotY )
+      return pixmap, hotspot
+
+   def getMultipartResource( self, section, option, sep=':' ):
+      return self.get(section,option).split(':')
+
    @staticmethod
    def makeActionObj( name, parent, handlerObj=None, handlerFn=None, **resources ):
       if handlerFn is None:
@@ -92,7 +142,8 @@ class Resources( SafeConfigParser ):
             shortcuts.append( resValue )
          
          elif resName == 'font':
-            theAction.setFont( Resources.fontStringToFont(resValue) )
+            font = self.getFont( name, 'font' )
+            #theAction.setFont( Resources.fontStringToFont(resValue) )
       
       if len(shortcuts) > 0:
          theAction.setShortcuts( shortcuts )

@@ -264,40 +264,29 @@ class OutlineModel(QtCore.QAbstractItemModel):
    def mimeTypes( self ):
       return [ RES.get('OutlineView','nodeMimeType') ]
 
-   #def mimeData( self, indexList ):
-      #from copy import deepcopy
-      
-      #mimeData = QtCore.QMimeData( )
-      
-      #if len(indexList) != 1:
-         #return False
-      
-      #index = indexList[0]
-      
-      #return self.mimifyNode( index )
-   
-   #def dropMimeData( self, mimeData, action, row, column, nodeIndex ):
-      #if action == QtCore.Qt.IgnoreAction:
-         #return True
-      
-      #if not mimeData.hasFormat( RES.get('OutlineView','nodeMimeType') ):
-         #return False
-      
-      #if not nodeIndex.isValid():
-         #return False
-      
-      #newParent = nodeIndex.parent()
-      #if newParent is None:
-         #newParent = QtCore.QModelIndex()
-      
-      #newRow = nodeIndex.row()
-      
-      #node = self.demimifyNode( mimeData )
-      #self.insertNode( newParent, newRow, node )
-      
-      #return True
-
    def supportedDropActions( self ):
       return QtCore.Qt.MoveAction
 
-   
+   # Convenience Methods
+   def relativeInsertNode( self, refIndex, relation, newNode=None ):
+      '''Given a refernce index (an index to a node already in the outline),
+      and a relation ('before', 'after', 'child') insert the new node in
+      the indicated location.  'child' indicates the newNode will be inserted
+      as the first child of the node indicated by refIndex.
+      '''
+      if relation == 'child':
+         self.insertNode( refIndex, 0, newNode )
+      else:
+         # The new node is to be a sibling of the node indicated by refIndex
+         # so we need to get the parent.
+         newParentIndex = refIndex.parent()
+         if newParentIndex is None:
+            newParentIndex = QtCore.QModelIndex()
+         
+         # Now determine the insertion row
+         insertionRow = refIndex.row()
+         if relation == 'after':
+            insertionRow += 1
+         
+         # Do the insertion
+         self.insertNode( refIndex, insertionRow, newNode )
