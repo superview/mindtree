@@ -11,6 +11,23 @@ from Keyboard import KeyboardWidget
 from utilities import *
 
 
+class MindTreeArchiver( Archiver ):
+   def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
+      Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
+   
+   def _readFile( self, aFilename ):
+      rootNode = Archiver._readFile( self, aFilename )
+      return OutlineModel( rootNode )
+
+   def _writeFile( self, aDocument, aFilename ):
+      if not aDocument.validate( ):
+         raise
+      
+      # Since the OutlineModel class is a subclass of a Qt class, it cannot
+      # be included in the serialized data.
+      tree = aDocument.root( )
+      Archiver._writeFile( self, tree, aFilename )
+   
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
 
@@ -19,7 +36,7 @@ class MindTree( Application ):
       fileExts   = RES.get( 'Application', 'fileExtension' )
       workingDir = RES.get( 'Project',     'directory'     )
       
-      Application.__init__( self, Archiver(self,fileTypes,fileExts,workingDir) )
+      Application.__init__( self, MindTreeArchiver(self,fileTypes,fileExts,workingDir) )
       
       self.setObjectName("MainWindow")
       

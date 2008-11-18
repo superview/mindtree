@@ -380,20 +380,15 @@ class Archiver( object ):
       raise an exception.
       """
       import pickle
-      data = pickle.load( open( aFilename, 'rb' ) )
-      return data
+      return pickle.load( open( aFilename, 'rb' ) )
 
    def _writeFile( self, aDocument, aFilename ):
       """Write the document to the named file.  If an error occurs,
       raise an exception.
       """
-      aDocument.validateModel( )
-      
       import pickle
-
       f = open( aFilename, 'wb' )
-      data = pickle.dump( aDocument, f, pickle.HIGHEST_PROTOCOL )
-      f.close()
+      pickle.dump( aDocument, f, pickle.HIGHEST_PROTOCOL )
    
 
 class Application( QtGui.QMainWindow ):
