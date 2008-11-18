@@ -13,7 +13,9 @@ class OutlineView_Delegate( QtGui.QItemDelegate ):
       QtGui.QItemDelegate.__init__( self, parent )
    
    def createEditor( self, parent, option, index ):
-      return QtGui.QItemDelegate.createEditor( self, parent, option, index )
+      editor = QtGui.QItemDelegate.createEditor( self, parent, option, index )
+      editor.installEventFilter( self.parent() )
+      return editor
    
    def setEditorData( self, editor, index ):
       editor.setText( index.internalPointer().data(0) )
@@ -54,6 +56,46 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self.insertBefore_cursor  = RES.getDragCursor('OutlineView','DnD_insertBeforeCursor')
       self.insertAfter_cursor   = RES.getDragCursor('OutlineView','DnD_insertAfterCursor')
       self.insertChild_cursor   = RES.getDragCursor('OutlineView','DnD_insertChildCursor')
+
+   def eventFilter( self, obj, event ):
+      if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
+         keyEvent = event
+         if keyEvent.key() == QtCore.Qt.Key_Tab:
+            if keyEvent.modifiers() == QtCore.Qt.ShiftModifier:
+               self.parent().dedentNode()
+            else:
+               self.parent().indentNode()
+            
+            return True  # disallow target from handling the event.
+         
+         elif keyEvent.key() == QtCore.Qt.Key_Left:
+            if keyEvent.modifiers() == QtCore.Qt.ControlModifier:
+               self.parent().dedentNode()
+               return True
+      
+         elif keyEvent.key() == QtCore.Qt.Key_Right:
+            if keyEvent.modifiers() == QtCore.Qt.ControlModifier:
+               self.parent().indentNode()
+               return True
+      
+         elif keyEvent.key() == QtCore.Qt.Key_Up:
+            if keyEvent.modifiers() == QtCore.Qt.ControlModifier:
+               self.parent().moveNodeUp()
+               return True
+      
+         elif keyEvent.key() == QtCore.Qt.Key_Down:
+            if keyEvent.modifiers() == QtCore.Qt.ControlModifier:
+               self.parent().moveNodeDown()
+               return True
+      
+      return False
+   
+   def keyboardPressEvent( self, keyEvent ):
+      if keyEvent.key() == QtCore.Qt.Key_Tab:
+         if keyEvent.modifiers() == QtCore.Qt.ShiftModifier:
+            self.parent().dedentNode()
+         else:
+            self.parent().indentNode()
 
    # Drag and Drop
    def mousePressEvent( self, event ):
@@ -152,16 +194,22 @@ class OutlineViewWidget( QtGui.QTreeView ):
    def _selectCursor( self, rel ):
       if rel == 'before':
          cursor = self.insertBefore_cursor
-         print( '   -> before' )
+         statusTip = 'Drop before'
       elif rel == 'after':
          cursor = self.insertAfter_cursor
-         print( '   -> after' )
+         statusTip = 'Drop after'
       else:
          cursor = self.insertChild_cursor
-         print( '   -> child' )
+         statusTip = 'Drop as child'
       
+      self.setStatusTip( statusTip )
       self.drag.setDragCursor( cursor[0], QtCore.Qt.CopyAction + QtCore.Qt.MoveAction )
       self.drag.setHotSpot( cursor[1] )
+      print( 'Updatable: {0}'.format(self.updatesEnabled()) )
+      self.repaint()
+      self.update()
+      self.window().repaint()
+      self.window().update()
 
 
 class OutlineView(QtGui.QSplitter):
@@ -188,7 +236,7 @@ class OutlineView(QtGui.QSplitter):
       
       try:
          # Update and Validate the new model
-         aModel.validateModel( )
+         aModel.validate( )
          
          self._outlineView.setModel( aModel )
          
@@ -230,10 +278,10 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup( )
    
    def deleteNode( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
       try:
-         if nodeIndex is None:
-            nodeIndex = self._outlineView.currentIndex()
-         
          self._model.removeNode( nodeIndex )
          self.onModelChanged()
       except:
@@ -244,6 +292,36 @@ class OutlineView(QtGui.QSplitter):
          self._model.moveNode( nodeIndex, newParentIndex, newRow )
          self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
+      except:
+         exceptionPopup()
+
+   def expandAll( self ):
+      try:
+         self._outlineView.expandAll( )
+      except:
+         exceptionPopup()
+
+   def expandNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
+      
+      try:
+         self._outlineView.expand( self._outlineView.currentIndex() )
+      except:
+         exceptionPopup()
+
+   def collapseAll( self ):
+      try:
+         self._outlineView.collapseAll( )
+      except:
+         exceptionPopup()
+
+   def collapseNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
+      
+      try:
+         self._outlineView.collapse( self._outlineView.currentIndex() )
       except:
          exceptionPopup()
 
@@ -293,56 +371,38 @@ class OutlineView(QtGui.QSplitter):
       
       self.swappingArticle = False
 
-   def expandAll( self ):
-      try:
-         self._outlineView.expandAll( )
-      except:
-         exceptionPopup()
-
-   def expandNode( self ):
-      try:
-         self._outlineView.expand( self._outlineView.currentIndex() )
-      except:
-         exceptionPopup()
-
-   def collapseAll( self ):
-      try:
-         self._outlineView.collapseAll( )
-      except:
-         exceptionPopup()
-
-   def collapseNode( self ):
-      try:
-         self._outlineView.collapse( self._outlineView.currentIndex() )
-      except:
-         exceptionPopup()
-
-   def insertNewNodeBefore( self ):
-      try:
+   def insertNodeBefore( self, index=None, node=None ):
+      if index is None:
          index = self._outlineView.currentIndex()
-         self.insertNode( index.parent(), index.row() )
+      
+      try:
+         self.insertNode( index.parent(), index.row(), node )
       except:
          exceptionPopup()
 
-   def insertNewNodeAfter( self ):
-      try:
+   def insertNodeAfter( self, index=None, node=None ):
+      if index is None:
          index = self._outlineView.currentIndex()
-         self.insertNode( index.parent(), index.row() + 1 )
+      
+      try:
+         self.insertNode( index.parent(), index.row() + 1, node )
       except:
          exceptionPopup()
 
-   def insertNewChild( self ):
-      try:
+   def insertNodeAsChild( self, index=None, node=None ):
+      if index is None:
          index = self._outlineView.currentIndex()
-         self.insertNode( index, 0 )
+      
+      try:
+         self.insertNode( index, 0, node )
       except:
          exceptionPopup()
 
    def indentNode( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
       try:
-         if nodeIndex is None:
-            nodeIndex = self._outlineView.currentIndex()
-         
          theNodeRow = nodeIndex.row()
          if theNodeRow == 0:
             return
@@ -354,10 +414,10 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup()
 
    def dedentNode( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
       try:
-         if nodeIndex is None:
-            nodeIndex = self._outlineView.currentIndex()
-         
          if len(nodeIndex.parent().internalPointer()._childNodes) != 1:
             return
          
@@ -368,11 +428,10 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup()
 
    def moveNodeUp( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
       try:
-         nodeIndex = nodeIndex
-         if nodeIndex is None:
-            nodeIndex = self._outlineView.currentIndex()
-         
          theRow = nodeIndex.row()
          if theRow == 0:
             return
@@ -382,10 +441,10 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup()
 
    def moveNodeDown( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
       try:
-         if nodeIndex is None:
-            nodeIndex = self._outlineView.currentIndex()
-         
          theRow = nodeIndex.row()
          if theRow == (len(nodeIndex.internalPointer()._parentNode._childNodes)-1):
             return
@@ -394,20 +453,75 @@ class OutlineView(QtGui.QSplitter):
       except:
          exceptionPopup()
 
-   def cutNode( self ):
-      pass
+   def cutNode( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
+      try:
+         mimeObject = self._model.mimifyNode( nodeIndex )
+         
+         try:
+            QtGui.QApplication.clipboard().setMimeData( mimeObject )
+         except:
+            return
+         
+         self.deleteNode( nodeIndex )
+      except:
+         exceptionPopup()
+
+   def copyNode( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
+      try:
+         mimeObject = self._model.mimifyNode( nodeIndex )
+         
+         QtGui.QApplication.clipboard().setMimeData( mimeObject )
+      
+      except:
+         exceptionPopup()
    
-   def copyNode( self ):
-      pass
+   def pasteNodeBefore( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
+      try:
+         mimeObject = QtGui.QApplication.clipboard().mimeData()
+         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+            return
+         
+         node = self._model.demimifyNode( mimeObject )
+         self.insertNodeBefore( nodeIndex, node )
+      except:
+         exceptionPopup( )
+
+   def pasteNodeAfter( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
+      try:
+         mimeObject = QtGui.QApplication.clipboard().mimeData()
+         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+            return
+         
+         node = self._model.demimifyNode( mimeObject )
+         self.insertNodeAfter( nodeIndex, node )
+      except:
+         exceptionPopup( )
    
-   def pasteNodeBefore( self ):
-      pass
-   
-   def pasteNodeAfter( self ):
-      pass
-   
-   def pasteNodeChild( self ):
-      pass
+   def pasteNodeAsChild( self, nodeIndex=None ):
+      if nodeIndex is None:
+         nodeIndex = self._outlineView.currentIndex()
+      
+      try:
+         mimeObject = QtGui.QApplication.clipboard().mimeData()
+         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+            return
+         
+         node = self._model.demimifyNode( mimeObject )
+         self.insertNodeAsChild( nodeIndex, node )
+      except:
+         exceptionPopup( )
    
    def editUndo( self ):
       pass
@@ -484,7 +598,7 @@ class OutlineView(QtGui.QSplitter):
       self.copyNodeAction         = RES.installAction( 'copyNode',         self._outlineView, self )
       self.pasteNodeBeforeAction  = RES.installAction( 'pasteNodeBefore',  self._outlineView, self )
       self.pasteNodeAfterAction   = RES.installAction( 'pasteNodeAfter',   self._outlineView, self )
-      self.pasteNodeChildAction   = RES.installAction( 'pasteNodeChild',   self._outlineView, self )
+      self.pasteNodeAsChildAction = RES.installAction( 'pasteNodeAsChild', self._outlineView, self )
       self.expandAllAction        = RES.installAction( 'expandAll',        self._outlineView, self )
       self.collapseAllAction      = RES.installAction( 'collapseAll',      self._outlineView, self )
       self.expandNodeAction       = RES.installAction( 'expandNode',       self._outlineView, self )
@@ -493,9 +607,9 @@ class OutlineView(QtGui.QSplitter):
       self.moveNodeDownAction     = RES.installAction( 'moveNodeDown',     self._outlineView, self )
       self.indentNodeAction       = RES.installAction( 'indentNode',       self._outlineView, self )
       self.dedentNodeAction       = RES.installAction( 'dedentNode',       self._outlineView, self )
-      self.insertNewNodeBeforeAction = RES.installAction( 'insertNewNodeBefore', self._outlineView, self )
-      self.insertNewNodeAfterAction  = RES.installAction( 'insertNewNodeAfter',  self._outlineView, self )
-      self.insertNewChildAction   = RES.installAction( 'insertNewChild',   self._outlineView, self )
+      self.insertNewNodeBeforeAction = RES.installAction( 'insertNodeBefore', self._outlineView, self )
+      self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',  self._outlineView, self )
+      self.insertNewChildAction   = RES.installAction( 'insertNodeAsChild',   self._outlineView, self )
       self.deleteNodeAction       = RES.installAction( 'deleteNode',       self._outlineView, self )
 
    def _buildMenus( self ):
@@ -508,7 +622,7 @@ class OutlineView(QtGui.QSplitter):
       self.menuTree.addAction( self.copyNodeAction )
       self.menuTree.addAction( self.pasteNodeBeforeAction )
       self.menuTree.addAction( self.pasteNodeAfterAction )
-      self.menuTree.addAction( self.pasteNodeChildAction )
+      self.menuTree.addAction( self.pasteNodeAsChildAction )
       self.menuTree.addSeparator()
       self.menuTree.addAction( self.expandAllAction )
       self.menuTree.addAction( self.collapseAllAction )
