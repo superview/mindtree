@@ -3,8 +3,8 @@
 
 1.6 - internal tag (Focus: Outline Editing)
    * Drag & Drop - Get it working within a single outline widget
-      * Be able to change the cursor to indicate the drop position.
-      * Be able to change the window's status tip to print the drop position.
+      * cursor updating to indicate the drop position.
+      * window status tip updating to print the drop position.
    * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
 
 1.7 - internal tag (Focus: Article Editing)
