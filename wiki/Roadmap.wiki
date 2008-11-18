@@ -3,7 +3,6 @@
 
 1.6 - internal tag (Focus: Outline Editing)
    * Drag & Drop - Get it working within a single outline widget
-   * Cut & Paste - cut & paste subtrees
    * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
 
 1.7 - internal tag (Focus: Article Editing)
