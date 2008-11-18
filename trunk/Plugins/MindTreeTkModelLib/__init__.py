@@ -1,7 +1,7 @@
 # Read and Convert a MindTree v1.0 Project file
 
 from OutlineModel import OutlineModel, TreeNode
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
 from ApplicationFramework import ImporterPlugin, RES
 
@@ -22,6 +22,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       workingDir = RES.get( 'Project',  'directory'     )
       
       ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
+      self._document = QtGui.QTextDocument( )  # for converting text to html
    
    def _readFile( self, aFilename ):
       from utilities import splitFilePath
@@ -43,14 +44,22 @@ class MT1ImportingArchiver( ImporterPlugin ):
    
    def _convertProject( self, oldModelTreeNode, newModelParentNode=None ):
       title   = unicode(oldModelTreeNode.title)
-      article = ''
+      plainTextArticle = ''
       
       if isinstance( oldModelTreeNode.article, list ):
          for key,val,index in oldModelTreeNode.article:
             if key == 'text':
-               article += val
+               plainTextArticle += val
       
-      newModelTreeNode = TreeNode( title, newModelParentNode, article )
+      # Convert any populated articles to HTML
+      if len(plainTextArticle) > 0:
+         self._document.clear( )
+         self._document.setPlainText( plainTextArticle )
+         htmlArticle = unicode(self._document.toHtml( 'utf-8' ))
+      else:
+         htmlArticle = ''
+      
+      newModelTreeNode = TreeNode( title, newModelParentNode, htmlArticle )
       for oldChildNode in oldModelTreeNode.children( ):
          newModelTreeNode.appendChild( self._convertProject(oldChildNode, newModelTreeNode) )
       return newModelTreeNode

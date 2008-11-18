@@ -14,23 +14,28 @@ class InvalidRowError( Exception ):
 
 
 class TreeNode( object ):
-   def __init__(self, title, parent=None, article=None, articleType='text'):
+   def __init__(self, title, parent=None, article=None):
+      assert isinstance( title,   (str,unicode) )
+      assert isinstance( parent,  TreeNode) or (parent is None)
+      assert isinstance( article, (str,unicode) ) or (article is None)
+      
       # Contents
-      self._data        = None
-      self._article     = None
+      self._data        = [ title ]
+      self._article     = article
       
       # Structure
       self._parentNode = parent
       self._childNodes = []
-      
-      # Initialization
-      self.setContents( title, article, articleType )
 
    def appendChild(self, node):
+      assert isinstance( node, TreeNode )
+      
       node._parentNode = self
       self._childNodes.append(node)
 
    def data( self, column ):
+      assert isinstance( column, int )
+      
       return self._data[ column ]
 
    def article( self ):
@@ -43,25 +48,19 @@ class TreeNode( object ):
       return 0
 
    def setTitle( self, aTitle ):
-      if not isinstance(aTitle,(str,unicode)):
-         raise
+      assert isinstance( aTitle, (str,unicode) )
       
       self._data = [ aTitle ]
 
-   def setArticle( self, article, articleType='text' ):
-      if article is None:
-         article = ''
+   def setArticle( self, article ):
+      assert isinstance( article, (str,unicode) )
       
-      self._article = [ articleType, article ]
+      self._article = article
    
-   def setContents( self, title, article, articleType ):
-      if article is None:
-         article = ''
-      
-      self._data        = [ title ]
-      self._article     = [ articleType, article  ]
-
    def validate( self, parent=None ):
+      if (not isinstance(parent, TreeNode)) and (parent is not None):
+         return False
+      
       members = self.__dict__.keys()
       if len(members) != 4:
          return False
@@ -79,13 +78,7 @@ class TreeNode( object ):
       # Validate _article
       if self._article is not None:
          if not isinstance( self._article, (str,unicode) ):
-            if not isinstance( self._article, list ):
-               return False
-            else:
-               if not isinstance( self._article[0], (str,unicode) ):
-                  return False
-               if not isinstance( self._article[1], (str,unicode) ):
-                  return False
+            return False
       
       # validate _parentNode
       if self._parentNode is not parent:
@@ -114,7 +107,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       if rootNode is None:
          rootNode = TreeNode( 'Untitled' )
-         rootNode.appendChild( TreeNode( '', rootNode, '', 'text' ) )
+         rootNode.appendChild( TreeNode( '', rootNode, '' ) )
       
       self._rootNode       = rootNode
       
@@ -281,7 +274,8 @@ class OutlineModel(QtCore.QAbstractItemModel):
       elif role == QtCore.Qt.DecorationRole:
          article = item.article()
          
-         if (article[1] is None) or (article[1] == ''):
+         #if (article[1] is None) or (article[1] == ''):
+         if article == '':
             return OutlineModel.EmptyArticleIcon
          else:
             return OutlineModel.FullArticleIcon

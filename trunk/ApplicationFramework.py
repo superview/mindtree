@@ -143,7 +143,7 @@ class Resources( SafeConfigParser ):
          
          elif resName == 'font':
             font = self.getFont( name, 'font' )
-            #theAction.setFont( Resources.fontStringToFont(resValue) )
+            theAction.setFont( font )
       
       if len(shortcuts) > 0:
          theAction.setShortcuts( shortcuts )

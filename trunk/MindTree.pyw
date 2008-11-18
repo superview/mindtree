@@ -185,21 +185,23 @@ class MindTree( Application ):
       self._filetoolbar.addAction( self.actionSave )
       self.addToolBar( self._filetoolbar )
       
-      self._articletoolbar = QtGui.QToolBar( 'articleToolbar', self )
-      self._articletoolbar.addAction( self._outlineEditor.articleCutAction )
-      self._articletoolbar.addAction( self._outlineEditor.articleCopyAction )
-      self._articletoolbar.addAction( self._outlineEditor.articlePasteAction )
-      self.addToolBar( self._articletoolbar )
+      for toolbar in self._outlineEditor.getToolbars( ):
+         self.addToolBar( toolbar )
+      #self._articletoolbar = QtGui.QToolBar( 'articleToolbar', self )
+      #self._articletoolbar.addAction( self._outlineEditor.articleCutAction )
+      #self._articletoolbar.addAction( self._outlineEditor.articleCopyAction )
+      #self._articletoolbar.addAction( self._outlineEditor.articlePasteAction )
+      #self.addToolBar( self._articletoolbar )
       
-      self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
-      self._edittoolbar.addAction( self._outlineEditor.editUndoAction )
-      self._edittoolbar.addAction( self._outlineEditor.editRedoAction )
-      self.addToolBar( self._edittoolbar )
+      #self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
+      #self._edittoolbar.addAction( self._outlineEditor.editUndoAction )
+      #self._edittoolbar.addAction( self._outlineEditor.editRedoAction )
+      #self.addToolBar( self._edittoolbar )
       
-      self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
-      self._treetoolbar.addAction( self._outlineEditor.expandAllAction )
-      self._treetoolbar.addAction( self._outlineEditor.collapseAllAction )
-      self.addToolBar( self._treetoolbar )
+      #self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
+      #self._treetoolbar.addAction( self._outlineEditor.expandAllAction )
+      #self._treetoolbar.addAction( self._outlineEditor.collapseAllAction )
+      #self.addToolBar( self._treetoolbar )
    
    def _buildStatusBar( self ):
       self.statusbar = QtGui.QStatusBar(self)
