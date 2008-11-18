@@ -61,11 +61,53 @@ class TreeNode( object ):
       self._data        = [ title ]
       self._article     = [ articleType, article  ]
 
-
-EmptyArticleIcon = None
-FullArticleIcon  = None
+   def validate( self, parent=None ):
+      members = self.__dict__.keys()
+      if len(members) != 4:
+         return False
+      
+      # Validate _data
+      if self._data is not None:
+         if isinstance( self._data, list ):
+            for element in self._data:
+               if not isinstance( element, (str,unicode) ):
+                  return False
+         
+         elif not isinstance( self._data, (str,unicode) ):
+            return False
+      
+      # Validate _article
+      if self._article is not None:
+         if not isinstance( self._article, (str,unicode) ):
+            if not isinstance( self._article, list ):
+               return False
+            else:
+               if not isinstance( self._article[0], (str,unicode) ):
+                  return False
+               if not isinstance( self._article[1], (str,unicode) ):
+                  return False
+      
+      # validate _parentNode
+      if self._parentNode is not parent:
+         return False
+      
+      # Validate _childNodes
+      if not isinstance( self._childNodes, list ):
+         return False
+      
+      for child in self._childNodes:
+         if not isinstance( child, TreeNode ):
+            return False
+         
+         if not child.validate( parent=self ):
+            return False
+      
+      return True
 
 class OutlineModel(QtCore.QAbstractItemModel):
+   EmptyArticleIcon = None
+   FullArticleIcon  = None
+
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
       self._rootNode    = None
@@ -77,44 +119,20 @@ class OutlineModel(QtCore.QAbstractItemModel):
       self._rootNode       = rootNode
       
       global EmptyArticleIcon, FullArticleIcon
-      EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
-      FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
+      OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
+      OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
 
-   def validateModel( self ):
-      self._validateModel( self._rootNode, None )
+   def root( self ):
+      return self._rootNode
+
+   def validate( self ):
+      members = self.__dict__.keys()
+      if len(members) != 1:
+         return False
+      
+      # Validate _rootNode
+      return self._rootNode.validate( parent=None )
    
-   def _validateModel( self, node, parent ):
-      if node._data is not None:
-         if isinstance( node._data, list ):
-            for element in node._data:
-               if not isinstance( element, (str,unicode) ):
-                  raise
-         
-         elif not isinstance( node._data, (str,unicode) ):
-            raise
-      
-      if node._article is not None:
-         if not isinstance( node._article, (str,unicode) ):
-            if not isinstance( node._article, list ):
-               raise
-            else:
-               if not isinstance( node._article[0], (str,unicode) ):
-                  raise
-               if not isinstance( node._article[1], (str,unicode) ):
-                  raise
-      
-      if node._parentNode is not parent:
-         raise
-      
-      if not isinstance( node._childNodes, list ):
-         raise
-      
-      for child in node._childNodes:
-         if not isinstance( child, TreeNode ):
-            raise
-         
-         self._validateModel( child, node )
-
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       '''Insert newNode as a new child node of parent.  It becomes the
       nth child node (determined by newRow).  Existing child nodes are pushed up (e.g. the current
@@ -173,26 +191,42 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       self.removeNode( theNodeIndex )
       self.insertNode( newParentIndex, newRow, theNode )
-   
-   def mimifyNode( self, index ):
+
+   def serializeNode( self, index=None ):
+      '''Return a serialized version of the entires subtree starting from the
+      node indicated by index.  If index is None, the entire tree is serialized.
+      '''
+      import pickle
+      
+      if index is None:
+         node = self._rootNode
+      else:
+         node = index.internalPointer()
+      
       # Since nodes contain refs to their parents, it's importnat to
       # first set that ref to None to prevent the whole tree from being
       # pickled.  After pickling, the ref to the parent is restored.
-      import pickle
-      node = index.internalPointer()
       nodeParent = node._parentNode
       node._parentNode = None
       encodedData = pickle.dumps( node )
       node._parentNode = nodeParent
+      
+      return encodedData
+
+   def deserialize( self, encodedData ):
+      import pickle
+      return pickle.loads( encodedData )
+
+   def mimifyNode( self, index ):
+      encodedData = self.serializeNode( index )
       
       mimeObject = QtCore.QMimeData( )
       mimeObject.setData( RES.get('OutlineView','nodeMimeType'), encodedData )
       return mimeObject
 
    def demimifyNode( self, mimeObject ):
-      import pickle
       encodedData = mimeObject.data( RES.get('OutlineView','nodeMimeType') )
-      return pickle.loads( encodedData )
+      return self.deserialize( encodedData )
 
    # Basic Overrides
    def index(self, row, column, parentIndex):
@@ -248,9 +282,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
          article = item.article()
          
          if (article[1] is None) or (article[1] == ''):
-            return EmptyArticleIcon
+            return OutlineModel.EmptyArticleIcon
          else:
-            return FullArticleIcon
+            return OutlineModel.FullArticleIcon
       else:
          return QtCore.QVariant()
 
