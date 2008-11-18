@@ -43,6 +43,9 @@ class TreeNode( object ):
       return 0
 
    def setTitle( self, aTitle ):
+      if not isinstance(aTitle,(str,unicode)):
+         raise
+      
       self._data = [ aTitle ]
 
    def setArticle( self, article, articleType='text' ):
@@ -59,6 +62,9 @@ class TreeNode( object ):
       self._article     = [ articleType, article  ]
 
 
+EmptyArticleIcon = None
+FullArticleIcon  = None
+
 class OutlineModel(QtCore.QAbstractItemModel):
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
@@ -70,11 +76,44 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       self._rootNode       = rootNode
       
-      self.emptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
-      self.fullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
+      global EmptyArticleIcon, FullArticleIcon
+      EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
+      FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
 
    def validateModel( self ):
-      pass
+      self._validateModel( self._rootNode, None )
+   
+   def _validateModel( self, node, parent ):
+      if node._data is not None:
+         if isinstance( node._data, list ):
+            for element in node._data:
+               if not isinstance( element, (str,unicode) ):
+                  raise
+         
+         elif not isinstance( node._data, (str,unicode) ):
+            raise
+      
+      if node._article is not None:
+         if not isinstance( node._article, (str,unicode) ):
+            if not isinstance( node._article, list ):
+               raise
+            else:
+               if not isinstance( node._article[0], (str,unicode) ):
+                  raise
+               if not isinstance( node._article[1], (str,unicode) ):
+                  raise
+      
+      if node._parentNode is not parent:
+         raise
+      
+      if not isinstance( node._childNodes, list ):
+         raise
+      
+      for child in node._childNodes:
+         if not isinstance( child, TreeNode ):
+            raise
+         
+         self._validateModel( child, node )
 
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       '''Insert newNode as a new child node of parent.  It becomes the
@@ -209,13 +248,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
          article = item.article()
          
          if (article[1] is None) or (article[1] == ''):
-            return self.emptyArticleIcon
+            return EmptyArticleIcon
          else:
-            return self.fullArticleIcon
-         
-         #pic = QtGui.QPicture()
-         #x = pic.load(iconFilename)
-         #return QtCore.QVariant(pic)
+            return FullArticleIcon
       else:
          return QtCore.QVariant()
 
