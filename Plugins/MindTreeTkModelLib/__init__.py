@@ -38,7 +38,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )
-      newModelOutline.setTitle( QtCore.QVariant( unicode(title) ) )
+      newModelOutline.setTitle( unicode(title) )
       return newModelOutline
    
    def _convertProject( self, oldModelTreeNode, newModelParentNode=None ):

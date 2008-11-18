@@ -283,7 +283,7 @@ class Archiver( object ):
       return unicode(filenames[0])
 
    def asksaveasfilename( self ):
-      dlg = QtGui.QFileDialog( self, 'Save file...', self._initialDir, self._defaultExtension )
+      dlg = QtGui.QFileDialog( self._parentWidget, 'Save file...', self._initialDir, self._defaultExtension )
       dlg.setAcceptMode( QtGui.QFileDialog.AcceptSave )
       dlg.setModal(True)
       
@@ -295,7 +295,12 @@ class Archiver( object ):
       if len(filenames) != 1:
          raise OperationCanceled()
       
-      return unicode(filenames[0])
+      filename = unicode(filenames[0])
+      fileExtension = os.extsep + self._defaultExtension
+      if not filename.endswith( fileExtension ):
+         filename += fileExtension
+      
+      return filename
 
    def read( self ):
       """Read a document from a file.  The function may include user
@@ -309,7 +314,8 @@ class Archiver( object ):
       filename = self.askopenfilename( )
       
       try:
-         return Project( filename, self._readFile(filename) )
+         data = self._readFile(filename)
+         return Project( filename, data )
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -381,9 +387,13 @@ class Archiver( object ):
       """Write the document to the named file.  If an error occurs,
       raise an exception.
       """
+      aDocument.validateModel( )
+      
       import pickle
+
       f = open( aFilename, 'wb' )
-      pickle.dump( aDocument, f, -1 )
+      data = pickle.dump( aDocument, f, pickle.HIGHEST_PROTOCOL )
+      f.close()
    
 
 class Application( QtGui.QMainWindow ):
@@ -474,9 +484,7 @@ class Application( QtGui.QMainWindow ):
             self._project.backup()
          
          self._commitDocument( )
-         theDoc = self._project.data
          self._archiver.write( self._project, promptFilename=False )
-         
          self._project.modified = False
          self.updateWindowTitle( )
       except OperationCanceled:
