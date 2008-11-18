@@ -4,9 +4,6 @@ from ApplicationFramework import RES
 
 from utilities import *
 
-# TODO
-# - Implement Ctrl-Right to Indent a node
-# - Implement Ctrl-Left to Dedent a node
 
 class OutlineView_Delegate( QtGui.QItemDelegate ):
    def __init__( self, parent ):
@@ -227,6 +224,9 @@ class OutlineView(QtGui.QSplitter):
    def getFixedMenus( self ):
       return ( self.menuTree, self.menuArticle )
 
+   def getToolbars( self ):
+      return self._articletoolbar, self._edittoolbar, self._treetoolbar
+
    # Basic Operations
    def setModel( self, aModel ):
       self._model = aModel
@@ -262,12 +262,10 @@ class OutlineView(QtGui.QSplitter):
          
          if theDocument.isEmpty():
             article     = ''
-            articleType = 'text'
          else:
             article     = unicode( theDocument.toHtml() )
-            articleType = 'html'
          
-         index.internalPointer().setArticle( article, articleType )
+         index.internalPointer().setArticle( article )
 
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       try:
@@ -277,19 +275,19 @@ class OutlineView(QtGui.QSplitter):
       except:
          exceptionPopup( )
    
-   def deleteNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def deleteNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         self._model.removeNode( nodeIndex )
+         self._model.removeNode( index )
          self.onModelChanged()
       except:
          exceptionPopup()
 
-   def moveNode( self, nodeIndex, newParentIndex, newRow ):
+   def moveNode( self, index, newParentIndex, newRow ):
       try:
-         self._model.moveNode( nodeIndex, newParentIndex, newRow )
+         self._model.moveNode( index, newParentIndex, newRow )
          self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
       except:
@@ -359,15 +357,10 @@ class OutlineView(QtGui.QSplitter):
                index = None
          
          if index:
-            OutlineNode = index.internalPointer( )
+            outlineNode = index.internalPointer( )
             
-            if OutlineNode is not None:
-               articleType, articleText = OutlineNode.article( )
-               
-               if articleType == 'text':
-                  self._articleView.setText( articleText )
-               elif articleType == 'html':
-                  self._articleView.setHtml( articleText )
+            if outlineNode is not None:
+               self._articleView.setHtml( outlineNode.article() )
       
       self.swappingArticle = False
 
@@ -398,92 +391,92 @@ class OutlineView(QtGui.QSplitter):
       except:
          exceptionPopup()
 
-   def indentNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def indentNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         theNodeRow = nodeIndex.row()
+         theNodeRow = index.row()
          if theNodeRow == 0:
             return
          
-         theNewParent = nodeIndex.sibling( nodeIndex.row() - 1, 0 )
+         theNewParent = index.sibling( index.row() - 1, 0 )
          if len(theNewParent.internalPointer()._childNodes) == 0:
-            self.moveNode( nodeIndex, theNewParent, 0 )
+            self.moveNode( index, theNewParent, 0 )
       except:
          exceptionPopup()
 
-   def dedentNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def dedentNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         if len(nodeIndex.parent().internalPointer()._childNodes) != 1:
+         if len(index.parent().internalPointer()._childNodes) != 1:
             return
          
-         newParent = nodeIndex.parent().parent()
-         newRow    = nodeIndex.parent().row() + 1
-         self.moveNode( nodeIndex, newParent, newRow )
+         newParent = index.parent().parent()
+         newRow    = index.parent().row() + 1
+         self.moveNode( index, newParent, newRow )
       except:
          exceptionPopup()
 
-   def moveNodeUp( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def moveNodeUp( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         theRow = nodeIndex.row()
+         theRow = index.row()
          if theRow == 0:
             return
          
-         self.moveNode( nodeIndex, nodeIndex.parent(), theRow - 1 )
+         self.moveNode( index, index.parent(), theRow - 1 )
       except:
          exceptionPopup()
 
-   def moveNodeDown( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def moveNodeDown( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         theRow = nodeIndex.row()
-         if theRow == (len(nodeIndex.internalPointer()._parentNode._childNodes)-1):
+         theRow = index.row()
+         if theRow == (len(index.internalPointer()._parentNode._childNodes)-1):
             return
          
-         self.moveNode( nodeIndex, nodeIndex.parent(), theRow + 1 )
+         self.moveNode( index, index.parent(), theRow + 1 )
       except:
          exceptionPopup()
 
-   def cutNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def cutNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         mimeObject = self._model.mimifyNode( nodeIndex )
+         mimeObject = self._model.mimifyNode( index )
          
          try:
             QtGui.QApplication.clipboard().setMimeData( mimeObject )
          except:
             return
          
-         self.deleteNode( nodeIndex )
+         self.deleteNode( index )
       except:
          exceptionPopup()
 
-   def copyNode( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def copyNode( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
-         mimeObject = self._model.mimifyNode( nodeIndex )
+         mimeObject = self._model.mimifyNode( index )
          
          QtGui.QApplication.clipboard().setMimeData( mimeObject )
       
       except:
          exceptionPopup()
    
-   def pasteNodeBefore( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def pasteNodeBefore( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -491,13 +484,13 @@ class OutlineView(QtGui.QSplitter):
             return
          
          node = self._model.demimifyNode( mimeObject )
-         self.insertNodeBefore( nodeIndex, node )
+         self.insertNodeBefore( index, node )
       except:
          exceptionPopup( )
 
-   def pasteNodeAfter( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def pasteNodeAfter( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -505,13 +498,13 @@ class OutlineView(QtGui.QSplitter):
             return
          
          node = self._model.demimifyNode( mimeObject )
-         self.insertNodeAfter( nodeIndex, node )
+         self.insertNodeAfter( index, node )
       except:
          exceptionPopup( )
    
-   def pasteNodeAsChild( self, nodeIndex=None ):
-      if nodeIndex is None:
-         nodeIndex = self._outlineView.currentIndex()
+   def pasteNodeAsChild( self, index=None ):
+      if index is None:
+         index = self._outlineView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -519,7 +512,7 @@ class OutlineView(QtGui.QSplitter):
             return
          
          node = self._model.demimifyNode( mimeObject )
-         self.insertNodeAsChild( nodeIndex, node )
+         self.insertNodeAsChild( index, node )
       except:
          exceptionPopup( )
    
@@ -541,6 +534,18 @@ class OutlineView(QtGui.QSplitter):
    def articleSelectAll( self ):
       pass
 
+   def textStyleBold( self ):
+      pass
+   
+   def textStyleItalic( self ):
+      pass
+   
+   def textStyleUnderline( self ):
+      pass
+   
+   def textStyleOverstrike( self ):
+      pass
+   
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:
@@ -554,13 +559,14 @@ class OutlineView(QtGui.QSplitter):
       self._outlineView.setCurrentIndex( index )
       self.menuTree.popup(point)
 
-   # Implementation
+   # GUI Construction
    def _buildGui( self ):
       self._buildWidgets( )
       
       self._defineActions( )
       
       self._buildMenus( )
+      self._buldToolbars( )
 
    def _buildWidgets( self ):
       outlineFont = RES.getFont( 'OutlineView', 'Font' )
@@ -588,29 +594,34 @@ class OutlineView(QtGui.QSplitter):
       QtCore.QObject.connect( self._outlineView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
 
    def _defineActions( self ):
-      self.editUndoAction         = RES.installAction( 'editUndo',         self._outlineView, self )
-      self.editRedoAction         = RES.installAction( 'editRedo',         self._outlineView, self )
-      self.articleCutAction       = RES.installAction( 'articleCut',       self._outlineView, self )
-      self.articleCopyAction      = RES.installAction( 'articleCopy',      self._outlineView, self )
-      self.articlePasteAction     = RES.installAction( 'articlePaste',     self._outlineView, self )
-      self.articleSelectAllAction = RES.installAction( 'articleSelectAll', self._outlineView, self )
-      self.cutNodeAction          = RES.installAction( 'cutNode',          self._outlineView, self )
-      self.copyNodeAction         = RES.installAction( 'copyNode',         self._outlineView, self )
-      self.pasteNodeBeforeAction  = RES.installAction( 'pasteNodeBefore',  self._outlineView, self )
-      self.pasteNodeAfterAction   = RES.installAction( 'pasteNodeAfter',   self._outlineView, self )
-      self.pasteNodeAsChildAction = RES.installAction( 'pasteNodeAsChild', self._outlineView, self )
-      self.expandAllAction        = RES.installAction( 'expandAll',        self._outlineView, self )
-      self.collapseAllAction      = RES.installAction( 'collapseAll',      self._outlineView, self )
-      self.expandNodeAction       = RES.installAction( 'expandNode',       self._outlineView, self )
-      self.collapseNodeAction     = RES.installAction( 'collapseNode',     self._outlineView, self )
-      self.moveNodeUpAction       = RES.installAction( 'moveNodeUp',       self._outlineView, self )
-      self.moveNodeDownAction     = RES.installAction( 'moveNodeDown',     self._outlineView, self )
-      self.indentNodeAction       = RES.installAction( 'indentNode',       self._outlineView, self )
-      self.dedentNodeAction       = RES.installAction( 'dedentNode',       self._outlineView, self )
-      self.insertNewNodeBeforeAction = RES.installAction( 'insertNodeBefore', self._outlineView, self )
-      self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',  self._outlineView, self )
-      self.insertNewChildAction   = RES.installAction( 'insertNodeAsChild',   self._outlineView, self )
-      self.deleteNodeAction       = RES.installAction( 'deleteNode',       self._outlineView, self )
+      self.editUndoAction            = RES.installAction( 'editUndo',          self )
+      self.editRedoAction            = RES.installAction( 'editRedo',          self )
+      self.articleCutAction          = RES.installAction( 'articleCut',        self )
+      self.articleCopyAction         = RES.installAction( 'articleCopy',       self )
+      self.articlePasteAction        = RES.installAction( 'articlePaste',      self )
+      self.articleSelectAllAction    = RES.installAction( 'articleSelectAll',  self )
+      self.cutNodeAction             = RES.installAction( 'cutNode',           self )
+      self.copyNodeAction            = RES.installAction( 'copyNode',          self )
+      self.pasteNodeBeforeAction     = RES.installAction( 'pasteNodeBefore',   self )
+      self.pasteNodeAfterAction      = RES.installAction( 'pasteNodeAfter',    self )
+      self.pasteNodeAsChildAction    = RES.installAction( 'pasteNodeAsChild',  self )
+      self.expandAllAction           = RES.installAction( 'expandAll',         self )
+      self.collapseAllAction         = RES.installAction( 'collapseAll',       self )
+      self.expandNodeAction          = RES.installAction( 'expandNode',        self )
+      self.collapseNodeAction        = RES.installAction( 'collapseNode',      self )
+      self.moveNodeUpAction          = RES.installAction( 'moveNodeUp',        self )
+      self.moveNodeDownAction        = RES.installAction( 'moveNodeDown',      self )
+      self.indentNodeAction          = RES.installAction( 'indentNode',        self )
+      self.dedentNodeAction          = RES.installAction( 'dedentNode',        self )
+      self.insertNewNodeBeforeAction = RES.installAction( 'insertNodeBefore',  self )
+      self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',   self )
+      self.insertNewChildAction      = RES.installAction( 'insertNodeAsChild', self )
+      self.deleteNodeAction          = RES.installAction( 'deleteNode',        self )
+      
+      self.textBoldAction            = RES.installAction( 'textStyleBold',     self )
+      self.textItalicAction          = RES.installAction( 'textStyleItalic',   self )
+      self.textUnderlineAction       = RES.installAction( 'textStyleUnderline',self )
+      self.textOverstrikeAction      = RES.installAction( 'textStyleOverstrike',self )
 
    def _buildMenus( self ):
       # Tree Menu
@@ -649,3 +660,23 @@ class OutlineView(QtGui.QSplitter):
       self.menuArticle.addAction( self.articlePasteAction )
       self.menuArticle.addSeparator()
       self.menuArticle.addAction( self.articleSelectAllAction )
+
+   def _buildToolbars( self ):
+      self._articletoolbar = QtGui.QToolBar( 'articleEditingToolbar', self )
+      self._articletoolbar.addAction( self.articleCutAction )
+      self._articletoolbar.addAction( self.articleCopyAction )
+      self._articletoolbar.addAction( self.articlePasteAction )
+     
+      self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
+      self._edittoolbar.addAction( self.editUndoAction )
+      self._edittoolbar.addAction( self.editRedoAction )
+      
+      self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
+      self._treetoolbar.addAction( self.expandAllAction )
+      self._treetoolbar.addAction( self.collapseAllAction )
+      
+      self._styleToolbar = QtGui.QToolBar( 'textStyleToolbar', self )
+      self._styleToolbar.addAction( self.textBoldAction )
+      self._styleToolbar.addAction( self.textItalicAction )
+      self._styleToolbar.addAction( self.textUnderlineAction )
+      self._styleToolbar.addAction( self.textOverstrikeAction )
