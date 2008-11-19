@@ -138,9 +138,9 @@ class MindTree( Application ):
       self.menuFile.setObjectName("menuFile")
       self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
       
-      self.menuEdit = QtGui.QMenu(self.menubar)
-      self.menuEdit.setObjectName("MenuEdit")
-      self.menuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
+      #self.menuEdit = QtGui.QMenu(self.menubar)
+      #self.menuEdit.setObjectName("MenuEdit")
+      #self.menuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
       
       self.menuTools = QtGui.QMenu(self.menubar)
       self.menuTools.setObjectName("menuTools")
@@ -171,8 +171,8 @@ class MindTree( Application ):
       self.menuFile.addAction(self.actionExit)
       
       # Edit Menu
-      self.menuEdit.addAction(self._outlineEditor.editUndoAction)
-      self.menuEdit.addAction(self._outlineEditor.editRedoAction)
+      #self.menuEdit.addAction(self._outlineEditor.editUndoAction)
+      #self.menuEdit.addAction(self._outlineEditor.editRedoAction)
       
       # Help Menu
       self.menuHelp.addAction( self.actionHelp )
@@ -187,21 +187,6 @@ class MindTree( Application ):
       
       for toolbar in self._outlineEditor.getToolbars( ):
          self.addToolBar( toolbar )
-      #self._articletoolbar = QtGui.QToolBar( 'articleToolbar', self )
-      #self._articletoolbar.addAction( self._outlineEditor.articleCutAction )
-      #self._articletoolbar.addAction( self._outlineEditor.articleCopyAction )
-      #self._articletoolbar.addAction( self._outlineEditor.articlePasteAction )
-      #self.addToolBar( self._articletoolbar )
-      
-      #self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
-      #self._edittoolbar.addAction( self._outlineEditor.editUndoAction )
-      #self._edittoolbar.addAction( self._outlineEditor.editRedoAction )
-      #self.addToolBar( self._edittoolbar )
-      
-      #self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
-      #self._treetoolbar.addAction( self._outlineEditor.expandAllAction )
-      #self._treetoolbar.addAction( self._outlineEditor.collapseAllAction )
-      #self.addToolBar( self._treetoolbar )
    
    def _buildStatusBar( self ):
       self.statusbar = QtGui.QStatusBar(self)
