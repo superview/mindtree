@@ -32,7 +32,7 @@
    * Help File
 
 Version 2.0 (Final Release)
-   * All Capabilities of MindTree 1.0
+   * All Capabilities of MindTree 1.x
 
 Version 3.0 (Final Release)
    * All Capabilities originally targeted for next major release of MindTree Tk
