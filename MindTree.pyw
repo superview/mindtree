@@ -138,10 +138,6 @@ class MindTree( Application ):
       self.menuFile.setObjectName("menuFile")
       self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
       
-      #self.menuEdit = QtGui.QMenu(self.menubar)
-      #self.menuEdit.setObjectName("MenuEdit")
-      #self.menuEdit.setTitle(QtGui.QApplication.translate("MainWindow", "Edit", None, QtGui.QApplication.UnicodeUTF8))
-      
       self.menuTools = QtGui.QMenu(self.menubar)
       self.menuTools.setObjectName("menuTools")
       self.menuTools.setTitle(QtGui.QApplication.translate("MainWindow", "Tools", None, QtGui.QApplication.UnicodeUTF8))
@@ -152,7 +148,7 @@ class MindTree( Application ):
       
       # Assemble the menubar
       self.menubar.addAction(self.menuFile.menuAction())
-      self.menubar.addAction(self.menuEdit.menuAction())
+      #self.menubar.addAction(self.menuEdit.menuAction())
       for menu in self._outlineEditor.getFixedMenus( ):
          self.menubar.addAction( menu.menuAction() )
       self.menubar.addAction(self.menuTools.menuAction())
@@ -169,10 +165,6 @@ class MindTree( Application ):
       self.menuFile.addAction(self.actionExport)
       self.menuFile.addSeparator()
       self.menuFile.addAction(self.actionExit)
-      
-      # Edit Menu
-      #self.menuEdit.addAction(self._outlineEditor.editUndoAction)
-      #self.menuEdit.addAction(self._outlineEditor.editRedoAction)
       
       # Help Menu
       self.menuHelp.addAction( self.actionHelp )
