@@ -8,7 +8,7 @@
    * DONE: Shortcuts
    * DONE: Menu Items
    * DONE: Undo/Redo
-   * Images - support inserting images into articles
+   * DONE: Images - support inserting images into articles
 
 1.7 - internal tag (Focus: Outline Editing)
    * DONE: Drag & Drop - Get it working within a single outline widget
@@ -23,6 +23,7 @@
    * Find/Replace Plugin
 
 1.9 - public beta (Focus: Distribution)
+   * Revamp Icons, Images, Cursors, etc.
    * distutils script - write an initial script for distutils
    * py2exe - Get an independent build/executable working.
    * Help File
