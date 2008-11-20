@@ -256,9 +256,7 @@ class Project( object ):
          return False
 
    def backup( self ):
-      backupDir = RES.get( 'Project', 'backupDir' )
-      
-      shutil.copytree( self._projectDir, backupDir )
+      return
    
    def genUntitledFilename( self ):
       Project.NAME_COUNTER += 1

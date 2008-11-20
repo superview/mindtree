@@ -331,9 +331,13 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       if len(filenames) != 1:
          return   # The operation was canceled
       
-      imageFilename = unicode(filenames[0])
-      textCursor    = self.textCursor( )
-      textCursor.insertImage( imageFilename )
+      imagePathname = unicode(filenames[0])
+      res    = QtGui.QImage( imagePathname )
+      disk,path,name,ext = splitFilePath( imagePathname )
+      resURL = u'res://img/{0}.{1}'.format( name, ext )
+      self.document().addResource( QtGui.QTextDocument.ImageResource, QtCore.QUrl(resURL), QtCore.QVariant(res) )
+      
+      self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
 
    def _updateToolbars( self ):
       # Font Combo
