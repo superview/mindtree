@@ -31,17 +31,17 @@
    * py2exe - Get an independent build/executable working.
    * Help File
 
-*2.0* (Final Release)
+*2.0* - Final
    * All Capabilities of MindTree 1.x
    * DONE: Printing
 
-*3.0* (Final Release)
+*3.0* - Final
    * All Capabilities originally targeted for next major release of MindTree Tk
       * Lists
       * Tables
    * Full Undo/Redo (tree editing and across editing of different articles)
 
-*4.0* (Final Release)
+*4.0* - Final
    * Create an OutlineView widget (separate the article editor from the OutlineEditor widget)
    * Multiple Views
       * Cut & Paste across
