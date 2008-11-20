@@ -14,6 +14,7 @@
       * DONE: Menu Items
       * DONE: Undo/Redo
       * DONE: Images - support inserting images into articles
+      * DONE: Printing
 
 *1.7* - internal tag
    * Outline Editing
@@ -38,7 +39,6 @@
 
 *2.0* - Final
    * All Capabilities of MindTree 1.x
-   * DONE: Printing
 
 *3.0* - Final
    * All Capabilities originally targeted for next major release of MindTree Tk
