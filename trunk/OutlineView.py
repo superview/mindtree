@@ -109,6 +109,9 @@ class OutlineViewWidget( QtGui.QTreeView ):
    def _buildToolbars( self ):
       pass
    
+   def onModelChanged( self, index1=None, index2=None ):
+      self.emit( QtCore.SIGNAL('modelChanged()') )
+
    # Drag and Drop
    def mousePressEvent( self, event ):
       if event.button() == QtCore.Qt.RightButton:
@@ -228,6 +231,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
       self._buildGui( )
+      self._updateToolbars( )
 
    def getFixedMenus( self ):
       return [ self.menuArticle ]
@@ -253,24 +257,64 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def articleSelectAll( self ):
       pass
 
+   def textFontFamily( self, font ):
+      if isinstance( font, QtGui.QFont ):
+         family = font.family()
+      QtGui.QTextEdit.setFontFamily( self, family )
+      self._updateToolbars()
+
+   def textFontSize( self, size ):
+      if isinstance( size, QtCore.QString ):
+         size = int(str(size))
+      elif isinstance( size, (str,unicode) ):
+         size = int( size )
+      QtGui.QTextEdit.setFontPointSize( self, size )
+
    def textStyleBold( self ):
-      isBold = self._articleView.fontWeight()
+      isBold = self.fontWeight()
       if isBold == QtGui.QFont.Bold:
-         self._articleView.setFontWeight( QtGui.QFont.Normal )
+         self.setFontWeight( QtGui.QFont.Normal )
       else:
-         self._articleView.setFontWeight( QtGui.QFont.Bold )
+         self.setFontWeight( QtGui.QFont.Bold )
+      self._updateToolbars()
    
    def textStyleItalic( self ):
-      isItalic = self._articleView.fontItalic()
-      self._articleView.setFontItalic( not isItalic )
+      isItalic = self.fontItalic()
+      self.setFontItalic( not isItalic )
+      self._updateToolbars()
    
    def textStyleUnderline( self ):
-      isUnderlined = self._articleView.fontUnderline()
-      self._articleView.setFontUnderline( not isUnderlined )
+      isUnderlined = self.fontUnderline()
+      self.setFontUnderline( not isUnderlined )
+      self._updateToolbars()
    
    def textStyleOverstrike( self ):
       pass
    
+   def _updateToolbars( self ):
+      # Font Combo
+      fontFamily = unicode(self.fontFamily())
+      self._fontFamilyCombo.setEditText( fontFamily )
+      #font = QtGui.QFont( fontFamily )
+      #self._fontFamilyCombo.setCurrentFont( font )
+      
+      # Font Size
+      fontSize = unicode(self.fontPointSize())
+      self._fontSizeCombo.setEditText( fontSize )
+      
+      # Bold button
+      isBold = True if self.fontWeight() == QtGui.QFont.Bold else False
+      self.textBoldAction.setChecked( isBold )
+      
+      # Italic button
+      self.textItalicAction.setChecked( self.fontItalic() )
+      
+      # Underline button
+      self.textUnderlineAction.setChecked( self.fontUnderline() )
+      
+      
+   
+   # Construct the widget
    def _buildGui( self ):
       self._buildWidgets( )
       self._defineActions( )
@@ -278,7 +322,18 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self._buildToolbars( )
    
    def _buildWidgets( self ):
-      pass
+      articleFont = RES.getFont( 'ArticleView', 'Font' )
+      self.setFont( articleFont )
+      
+      QtCore.QObject.connect( self, QtCore.SIGNAL('cursorPositionChanged()'), self._cursorPositionChanged )
+      
+      self._fontFamilyCombo = QtGui.QFontComboBox( self )
+      QtCore.QObject.connect( self._fontFamilyCombo, QtCore.SIGNAL('currentFontChanged(QFont)'), self.textFontFamily )
+      
+      self._fontSizeCombo = QtGui.QComboBox( self )
+      
+      self._fontSizeCombo.addItems( [ str(x) for x in (8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72) ] )
+      QtCore.QObject.connect( self._fontSizeCombo, QtCore.SIGNAL('activated(QString)'), self.textFontSize )
 
    def _defineActions( self ):
       self.editUndoAction            = RES.installAction( 'editUndo',          self )
@@ -314,13 +369,17 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self._edittoolbar.addAction( self.editRedoAction )
       
       self._styleToolbar = QtGui.QToolBar( 'textStyleToolbar', self )
-      self._fontCombo = QtGui.QFontComboBox( self )
-      self._styleToolbar.addWidget( self._fontCombo )
+      self._styleToolbar.addWidget( self._fontFamilyCombo )
+      self._styleToolbar.addWidget( self._fontSizeCombo )
       self._styleToolbar.addAction( self.textBoldAction )
+      toolButton = self._styleToolbar.widgetForAction( self.textBoldAction )
+      self._styleToolbar.addSeparator( )
       self._styleToolbar.addAction( self.textItalicAction )
       self._styleToolbar.addAction( self.textUnderlineAction )
       self._styleToolbar.addAction( self.textOverstrikeAction )
 
+   def _cursorPositionChanged( self ):
+      self._updateToolbars( )
 
 class OutlineView(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")'''
@@ -394,10 +453,10 @@ class OutlineView(QtGui.QSplitter):
    
    def deleteNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self.currentIndex()
       
       try:
-         self._model.removeNode( index )
+         self.model().removeNode( index )
          self.onModelChanged()
       except:
          exceptionPopup()
@@ -657,7 +716,6 @@ class OutlineView(QtGui.QSplitter):
 
    def _buildWidgets( self ):
       outlineFont = RES.getFont( 'OutlineView', 'Font' )
-      articleFont = RES.getFont( 'ArticleView', 'Font' )
       
       self._outlineView = OutlineViewWidget(self)
       self._outlineView.setObjectName("outlineView")
@@ -675,7 +733,6 @@ class OutlineView(QtGui.QSplitter):
       sizePolicy.setHorizontalStretch( 1 )
       self._articleView.setSizePolicy(sizePolicy)
       self._articleView.setMinimumSize(QtCore.QSize(100, 100))
-      self._articleView.setFont( articleFont )
       self._articleView.setObjectName("articleView")
       
       QtCore.QObject.connect( self._outlineView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
@@ -698,7 +755,6 @@ class OutlineView(QtGui.QSplitter):
       self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',   self )
       self.insertNewChildAction      = RES.installAction( 'insertNodeAsChild', self )
       self.deleteNodeAction          = RES.installAction( 'deleteNode',        self )
-      
 
    def _buildMenus( self ):
       self.menuTree = QtGui.QMenu(self)

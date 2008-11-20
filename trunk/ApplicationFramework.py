@@ -38,7 +38,7 @@ class Resources( SafeConfigParser ):
       
       resources = dict( self.items(actionName) )
       
-      theAction = Resources.makeActionObj( name, parent, handlerObj, handlerFn, **resources )
+      theAction = self.makeActionObj( name, actionName, parent, handlerObj, handlerFn, **resources )
       self._actions[ name ] = theAction
       return theAction
 
@@ -101,11 +101,23 @@ class Resources( SafeConfigParser ):
       hotspot = QtCore.QPoint( hotspotX, hotspotY )
       return pixmap, hotspot
 
+   def getColor( self, section, option ):
+      parts = self.getMultipartResource( section, option )
+      if len(parts) == 3:
+         red,green,blue = parts
+         red = int(red)
+         green = int(green)
+         blue = int(blue)
+         return QtGui.QColor( red, green, blue )
+      elif len(parts) == 1:
+         return QtGui.QColor( parts[0] )
+      else:
+         raise
+
    def getMultipartResource( self, section, option, sep=':' ):
       return self.get(section,option).split(':')
 
-   @staticmethod
-   def makeActionObj( name, parent, handlerObj=None, handlerFn=None, **resources ):
+   def makeActionObj( self, name, actionName, parent, handlerObj=None, handlerFn=None, **resources ):
       if handlerFn is None:
          if handlerObj is None:
             handlerObj = parent
@@ -140,6 +152,9 @@ class Resources( SafeConfigParser ):
                shortcut = resValue
             
             shortcuts.append( resValue )
+         
+         elif resName == 'checkable':
+            theAction.setCheckable( self.getboolean(actionName,resName) )
          
          elif resName == 'font':
             font = self.getFont( name, 'font' )
