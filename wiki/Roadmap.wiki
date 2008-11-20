@@ -3,7 +3,7 @@
 
 *1.5* - internal tag
    * Outline Viewer App
-      * DONE: Create a MindTree outline viewer app in Qt
+      * DONE: Create a Qt app for viewing MindTree outlines
 
 *1.6* - internal tag
    * Article Editing
