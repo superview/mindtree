@@ -1,10 +1,9 @@
 from __future__ import print_function, unicode_literals
 from PyQt4 import QtGui
+import MTresources as RES
 
 from utilities import *
 
-
-from ConfigParser import SafeConfigParser
 
 class OperationCanceled( Exception ):
    '''This exception is raised whenever a file operation is canceled.
@@ -12,199 +11,6 @@ class OperationCanceled( Exception ):
    the call stack to be popped to return control to the Gui.'''
    def __init__( self ):
       Exception.__init__( self )
-
-
-class Resources( SafeConfigParser ):
-   def __init__( self ):
-      SafeConfigParser.__init__( self )
-      self._actions = { }
-   
-   # Actions
-   def defAction( self, name, **resources ):
-      self.add_section( name )
-      for resName, resValue in resources.iteritems():
-         self.set( name, resName, resValue )
-
-   def installAction( self, name, parent, handlerObj=None, handlerFn=None ):
-      if self.has_section( name ):
-         actionName = name
-      elif self.has_section( 'action.' + name ):
-         actionName = 'action.' + name
-      elif self.has_section( name + '.action' ):
-         actionName = name + '.action'
-      elif self.has_section( name + 'Action' ):
-         actionName = name + 'Action'
-      else:
-         fatalErrorPopup( 'Unrecoverable error:  Resource definition not found: {0}'.format( name ) )
-      
-      resources = dict( self.items(actionName) )
-      
-      theAction = self.makeActionObj( name, actionName, parent, handlerObj, handlerFn, **resources )
-      self._actions[ name ] = theAction
-      return theAction
-
-   def getAction( name ):
-      return self._actions[ name ]
-
-   # Resource Values
-   def getPath( self, section, option ):
-      return os.path.normpath( self.get(section,option) )
-
-   def getFont( self, section, option ):
-      elements = self.getMultipartResource(section,option)
-      numElements = len(elements)
-      
-      fontFamily = elements[0]
-      
-      if numElements >= 2:
-         fontSize = int(elements[1])
-      else:
-         fontSize = 8
-      
-      if numElements >= 3:
-         fontWeight = elements[2].upper()
-         if fontWeight in [ '1', 'YES', 'TRUE', 'BOLD' ]:
-            fontWeight = QtGui.QFont.Bold
-         else:
-            try:
-               fontWeight = int(fontWeight)
-            except:
-               fontWeight = -1
-      else:
-         fontWeight = -1
-      
-      if numElements >= 4:
-         fontSlant = elements[3].upper()
-         fontSlant = fontItalic in [ '1', 'YES', 'TRUE', 'ITALIC' ]
-      else:
-         fontSlant = False
-      
-      return QtGui.QFont( fontFamily, fontSize, fontWeight, fontSlant )
-   
-   def getIcon( self, section, option ):
-      return QtGui.QIcon( self.get(section,option) )
-   
-   def getPixmap( self, section, option ):
-      return QtGui.QPixmap( self.get(section,option) )
-   
-   def getCursor( self, section, option ):
-      filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
-      hotspotX = int(hotspotX)
-      hotspotY = int(hotspotY)
-      pixmap = QtGui.QPixmap( filename )
-      cur    = QtGui.QCursor( pixmap, hotspotX, hotspotY )
-      return cur
-
-   def getDragCursor( self, section, option ):
-      filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
-      hotspotX = int(hotspotX)
-      hotspotY = int(hotspotY)
-      pixmap = QtGui.QPixmap( filename )
-      hotspot = QtCore.QPoint( hotspotX, hotspotY )
-      return pixmap, hotspot
-
-   def getColor( self, section, option ):
-      parts = self.getMultipartResource( section, option )
-      if len(parts) == 3:
-         red,green,blue = parts
-         red = int(red)
-         green = int(green)
-         blue = int(blue)
-         return QtGui.QColor( red, green, blue )
-      elif len(parts) == 1:
-         return QtGui.QColor( parts[0] )
-      else:
-         raise
-
-   def getMultipartResource( self, section, option, sep=':' ):
-      return self.get(section,option).split(':')
-
-   def makeActionObj( self, name, actionName, parent, handlerObj=None, handlerFn=None, **resources ):
-      if handlerFn is None:
-         if handlerObj is None:
-            handlerObj = parent
-         
-         handlerFn = handlerObj.__getattribute__( name )
-      
-      # Create the action
-      theAction = QtGui.QAction( parent )
-      theAction.setObjectName( name )
-      QtCore.QObject.connect( theAction, QtCore.SIGNAL('triggered()'), handlerFn )
-      
-      shortcuts    = [ ]
-      
-      # Populate the resources
-      for resName, resValue in resources.iteritems():
-         if resName == 'text':
-            theAction.setText( QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) )
-         
-         elif resName == 'statustip':
-            theAction.setStatusTip( QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) )
-         
-         elif resName == 'tooltip':
-            theAction.setToolTip( QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) )
-         
-         elif resName == 'icon':
-            theAction.setIcon( QtGui.QIcon(os.path.normpath(resValue)) )
-         
-         elif resName == 'shortcut':
-            if isinstance( resValue, (str,unicode) ):
-               shortcut = QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8)
-            else:
-               shortcut = resValue
-            
-            shortcuts.append( resValue )
-         
-         elif resName == 'checkable':
-            theAction.setCheckable( self.getboolean(actionName,resName) )
-         
-         elif resName == 'font':
-            font = self.getFont( name, 'font' )
-            theAction.setFont( font )
-      
-      if len(shortcuts) > 0:
-         theAction.setShortcuts( shortcuts )
-      
-      return theAction
-
-   @staticmethod
-   def fontStringToFont( val ):
-      elements = val.split( ':' )
-      numElements = len(elements)
-      
-      fontFamily = elements[0]
-      
-      if numElements >= 2:
-         fontSize = int(elements[1])
-      else:
-         fontSize = 8
-      
-      if numElements >= 3:
-         fontWeight = elements[2].upper()
-         if fontWeight in [ '1', 'YES', 'TRUE', 'BOLD' ]:
-            fontWeight = QtGui.QFont.Bold
-         else:
-            try:
-               fontWeight = int(fontWeight)
-            except:
-               fontWeight = -1
-      else:
-         fontWeight = -1
-      
-      if numElements >= 4:
-         fontSlant = elements[3].upper()
-         fontSlant = fontItalic in [ '1', 'YES', 'TRUE', 'ITALIC' ]
-      else:
-         fontSlant = False
-      
-      return QtGui.QFont( fontFamily, fontSize, fontWeight, fontSlant )
-   
-   @staticmethod
-   def displayText( self, val ):
-      pass
-
-
-RES = Resources( )
 
 
 class Project( object ):
@@ -225,12 +31,10 @@ class Project( object ):
       return self._projectDir
    
    def backupDir( self, fullName=False ):
-      dirName = RES.get( 'Project', 'backupDir' )
-      
       if fullName:
-         return os.path.join( self._projectDir, dirName )
+         return os.path.join( self._projectDir, RES.PROJECT_BACKUP_DIR )
       else:
-         return dirName
+         return RES.PROJECT_BACKUP_DIR
    
    def filename( self, fullName=False ):
       if fullName:
@@ -239,11 +43,9 @@ class Project( object ):
          return self._filename
 
    def setFilename( self, filename ):
-      backupDir = RES.get( 'Project', 'backupDir' )
-      
       disk,path,name,extension = splitFilePath( filename )
       self._projectDir = os.path.join( disk, path )
-      self._backupDir  = os.path.join( self._projectDir, backupDir )
+      self._backupDir  = os.path.join( self._projectDir, RES.PROJECT_BACKUP_DIR )
       self._filename   = name + extension
 
    def activateProjectDir( self ):
@@ -256,9 +58,7 @@ class Project( object ):
          return False
 
    def backup( self ):
-      backupDir = RES.get( 'Project', 'backupDir' )
-      
-      shutil.copytree( self._projectDir, backupDir )
+      shutil.copytree( self._projectDir, RES.PROJECT_BACKUP_DIR )
    
    def genUntitledFilename( self ):
       Project.NAME_COUNTER += 1
@@ -300,7 +100,7 @@ class Archiver( object ):
       return unicode(filenames[0])
 
    def asksaveasfilename( self ):
-      dlg = QtGui.QFileDialog( self._parentWidget, 'Save file...', self._initialDir, self._defaultExtension )
+      dlg = QtGui.QFileDialog( self, 'Save file...', self._initialDir, self._defaultExtension )
       dlg.setAcceptMode( QtGui.QFileDialog.AcceptSave )
       dlg.setModal(True)
       
@@ -312,12 +112,7 @@ class Archiver( object ):
       if len(filenames) != 1:
          raise OperationCanceled()
       
-      filename = unicode(filenames[0])
-      fileExtension = os.extsep + self._defaultExtension
-      if not filename.endswith( fileExtension ):
-         filename += fileExtension
-      
-      return filename
+      return unicode(filenames[0])
 
    def read( self ):
       """Read a document from a file.  The function may include user
@@ -331,8 +126,7 @@ class Archiver( object ):
       filename = self.askopenfilename( )
       
       try:
-         data = self._readFile(filename)
-         return Project( filename, data )
+         return Project( filename, self._readFile(filename) )
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -397,7 +191,8 @@ class Archiver( object ):
       raise an exception.
       """
       import pickle
-      return pickle.load( open( aFilename, 'rb' ) )
+      data = pickle.load( open( aFilename, 'rb' ) )
+      return data
 
    def _writeFile( self, aDocument, aFilename ):
       """Write the document to the named file.  If an error occurs,
@@ -405,7 +200,7 @@ class Archiver( object ):
       """
       import pickle
       f = open( aFilename, 'wb' )
-      pickle.dump( aDocument, f, pickle.HIGHEST_PROTOCOL )
+      pickle.dump( aDocument, f, -1 )
    
 
 class Application( QtGui.QMainWindow ):
@@ -496,7 +291,9 @@ class Application( QtGui.QMainWindow ):
             self._project.backup()
          
          self._commitDocument( )
+         theDoc = self._project.data
          self._archiver.write( self._project, promptFilename=False )
+         
          self._project.modified = False
          self.updateWindowTitle( )
       except OperationCanceled:
@@ -599,10 +396,7 @@ class Application( QtGui.QMainWindow ):
       self.updateWindowTitle( )
    
    def updateWindowTitle( self ):
-      appName = RES.get( 'Application', 'Name' )
-      filename = self._project.filename()
-      
-      theTitle = '{0} - [{1}]'.format(appName, filename)
+      theTitle = 'MindTree - [{0}]'.format(self._project.filename())
       
       if self._project.modified:
          theTitle += ' *'
@@ -636,6 +430,7 @@ import imp
 
 class PluginManager( object ):
    PKG_INIT = '__init__' + os.path.extsep + 'py'
+   CONFIG   = None
    
    def __init__( self, pluginDir ):
       self._plugins        = { }
@@ -652,10 +447,10 @@ class PluginManager( object ):
             pluginClass = self._importPlugin( moduleName )
             
             # Store the default settings for this plugin
-            if pluginClass and (not RES.has_section( pluginClass.NAME )):
-               RES.add_section( pluginClass.NAME )
+            if pluginClass and (not self.CONFIG.has_section( pluginClass.NAME )):
+               self.CONFIG.add_section( pluginClass.NAME )
                for opt,val in pluginClass.DEFAULT_SETTINGS.iteritems( ):
-                  RES.set( pluginClass.NAME, opt, val )
+                  self.CONFIG.set( pluginClass.NAME, opt, val )
 
    def _importPlugin( self, pluginName ):
       try:
@@ -680,7 +475,7 @@ class PluginManager( object ):
    def saveSettings( self ):
       if self._configFilename:
          f = file( self._configFilename, 'w' )
-         RES.write( )
+         self.CONFIG.write( )
          f.close( )
 
    def listPluginNames( self ):
@@ -694,6 +489,8 @@ class PluginManager( object ):
 
 
 class Plugin( object ):
+   CONFIG = None
+   
    def __init__( self, aView ):
       self.name = self.NAME
       self._view = aView
@@ -708,10 +505,10 @@ class Plugin( object ):
       raise NotImplementedError
 
    def setOption( self, key, value ):
-      RES.set( self.NAME, key, value )
+      self.CONFIG.set( self.NAME, key, value )
 
    def getOption( self, key ):
-      return RES.get( self.NAME, key )
+      return self.CONFIG.get( self.NAME, key )
 
 
 # Plugin __init__.py files should have the following format
@@ -720,9 +517,6 @@ from PluginFramework import Plugin
 
 class MyPlugin( Plugin ):
    NAME             = 'Build'
-   VERSION          = ( 1, 5 )
-   BUILD_DATE       = ( 2008, 11, 26 )
-   
    DEFAULT_SETTINGS = {
                          option : value,
                          ...
@@ -740,7 +534,7 @@ pluginClass = MyPlugin
 class ImporterPlugin( Plugin, Archiver ):
    def __init__( self, aView, fileTypes, defaultExtension, initialDir ):
       Plugin.__init__( self, aView )
-      Archiver.__init__( self, aView, fileTypes, defaultExtension, initialDir )
+      Archiver.__init__( self, fileTypes, defaultExtension, initialDir )
    
    def _readFile( self, aFilename ):
       """Read the file and return a document object.  If an error occurs,

@@ -4,17 +4,6 @@ import traceback
 from PyQt4 import QtGui, QtCore
 
 
-def fatalErrorPopup( msg ):
-   msgBox = QtGui.QMessageBox( )
-   msgBox.setWindowTitle( 'Fatal Error' )
-   msgBox.setText( traceback.format_exc( ) )
-   msgBox.setDetailedText( msg )
-   msgBox.setInformativeText( msg )
-   msgBox.setIcon( QtGui.QMessageBox.Critical )
-   msgBox.exec_( )
-   exit( )
-
-
 def exceptionPopup( ):
    msgBox = QtGui.QMessageBox( )
    msgBox.setWindowTitle( 'Exception' )
@@ -48,3 +37,151 @@ def splitFilePath( path ):
    return disk, path, filename, extension
 
 
+class Action( object ):
+   def __init__( self, actionName, **options ):
+      self._name = actionName
+      self._def  = options
+      self._obj  = None
+
+   def install( self, parent, handlerObj=None, handlerFn=None ):
+      actionName = self._name
+      
+      if handlerFn is None:
+         if handlerObj is None:
+            handlerObj = parent
+         
+         handlerFn = handlerObj.__class__.__dict__[ self._name ]
+      
+      self._obj = QtGui.QAction( parent )
+      self._obj.setObjectName( self._name )
+      QtCore.QObject.connect( theAction, QtCore.SIGNAL('triggered()'), handlerFn )
+      
+      theResources = self._defs[ self._name ]
+      shortcuts    = [ ]
+      fontFamily   = None
+      fontSize     = None
+      fontWeight   = None
+      fontItalic   = False
+      
+      for resourceName, resourceValue in theResources.iteritems():
+         if resourceName == 'text':
+            theAction.setText( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'statustip':
+            theAction.setStatusTip( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'tooltip':
+            theAction.setToolTip( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'icon':
+            theAction.setIcon( QtGui.QIcon(resourceValue) )
+         elif resourceName == 'shortcut':
+            shortcuts.append( resourceValue )
+         elif resourceName == 'fontfamily':
+            fontFamily = resourceValue
+         elif resourceName == 'fontsize':
+            fontSize   = int(resourceValue)
+         elif resourceName == 'fontweight':
+            fontWeight = int(resourceValue)
+         elif resourceName == 'fontitalic':
+            if resourceValue in ( '1', 'True', 'Yes', 'true', 'yes' ):
+               fontItalic = True
+      
+      if len(shortcuts) > 0:
+         theAction.setShortcuts( shortcuts )
+      
+      font = None
+      if fontFamily is not None:
+         font = QtGui.QFont( fontFamily )
+         if fontSize is not None:
+            font.setPointSize( fontSize )
+         if fontWeight is not None:
+            font.setWeight( fontWeight )
+         if fontItalic is not None:
+            font.setItalic( fontItalic )
+      
+      if font is not None:
+         theAction.setFont( font )
+      
+      return self._obj
+
+class ActionLib( object ):
+   def_lib = { }          # Action definitions
+   act_lib = { }          # Action objects
+   
+   def ActionLib( self ):
+      self._defs = { }
+      self._acts = { }
+
+   def readDefinitions( self, filename ):
+      from ConfigParser import SafeConfigParser
+      config = SafeConfigParser( )
+      config.read( filename )
+      
+      for actionName in config.sections( ):
+         options = config.options( actionName )
+         self.defineAction( actionName, options )
+
+   def define( self, actionName, **options ):
+      self._defs[ actionName ] = options
+   
+   def install( self, actionName, parent, handlerObj=None, handlerFn=None ):
+      if handlerFn is None:
+         if handlerObj is None:
+            handlerObj = parent
+         
+         handlerFn = handlerObj.__class__.__dict__[ actionName ]
+      
+      theAction = QtGui.QAction( parent )
+      theAction.setObjectName( actionName )
+      QtCore.QObject.connect( theAction, QtCore.SIGNAL('triggered()'), handlerFn )
+      self._acts[ actionName ] = theAction
+      
+      theResources = self._defs[ actionName ]
+      shortcuts    = [ ]
+      fontFamily   = None
+      fontSize     = None
+      fontWeight   = None
+      fontItalic   = False
+      
+      for resourceName, resourceValue in theResources.iteritems():
+         if resourceName == 'text':
+            theAction.setText( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'statustip':
+            theAction.setStatusTip( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'tooltip':
+            theAction.setToolTip( QtGui.QApplication.translate("MainWindow", resourceValue, None, QtGui.QApplication.UnicodeUTF8) )
+         elif resourceName == 'icon':
+            theAction.setIcon( QtGui.QIcon(resourceValue) )
+         elif resourceName == 'shortcut':
+            shortcuts.append( resourceValue )
+         elif resourceName == 'fontfamily':
+            fontFamily = resourceValue
+         elif resourceName == 'fontsize':
+            fontSize   = int(resourceValue)
+         elif resourceName == 'fontweight':
+            fontWeight = int(resourceValue)
+         elif resourceName == 'fontitalic':
+            if resourceValue in ( '1', 'True', 'Yes', 'true', 'yes' ):
+               fontItalic = True
+      
+      if len(shortcuts) > 0:
+         theAction.setShortcuts( shortcuts )
+      
+      font = None
+      if fontFamily is not None:
+         font = QtGui.QFont( fontFamily )
+         if fontSize is not None:
+            font.setPointSize( fontSize )
+         if fontWeight is not None:
+            font.setWeight( fontWeight )
+         if fontItalic is not None:
+            font.setItalic( fontItalic )
+      
+      if font is not None:
+         theAction.setFont( font )
+   
+   def action( self, actionName ):
+      return self._acts[ actionName ]
+   
+   def __getitem__( self, actionName ):
+      return self._acts[ actionName ]
+
+actionLib = ActionLib( )
