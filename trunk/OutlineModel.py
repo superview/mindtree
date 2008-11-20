@@ -19,6 +19,9 @@ class TreeNode( object ):
       assert isinstance( parent,  TreeNode) or (parent is None)
       assert isinstance( article, (str,unicode) ) or (article is None)
       
+      if article is None:
+         article = ''
+      
       # Contents
       self._data        = [ title ]
       self._article     = article

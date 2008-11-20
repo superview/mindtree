@@ -228,6 +228,8 @@ class OutlineViewWidget( QtGui.QTreeView ):
 
 
 class ArticleViewWidget( QtGui.QTextEdit ):
+   ImageFormats = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff)'
+   
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
       self._buildGui( )
@@ -237,22 +239,22 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       return [ self.menuArticle ]
    
    def getToolbars( self ):
-      return [ self._articletoolbar, self._edittoolbar, self._styleToolbar ]
+      return [ self._articletoolbar, self._styleToolbar ]
    
    def editUndo( self ):
-      pass
+      self.undo()
    
    def editRedo( self ):
-      pass
+      self.redo()
 
    def articleCut( self ):
-      pass
+      self.cut()
    
    def articleCopy( self ):
-      pass
+      self.copy()
    
    def articlePaste( self ):
-      pass
+      self.paste()
    
    def articleSelectAll( self ):
       pass
@@ -261,6 +263,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       if isinstance( font, QtGui.QFont ):
          family = font.family()
       QtGui.QTextEdit.setFontFamily( self, family )
+      self.setFocus()
       self._updateToolbars()
 
    def textFontSize( self, size ):
@@ -269,6 +272,8 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       elif isinstance( size, (str,unicode) ):
          size = int( size )
       QtGui.QTextEdit.setFontPointSize( self, size )
+      self.setFocus()
+      self._updateToolbars()
 
    def textStyleBold( self ):
       isBold = self.fontWeight()
@@ -291,28 +296,63 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def textStyleOverstrike( self ):
       pass
    
+   def textAlignLeft( self ):
+      self.setAlignment( QtCore.Qt.AlignLeft )
+      self._updateToolbars()
+   
+   def textAlignRight( self ):
+      self.setAlignment( QtCore.Qt.AlignRight )
+      self._updateToolbars()
+   
+   def textAlignCenter( self ):
+      self.setAlignment( QtCore.Qt.AlignHCenter )
+      self._updateToolbars()
+   
+   def textAlignFull( self ):
+      self.setAlignment( QtCore.Qt.AlignJustify )
+      self._updateToolbars()
+
+   def textInsertImage( self ):
+      dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleViewWidget.ImageFormats )
+      dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
+      dlg.setModal(True)
+      if not dlg.exec_():
+         raise OperationCanceled()
+      
+      filenames = dlg.selectedFiles( )
+      
+      if len(filenames) != 1:
+         raise OperationCanceled()
+      
+      imageFilename = unicode(filenames[0])
+      textCursor    = self.textCursor( )
+      textCursor.insertImage( imageFilename )
+
    def _updateToolbars( self ):
       # Font Combo
-      fontFamily = unicode(self.fontFamily())
+      fontFamily = unicode(self.currentFont().family())
       self._fontFamilyCombo.setEditText( fontFamily )
-      #font = QtGui.QFont( fontFamily )
-      #self._fontFamilyCombo.setCurrentFont( font )
       
       # Font Size
       fontSize = unicode(self.fontPointSize())
       self._fontSizeCombo.setEditText( fontSize )
       
-      # Bold button
+      # Styles
       isBold = True if self.fontWeight() == QtGui.QFont.Bold else False
       self.textBoldAction.setChecked( isBold )
-      
-      # Italic button
       self.textItalicAction.setChecked( self.fontItalic() )
-      
-      # Underline button
       self.textUnderlineAction.setChecked( self.fontUnderline() )
       
-      
+      # Alignment
+      alignment = self.alignment()
+      if alignment == QtCore.Qt.AlignLeft:
+         self.textAlignLeftAction.setChecked( True )
+      elif alignment == QtCore.Qt.AlignRight:
+         self.textAlignRightAction.setChecked( True )
+      elif alignment == QtCore.Qt.AlignHCenter:
+         self.textAlignCenterAction.setChecked( True )
+      elif alignment == QtCore.Qt.AlignJustify:
+         self.textAlignFullAction.setChecked( True )
    
    # Construct the widget
    def _buildGui( self ):
@@ -336,16 +376,41 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       QtCore.QObject.connect( self._fontSizeCombo, QtCore.SIGNAL('activated(QString)'), self.textFontSize )
 
    def _defineActions( self ):
-      self.editUndoAction            = RES.installAction( 'editUndo',          self )
-      self.editRedoAction            = RES.installAction( 'editRedo',          self )
-      self.articleCutAction          = RES.installAction( 'articleCut',        self )
-      self.articleCopyAction         = RES.installAction( 'articleCopy',       self )
-      self.articlePasteAction        = RES.installAction( 'articlePaste',      self )
-      self.articleSelectAllAction    = RES.installAction( 'articleSelectAll',  self )
-      self.textBoldAction            = RES.installAction( 'textStyleBold',     self )
-      self.textItalicAction          = RES.installAction( 'textStyleItalic',   self )
-      self.textUnderlineAction       = RES.installAction( 'textStyleUnderline',self )
+      self.editUndoAction            = RES.installAction( 'editUndo',           self )
+      self.editRedoAction            = RES.installAction( 'editRedo',           self )
+      
+      self.articleCutAction          = RES.installAction( 'articleCut',         self )
+      self.articleCopyAction         = RES.installAction( 'articleCopy',        self )
+      self.articlePasteAction        = RES.installAction( 'articlePaste',       self )
+      
+      self.articleSelectAllAction    = RES.installAction( 'articleSelectAll',   self )
+      
+      self.textBoldAction            = RES.installAction( 'textStyleBold',      self )
+      self.textItalicAction          = RES.installAction( 'textStyleItalic',    self )
+      self.textUnderlineAction       = RES.installAction( 'textStyleUnderline', self )
       self.textOverstrikeAction      = RES.installAction( 'textStyleOverstrike',self )
+      
+      self.textAlignLeftAction       = RES.installAction( 'textAlignLeft',      self )
+      self.textAlignRightAction      = RES.installAction( 'textAlignRight',     self )
+      self.textAlignCenterAction     = RES.installAction( 'textAlignCenter',    self )
+      self.textAlignFullAction       = RES.installAction( 'textAlignFull',      self )
+      self.textAlignGroup            = QtGui.QActionGroup( self )
+      self.textAlignGroup.addAction( self.textAlignLeftAction )
+      self.textAlignGroup.addAction( self.textAlignRightAction )
+      self.textAlignGroup.addAction( self.textAlignCenterAction )
+      self.textAlignGroup.addAction( self.textAlignFullAction )
+      align = RES.get( 'ArticleView', 'align' )
+      if align.upper() == 'RIGHT':
+         self.textAlignRightAction.setChecked( True )
+      elif align.upper() == 'CENTER':
+         self.textAlignCenterAction.setChecked( True )
+      elif align.upper() == 'FULL':
+         self.textAlignFullAction.setChecked( True )
+      else:
+         self.textAlignLeftAction.setChecked( True )
+      
+      self.textInsertImageAction   = RES.installAction( 'textInsertImage', self )
+
    
    def _buildMenus( self ):
       self.menuArticle = QtGui.QMenu(self)
@@ -357,26 +422,41 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self.menuArticle.addAction( self.articlePasteAction )
       self.menuArticle.addSeparator()
       self.menuArticle.addAction( self.articleSelectAllAction )
+      self.menuArticle.addSeparator()
+      self.menuArticle.addAction( self.textInsertImageAction )
    
    def _buildToolbars( self ):
       self._articletoolbar = QtGui.QToolBar( 'articleEditingToolbar', self )
       self._articletoolbar.addAction( self.articleCutAction )
       self._articletoolbar.addAction( self.articleCopyAction )
       self._articletoolbar.addAction( self.articlePasteAction )
-     
-      self._edittoolbar = QtGui.QToolBar( 'editToolbar', self )
-      self._edittoolbar.addAction( self.editUndoAction )
-      self._edittoolbar.addAction( self.editRedoAction )
+      self._articletoolbar.addSeparator( )
+      self._articletoolbar.addAction( self.editUndoAction )
+      self._articletoolbar.addAction( self.editRedoAction )
       
       self._styleToolbar = QtGui.QToolBar( 'textStyleToolbar', self )
       self._styleToolbar.addWidget( self._fontFamilyCombo )
       self._styleToolbar.addWidget( self._fontSizeCombo )
-      self._styleToolbar.addAction( self.textBoldAction )
-      toolButton = self._styleToolbar.widgetForAction( self.textBoldAction )
       self._styleToolbar.addSeparator( )
+      self._styleToolbar.addAction( self.textBoldAction )
       self._styleToolbar.addAction( self.textItalicAction )
       self._styleToolbar.addAction( self.textUnderlineAction )
       self._styleToolbar.addAction( self.textOverstrikeAction )
+      
+      # Alignment
+      self._styleToolbar.addSeparator( )
+      self._styleToolbar.addAction( self.textAlignLeftAction )
+      self._styleToolbar.addAction( self.textAlignRightAction )
+      self._styleToolbar.addAction( self.textAlignCenterAction )
+      self._styleToolbar.addAction( self.textAlignFullAction )
+      
+      # Superscript/Subscript
+      
+      # Line Spacing
+      
+      # Objects
+      self._styleToolbar.addSeparator( )
+      self._styleToolbar.addAction( self.textInsertImageAction )
 
    def _cursorPositionChanged( self ):
       self._updateToolbars( )
@@ -537,6 +617,7 @@ class OutlineView(QtGui.QSplitter):
             
             if outlineNode is not None:
                self._articleView.setHtml( outlineNode.article() )
+               self._articleView.setDocumentTitle( outlineNode.data(0) )
       
       self.swappingArticle = False
 
