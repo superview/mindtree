@@ -6,6 +6,10 @@ class EmptyTreeTests( TestCase ):
    def setUp( self ):
       self.tree = Tree( )
 
+   def test__iter__( self ):
+      itr = iter(self.tree)
+      self.assertRaises( StopIteration, itr.next )
+
    def testSubtree( self ):
       self.assertRaises( InvalidPathError, self.tree.subtree, TreePath('a') )
 
