@@ -228,7 +228,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
 
 
 class ArticleViewWidget( QtGui.QTextEdit ):
-   ImageFormats = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff)'
+   ImageFormats = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff);;All Files (*.*)'
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
@@ -239,7 +239,14 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       return [ self.menuArticle ]
    
    def getToolbars( self ):
-      return [ self._articletoolbar, self._styleToolbar ]
+      return [ self._articletoolbar, self._styleToolbar, self._objectToolbar ]
+   
+   def articlePrint( self ):
+      printer = QtGui.QPrinter( )
+      dlg = QtGui.QPrintDialog( printer, self )
+      if dlg.exec_() == QtGui.QDialog.Accepted:
+         printer = dlg.printer()
+         self.print_( printer )
    
    def editUndo( self ):
       self.undo()
@@ -317,12 +324,12 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
       dlg.setModal(True)
       if not dlg.exec_():
-         raise OperationCanceled()
+         return   # The operation was canceled
       
       filenames = dlg.selectedFiles( )
       
       if len(filenames) != 1:
-         raise OperationCanceled()
+         return   # The operation was canceled
       
       imageFilename = unicode(filenames[0])
       textCursor    = self.textCursor( )
@@ -376,6 +383,8 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       QtCore.QObject.connect( self._fontSizeCombo, QtCore.SIGNAL('activated(QString)'), self.textFontSize )
 
    def _defineActions( self ):
+      self.printAction               = RES.installAction( 'articlePrint',       self )
+      
       self.editUndoAction            = RES.installAction( 'editUndo',           self )
       self.editRedoAction            = RES.installAction( 'editRedo',           self )
       
@@ -427,6 +436,8 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    
    def _buildToolbars( self ):
       self._articletoolbar = QtGui.QToolBar( 'articleEditingToolbar', self )
+      self._articletoolbar.addAction( self.printAction )
+      self._articletoolbar.addSeparator( )
       self._articletoolbar.addAction( self.articleCutAction )
       self._articletoolbar.addAction( self.articleCopyAction )
       self._articletoolbar.addAction( self.articlePasteAction )
@@ -455,8 +466,9 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       # Line Spacing
       
       # Objects
-      self._styleToolbar.addSeparator( )
-      self._styleToolbar.addAction( self.textInsertImageAction )
+      self._objectToolbar = QtGui.QToolBar( 'objectToolbar', self )
+      self._objectToolbar.addSeparator( )
+      self._objectToolbar.addAction( self.textInsertImageAction )
 
    def _cursorPositionChanged( self ):
       self._updateToolbars( )
