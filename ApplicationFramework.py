@@ -19,6 +19,7 @@ class Resources( SafeConfigParser ):
       SafeConfigParser.__init__( self )
       self._actions = { }
    
+   # Actions
    def defAction( self, name, **resources ):
       self.add_section( name )
       for resName, resValue in resources.iteritems():
@@ -45,6 +46,7 @@ class Resources( SafeConfigParser ):
    def getAction( name ):
       return self._actions[ name ]
 
+   # Resource Values
    def getPath( self, section, option ):
       return os.path.normpath( self.get(section,option) )
 
