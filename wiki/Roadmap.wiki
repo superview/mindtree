@@ -41,10 +41,11 @@
    * All Capabilities of MindTree 1.x
 
 *3.0* - Final
-   * All Capabilities originally targeted for next major release of MindTree Tk
+   * New article objects
       * Lists
       * Tables
    * Full Undo/Redo (tree editing and across editing of different articles)
+   * Print Preview
 
 *4.0* - Final
    * Create an OutlineView widget (separate the article editor from the OutlineEditor widget)
