@@ -1,35 +1,40 @@
 #summary This document lists future versions and features.
 #labels Featured
 
-*1.5* - internal tag (Focus: Outline Viewer App)
-   * DONE: Create a MindTree outline viewer app in Qt
+*1.5* - internal tag
+   * Outline Viewer App
+      * DONE: Create a MindTree outline viewer app in Qt
 
-*1.6* - internal tag (Focus: Article Editing)
-   * DONE: HTML - All articles stored in the Model as HTML
-   * DONE: Toolbars - implement toolbars for text styling
-   * DONE: Cut & Paste - cut & paste text in an article
-   * DONE: Shortcuts
-   * DONE: Menu Items
-   * DONE: Undo/Redo
-   * DONE: Images - support inserting images into articles
+*1.6* - internal tag
+   * Article Editing
+      * DONE: HTML - All articles stored in the Model as HTML
+      * DONE: Toolbars - implement toolbars for text styling
+      * DONE: Cut & Paste - cut & paste text in an article
+      * DONE: Shortcuts
+      * DONE: Menu Items
+      * DONE: Undo/Redo
+      * DONE: Images - support inserting images into articles
 
-*1.7* - internal tag (Focus: Outline Editing)
-   * DONE: Drag & Drop - Get it working within a single outline widget
-   * Drag & Drop Cursor - Update cursor during drag to indicate the drop position.
-   * Drag & Drop Status tip - Update status tip during drag to print the drop position.
-   * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
+*1.7* - internal tag
+   * Outline Editing
+      * DONE: Drag & Drop - Get it working within a single outline widget
+      * Drag & Drop Cursor - Update cursor during drag to indicate the drop position.
+      * Drag & Drop Status tip - Update status tip during drag to print the drop position.
+      * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
 
-*1.8* - public alpha (Focus: Plugins)
-   * Tool box - create the tabbed tool box
-   * Import/Export Plugins
-   * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
-   * Find/Replace Plugin
+*1.8* - public alpha
+   * Plugins
+      * Tool box - create the tabbed tool box
+      * Import/Export Plugins
+      * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
+      * Find/Replace Plugin
 
-*1.9* - public beta (Focus: Distribution)
-   * Revamp Icons, Images, Cursors, etc.
-   * distutils script - write an initial script for distutils
-   * py2exe - Get an independent build/executable working.
-   * Help File
+*1.9* - public beta
+   * Distribution
+      * Revamp Icons, Images, Cursors, etc.
+      * distutils script - write an initial script for distutils
+      * py2exe - Get an independent build/executable working.
+      * Help File
 
 *2.0* - Final
    * All Capabilities of MindTree 1.x
