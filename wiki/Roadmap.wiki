@@ -1,6 +1,9 @@
 #summary This document lists future versions and features.
 #labels Featured
 
+1.5 - internal tag (Focus: OutlineViewer)
+   * DONE
+
 1.6 - internal tag (Focus: Article Editing)
    * DONE: HTML - All articles stored in the Model as HTML
    * DONE: Toolbars - implement toolbars for text styling
