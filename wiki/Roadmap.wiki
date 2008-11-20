@@ -1,7 +1,7 @@
 #summary This document lists future versions and features.
 #labels Featured
 
-1.5 - internal tag (Focus: OutlineViewer)
+1.5 - internal tag (Focus: Create a MindTree outline viewer app in Qt)
    * DONE
 
 1.6 - internal tag (Focus: Article Editing)
