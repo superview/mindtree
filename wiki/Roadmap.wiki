@@ -40,15 +40,34 @@
 *2.0* (Final)
    * All Capabilities of MindTree 1.x
 
-*3.0* (Final)
-   * Multiple Views
-      * Cut & Paste across
-      * Drag & Drop across
-      * Changes reflected across
-   * New article objects
-      * Lists
-      * Tables
-   * Full Undo/Redo (tree editing and across editing of different articles)
-   * Customizable HTML exporting
-   * Print Preview
-   * Pluggable Content Views/Handlers
+*Future Versions*
+   * Application
+      * MDI - Multiple views of a single outline
+      * Cut & Paste across views
+      * Drag & Drop across views
+      * Changes reflected across views
+      * Make Content Views/Editors into plugins
+      * User Preferences
+   * Outline View
+      * Full Undo/Redo (tree editing and across editing of different articles)
+   * Article View
+      * New Objects
+         * Lists
+         * Tables
+      * Print Preview
+   * Plugins
+      * Make the Keyboard Plugin a single multi-tab plugin
+         * Logic Tab
+         * Greek Tab
+         * Math Script Symbols Tab
+         * Unicode Tab
+      * Make the Keyboard Plugin GUI-Editable
+      * Make a tabbed resource lists plugin
+         * images tab
+         * bookmarks tab
+         * terms/definitions tab
+         * external links tab
+         * references tab
+         * Consider that the Keyboard Plugin is very similar to a resource lists plugin,
+           They are both things that can be inserted into documents.
+      * Customizable HTML exporting
