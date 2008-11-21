@@ -232,9 +232,35 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
+      self._resources = { }
+      
       self._buildGui( )
       self._updateToolbars( )
 
+   def addImageResource( self, resURL, filename ):
+      resType = QtGui.QTextDocument.ImageResource
+      self._resources[ resURL ] = ( resType, filename )
+      res = QtCore.QVariant(QtGui.QImage(filename))
+      self.document().addResource( resType, QtCore.QUrl(resURL), res )
+
+   def setResources( self, resDict ):
+      self._resources = resDict
+   
+   def clear( self, keepResources=True ):
+      QtGui.QTextEdit.clear( self )
+      
+      # Reload the resources
+      if keepResources:
+         for resUrl, resInfo in self._resources.iteritems():
+            resType, resDetail = resInfo
+            
+            if resType == QtGui.QTextDocument.ImageResource:
+               res = QtCore.QVariant(QtGui.QImage(resDetail))
+               self.document().addResource( resType, QtCore.QUrl(resUrl), res )
+   
+   def getResources( self ):
+      return self._resources
+   
    def getFixedMenus( self ):
       return [ self.menuArticle ]
    
@@ -331,12 +357,21 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       if len(filenames) != 1:
          return   # The operation was canceled
       
-      imagePathname = unicode(filenames[0])
-      res    = QtGui.QImage( imagePathname )
-      disk,path,name,ext = splitFilePath( imagePathname )
-      resURL = u'res://img/{0}.{1}'.format( name, ext )
-      self.document().addResource( QtGui.QTextDocument.ImageResource, QtCore.QUrl(resURL), QtCore.QVariant(res) )
+      filename = unicode(filenames[0])
+      disk,path,name,ext = splitFilePath( filename )
       
+      # Copy the image to the resource folder if needed
+      resDir = RES.get('Project','imageDir')
+      imagePath = os.path.join( resDir, name + ext )
+      if not os.path.exists( imagePath ):
+         if not os.path.exists( resDir ):
+            os.mkdir( resDir )
+         import shutil
+         shutil.copy( filename, imagePath )
+      
+      resURL = 'res://img/{0}{1}'.format( name, ext )
+      
+      self.addImageResource( resURL, imagePath )
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
 
    def _updateToolbars( self ):
@@ -485,6 +520,7 @@ class OutlineView(QtGui.QSplitter):
       self._outlineView            = None      # The TreeView widget
       self._articleView            = None      # The TextEdit widget
       self._model                  = None      # The model for the data
+      self._resources              = { }
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
       self._buildGui( )
@@ -500,17 +536,18 @@ class OutlineView(QtGui.QSplitter):
       return toolbars
    
    # Basic Operations
-   def setModel( self, aModel ):
-      self._model = aModel
-      self.swappingArticle = False
+   def setModel( self, modelData ):
+      modelData[0].validate( )
       
-      self._articleView.clear( )
       
       try:
-         # Update and Validate the new model
-         aModel.validate( )
+         self._model, self._resources = modelData
+         self.swappingArticle = False
          
-         self._outlineView.setModel( aModel )
+         self._articleView.clear( )
+         
+         self._outlineView.setModel( self._model )
+         self._articleView.setResources( self._resources )
          
          QtCore.QObject.connect( self._outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
@@ -519,11 +556,11 @@ class OutlineView(QtGui.QSplitter):
       except:
          exceptionPopup( )
       
-      indexOfFirst = aModel.index( 0, 0, QtCore.QModelIndex() )
+      indexOfFirst = self._model.index( 0, 0, QtCore.QModelIndex() )
       self.selectionChanged( indexOfFirst )
 
    def getModel( self ):
-      return self._model
+      return self._model, self._resources
 
    def commitChanges( self, index=None ):
       if index is None:
