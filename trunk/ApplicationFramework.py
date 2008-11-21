@@ -263,7 +263,7 @@ class Project( object ):
       return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
 
    def validateModel( self ):
-      self.data.validateModel( )
+      self.data[0].validateModel( )
 
 
 class Archiver( object ):
@@ -458,7 +458,7 @@ class Application( QtGui.QMainWindow ):
          
          self._project  = Project( data=self._makeDefaultModel( ) )
          
-         self._setModelToEdit( self._project.data )
+         self._setupModelInView( )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -481,7 +481,7 @@ class Application( QtGui.QMainWindow ):
          self._project.activateProjectDir( )
          
          # Install the Model
-         self._setModelToEdit( self._project.data )
+         self._setupModelInView( )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -611,7 +611,7 @@ class Application( QtGui.QMainWindow ):
    def _makeDefaultModel( self ):
       pass
    
-   def _setModelToEdit( self, aModel ):
+   def _setupModelInView( self ):
       '''Overriding method should perform its operations and call this base
       class method last.'''
       self._project.modified = False

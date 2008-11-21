@@ -16,17 +16,17 @@ class MindTreeArchiver( Archiver ):
       Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
    
    def _readFile( self, aFilename ):
-      rootNode = Archiver._readFile( self, aFilename )
-      return OutlineModel( rootNode )
+      data = Archiver._readFile( self, aFilename )
+      return OutlineModel( data[0] ), data[1]
 
    def _writeFile( self, aDocument, aFilename ):
-      if not aDocument.validate( ):
-         raise
+      #if not aDocument.validate( ):
+         #raise
       
       # Since the OutlineModel class is a subclass of a Qt class, it cannot
       # be included in the serialized data.
-      tree = aDocument.root( )
-      Archiver._writeFile( self, tree, aFilename )
+      data = aDocument[0].root( ), aDocument[1]
+      Archiver._writeFile( self, data, aFilename )
    
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
@@ -56,11 +56,12 @@ class MindTree( Application ):
    
    # Required Overrides
    def _makeDefaultModel( self ):
-      return OutlineModel( )
+      '''Return an empty OutlineModel and empty resource dictionary.'''
+      return OutlineModel( ), { }
    
-   def _setModelToEdit( self, aModel ):
-      self._outlineEditor.setModel( aModel )
-      Application._setModelToEdit( self, aModel )
+   def _setupModelInView( self ):
+      self._outlineEditor.setModel( self._project.data )
+      Application._setupModelInView( self )
 
    def _updateWindowTitle( self, title ):
       self.setWindowTitle( title )
