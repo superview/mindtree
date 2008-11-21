@@ -71,3 +71,5 @@
          * Consider that the Keyboard Plugin is very similar to a resource lists plugin,
            They are both things that can be inserted into documents.
       * Customizable HTML exporting
+   * Distribution
+      * Consider shareware versions
