@@ -4,41 +4,42 @@ from PyQt4 import QtCore, QtGui
 from ApplicationFramework import ExporterPlugin, RES
 
 class HtmlExporter( ExporterPlugin ):
-   NAME              = 'HTML Importer'
+   NAME              = 'HTML Exporter'
    VERSION           = ( 1, 0 )
    BUILD_DATE        = ( 2008, 11, 15 )
    
-   FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
-   FILE_EXTENSION    = 'mt'
+   FILE_TYPES        = 'HTML Web Page (*.htm);;All Files (*.*)'
+   FILE_EXTENSION    = 'htm'
    
-   DEFAULT_SETTINGS = {
-                      'fileTypes':     'MindTree Data File (*.mt);;All Files (*.*)',
-                      'fileExtension': 'mt'
-                      }
+   DEFAULT_SETTINGS = { }
+
+   HTML_DIR               = r''
+   IMAGE_DIR              = r'img'
 
    def __init__( self, parentWidget ):
       workingDir = RES.get( 'Project',  'directory'     )
       
       ExporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
    
-   def _readFile( self, aFilename ):
-      # Manipulate the filename
-      from utilities import splitFilePath
-      disk,path,filename,extension = splitFilePath( aFilename )
-      documentName = filename[0].upper() + filename[1:]
+   def _writeFile( self, aDocument, aFilename=None, promptFilename=False ):
+      rootDir = self.askdir( 'Target Location...' )
       
-      # Read in the data
-      import pickle
-      data = pickle.load( open( aFilename, 'rb' ) )
+      name = 'Logic'
       
-      # Convert the data
-      theConvertedProject = self.convertProject( data._tree, documentName )
+      import os
+      if not os.path.exists( rootDir ):
+         os.mkdir( rootDir )
       
-      # Package the data for MindTree
-      theModel = OutlineModel( theConvertedProject )
-      return theModel, { }
-
-   def convertProject( self, model, title ):
-      pass
+      rootDir = rootDir.replace( '/', os.sep )
+      htmlDir = os.path.join( rootDir, HTMLArchiver.HTML_DIR  )
+      imgDir  = os.path.join( rootDir, HTMLArchiver.IMAGE_DIR )
+      
+      import hgen as HtmlGen
+      builder = HtmlGen.HTMLBuilder( )
+      
+      if isinstance( aDocument, (list,tuple) ):
+         builder.buildHTML( aDocument[0], rootDir, htmlDir, imgDir, name )
+      else:
+         builder.buildHTML( aDocument, rootDir, htmlDir, imgDir, name )
    
 pluginClass = HtmlExporter

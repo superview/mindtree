@@ -33,9 +33,10 @@ class MT1ImportingArchiver( ImporterPlugin ):
       data = pickle.load( open( aFilename, 'rb' ) )
       
       theConvertedProject = self.convertProject( data._tree, documentName )
-      theModel = OutlineModel( theConvertedProject )
+      theModel     = OutlineModel( theConvertedProject )
+      theResources = { }
       
-      return theModel, { }
+      return theModel, theResources
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )

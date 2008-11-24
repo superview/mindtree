@@ -340,6 +340,8 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self._updateToolbars()
 
    def textInsertImage( self ):
+      IMAGE_DIR = RES.get('Project','imageDir')
+      
       dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleViewWidget.ImageFormats )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
       dlg.setModal(True)
@@ -355,15 +357,14 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       disk,path,name,ext = splitFilePath( filename )
       
       # Copy the image to the resource folder if needed
-      resDir = RES.get('Project','imageDir')
-      imagePath = os.path.join( resDir, name + ext )
+      imagePath = os.path.join( IMAGE_DIR, name + ext )
       if not os.path.exists( imagePath ):
          if not os.path.exists( resDir ):
             os.mkdir( resDir )
          import shutil
          shutil.copy( filename, imagePath )
       
-      resURL = 'res://img/{0}{1}'.format( name, ext )
+      resURL = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
       
       self.addImageResource( resURL, imagePath )
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
