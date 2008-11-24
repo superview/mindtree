@@ -446,12 +446,6 @@ class Application( QtGui.QMainWindow ):
       
       self._archiver   = anArchiver
       self._project    = None
-      self._plugins    = None
-
-   def initializePlugins( self, pluginDir ):
-      self._plugins = PluginManager( pluginDir )
-      self._installImporterPlugins( )
-      self._installExporterPlugins( )
 
    # Implementation
    def newFile( self ):
@@ -627,12 +621,6 @@ class Application( QtGui.QMainWindow ):
       """
       pass
 
-   def _installImporterPlugins( self, nameList ):
-      pass
-   
-   def _installExporterPlugins( self, nameList ):
-      pass
-
 
 # ---------------- Plugin Base Classes --------------------
 
@@ -690,56 +678,50 @@ class PluginManager( object ):
          RES.write( )
          f.close( )
 
-   def pluginNames( self ):
-      return self._plugins.keys( )
+   def pluginLib( self ):
+      pluginLib = { }
+      for nm,cls in self._plugins.iteritems():
+         bases = [ base.__name__ for base in cls.__bases__ ]
+         pluginLib[ nm ] = bases
+      return pluginLib
 
-   def importerPluginNames( self ):
-      names = [ ]
-      for nm, cls in self._plugins.iteritems():
-         for base in cls.__bases__:
-            if base.__name__ == 'ImporterPlugin':
-               names.append( nm )
-      
-      return names
+   def pluginNames( self, baseClassName=None ):
+      if baseClassName is None:
+         return self._plugins.keys( )
+      else:
+         names = [ ]
+         for nm, cls in self._plugins.iteritems():
+            for base in cls.__bases__:
+               if base.__name__ == baseClassName:
+                  names.append( nm )
+         
+         return names
+
+   def makePlugin( self, pluginName, *args, **opts ):
+      return self._plugins[ pluginName ]( *args, **opts )
+
+
+#class PluginHandle( object ):
+   #def __init__( self, name, cls, info, version, date ):
+      #self._name    = name
+      #self._cls     = cls
+      #self._info    = kind
+      #self._version = version
+      #self._date    = date
    
-   def exporterPluginNames( self ):
-      names = [ ]
-      for nm, cls in self._plugins.iteritems():
-         for base in cls.__bases__:
-            if base.__name__ == 'ExporterPlugin':
-               names.append( nm )
-      
-      return names
+   #def name( self ):
+      #return self._name
    
-   def toolPluginNames( self ):
-      names = [ ]
-      for nm, cls in self._plugins.iteritems():
-         for base in cls.__bases__:
-            if base.__name__ == 'PluggableTool':
-               names.append( nm )
-      
-      return names
+   #def info( self ):
+      #return self._info, version, date
    
-   def iterPlugins( self ):
-      return self._plugins.iteritems( )
-   
-   def makePlugin( self, pluginName, aView ):
-      return self._plugins[ pluginName ]( aView )
+   #def makeInstance( self, *args, **opts ):
+      #return self._cls( *args, **opts )
 
 
 class Plugin( object ):
-   def __init__( self, aView ):
+   def __init__( self ):
       self.name = self.NAME
-      self._view = aView
-
-   def buildGUI( self, parent, *args, **options ):
-      '''This method is called once when the plugin is first loaded.  Its
-      purpose is to construct and return the main GUI for the plugin.  This
-      GUI is usually in the form of a frame widget.  All subwidgets must be
-      constructed and rendered (placed, packed or gridded).  The main frame
-      widget must not be rendered.
-      '''
-      raise NotImplementedError
 
    def setOption( self, key, value ):
       RES.set( self.NAME, key, value )
@@ -762,18 +744,15 @@ class MyPlugin( Plugin ):
                          ...
                       }
 
-   def __init__( self, aView ):
-      Plugin.__init__( self, aView )
-   
-   def buildGUI( self, parent ):
-      pass
+   def __init__( self ):
+      Plugin.__init__( self )
    
 pluginClass = MyPlugin
 """
 
 class ImporterPlugin( Plugin, Archiver ):
    def __init__( self, aView, fileTypes, defaultExtension, initialDir ):
-      Plugin.__init__( self, aView )
+      Plugin.__init__( self )
       Archiver.__init__( self, aView, fileTypes, defaultExtension, initialDir )
    
    def _readFile( self, aFilename ):
@@ -786,8 +765,8 @@ class ImporterPlugin( Plugin, Archiver ):
 
 class ExporterPlugin( Plugin, Archiver ):
    def __init__( self, aView, fileTypes, defaultExtension, initialDir ):
-      Plugin.__init__( self, aView )
-      Archiver.__init__( self, fileTypes, defaultExtension, initialDir )
+      Plugin.__init__( self )
+      Archiver.__init__( self, aView, fileTypes, defaultExtension, initialDir )
 
    def _writeFile( self, aDocument, aFilename ):
       """Write the document to the named file.  If an error occurs,
@@ -801,12 +780,11 @@ class ExporterPlugin( Plugin, Archiver ):
 class PluggableTool( Plugin ):
    '''This is a plugin which extends the View.  Therefore,
    it needs all the same information that the view has.'''
-   def __init__( self, aView ):
-      Plugin.__init__( self, aView )
-      self._view       = aView
+   def __init__( self ):
+      Plugin.__init__( self )
 
    def buildGUI( self, parent, *args, **options ):
-      self._view  = parent.winfo_toplevel( )
+      pass
    
    def getMenu( self, menuParent ):
       return None
