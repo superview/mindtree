@@ -210,7 +210,8 @@ RES = Resources( )
 class Project( object ):
    NAME_COUNTER = 0
   
-   def __init__( self, filename=None, data=None ):
+   def __init__( self, title=None, filename=None, data=None ):
+      self._title           = title
       self._projectDir      = None
       self._filename        = filename
       self.modified         = False
@@ -219,9 +220,16 @@ class Project( object ):
       if filename is None:
          filename = self.genUntitledFilename( )
       
+      if title is None:
+         disk,path,title,ext = splitFilePath(filename)
+         self._title = title[0].upper() + title[1:]
+      
       self.setFilename( filename )
 
-   def projectDir( self, fullName=False ):
+   def title( self ):
+      return self._title
+
+   def projectDir( self ):
       return self._projectDir
    
    def backupDir( self, fullName=False ):
@@ -283,6 +291,21 @@ class Archiver( object ):
    def defaultExtension( self ):
       return self._defaultExtension
 
+   def askdir( self, title ):
+      dlg = QtGui.QFileDialog( self._parentWidget, title, self._initialDir )
+      dlg.setFileMode( QtGui.QFileDialog.DirectoryOnly )
+      dlg.setModal(True)
+      
+      if not dlg.exec_( ):
+         raise OperationCanceled()
+      
+      dirNames = dlg.selectedFiles()
+      
+      if len(dirNames) != 1:
+         raise OperationCanceled()
+      
+      return unicode(dirNames[0])
+
    def askopenfilename( self ):
       dlg = QtGui.QFileDialog( self._parentWidget, 'Open file...', self._initialDir, self._fileTypes )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
@@ -330,7 +353,7 @@ class Archiver( object ):
       
       try:
          data = self._readFile(filename)
-         return Project( filename, data )
+         return Project( filename=filename, data=data )
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )

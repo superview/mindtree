@@ -119,7 +119,7 @@ class MindTree( Application ):
       self.setObjectName("MainWindow")
       
       self._MT1Importer   = None
-      self._outlineEditor = None
+      self._outlineView   = None
       self._kb            = None
       self._plugins       = None
       
@@ -172,14 +172,14 @@ class MindTree( Application ):
       return OutlineModel( ), { }
    
    def _setupModelInView( self ):
-      self._outlineEditor.setModel( self._project.data )
+      self._outlineView.setModel( self._project.data )
       Application._setupModelInView( self )
 
    def _updateWindowTitle( self, title ):
       self.setWindowTitle( title )
    
    def _commitDocument( self ):
-      self._outlineEditor.commitChanges( )
+      self._outlineView.commitChanges( )
 
    # Implementation
    def _buildGUI(self):
@@ -207,17 +207,17 @@ class MindTree( Application ):
       self.splitter.setOpaqueResize( True )
       
       # OutlineView Widget
-      self._outlineEditor = OutlineView( self.splitter )
+      self._outlineView = OutlineView( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
-      self._outlineEditor.setSizePolicy(sizePolicy)
-      self._outlineEditor.setMinimumSize(QtCore.QSize(100, 100))
-      self._outlineEditor.setOrientation(QtCore.Qt.Horizontal)
-      self._outlineEditor.setChildrenCollapsible(False)
-      self._outlineEditor.setObjectName("splitter")
+      self._outlineView.setSizePolicy(sizePolicy)
+      self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
+      self._outlineView.setOrientation(QtCore.Qt.Horizontal)
+      self._outlineView.setChildrenCollapsible(False)
+      self._outlineView.setObjectName("splitter")
       
-      QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
+      QtCore.QObject.connect( self._outlineView, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
       
       # Tools
       self.toolSplitter = QtGui.QSplitter( self.splitter )
@@ -262,7 +262,7 @@ class MindTree( Application ):
       # Assemble the menubar
       self.menubar.addAction(self.menuFile.menuAction())
       #self.menubar.addAction(self.menuEdit.menuAction())
-      for menu in self._outlineEditor.getFixedMenus( ):
+      for menu in self._outlineView.getFixedMenus( ):
          self.menubar.addAction( menu.menuAction() )
       self.menubar.addAction(self.menuTools.menuAction())
       self.menubar.addAction(self.menuHelp.menuAction())
@@ -294,7 +294,7 @@ class MindTree( Application ):
       self._filetoolbar.addAction( self.actionSave )
       self.addToolBar( self._filetoolbar )
       
-      for toolbar in self._outlineEditor.getToolbars( ):
+      for toolbar in self._outlineView.getToolbars( ):
          self.addToolBar( toolbar )
    
    def _buildStatusBar( self ):
@@ -318,7 +318,7 @@ class MindTree( Application ):
 
 if __name__ == "__main__":
    import os.path
-   sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTreeTkModelLib' ) )
+   sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTree1Importer' ) )
 
    app = QtGui.QApplication( sys.argv )
 
@@ -326,7 +326,7 @@ if __name__ == "__main__":
    splash.show( )
    app.processEvents( )
    
-   RES.read( [ 'MindTreeRes.ini', 'MindTreeConfig.ini' ] )
+   RES.read( [ 'MindTreeRes.ini', 'MindTreeCfg.ini' ] )
    
    myapp = MindTree( )
    myapp.installPlugins( app, 'plugins' )
