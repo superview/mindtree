@@ -7,7 +7,7 @@ from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
 from OutlineModel import OutlineModel
 from ApplicationFramework import Application, Archiver, RES, PluginManager
-from Keyboard import KeyboardWidget
+#from Keyboard_ import KeyboardWidget
 from utilities import *
 
 
@@ -20,8 +20,8 @@ class MindTreeArchiver( Archiver ):
       return OutlineModel( data[0] ), data[1]
 
    def _writeFile( self, aDocument, aFilename ):
-      #if not aDocument.validate( ):
-         #raise
+      if not aDocument[0].validate( ):
+         raise
       
       # Since the OutlineModel class is a subclass of a Qt class, it cannot
       # be included in the serialized data.
@@ -43,14 +43,51 @@ class MindTree( Application ):
       self._MT1Importer   = None
       self._outlineEditor = None
       self._kb            = None
+      self._plugins       = None
       
       self._buildGUI( )
 
-   def importFile( self ):
-      if self._MT1Importer is None:
-         self._MT1Importer = self._plugins.makePlugin( 'MindTree1Importer', self )
-      self.openFile( self._MT1Importer )
-   
+   def installPlugins( self, app, pluginDir ):
+      self._plugins = PluginManager( pluginDir )
+      
+      # Install Importer Plugins
+      def IMPORT( pluginObj ):
+         def _import( ):
+            return self.openFile( pluginObj )
+         return _import
+      
+      for name in self._plugins.pluginNames( 'ImporterPlugin' ):
+         action = QtGui.QAction( self )
+         action.setObjectName( name )
+         action.setText( name )
+         QtCore.QObject.connect( action, QtCore.SIGNAL('triggered()'), IMPORT(self._plugins.makePlugin(name,self)) )
+         
+         self.importMenu.addAction( action )
+      
+      # Install Exporter Plugins
+      def EXPORT( pluginObj ):
+         def _import( ):
+            return self.saveFileAs( pluginObj )
+         return _import
+      
+      for name in self._plugins.pluginNames( 'ExporterPlugin' ):
+         action = QtGui.QAction( self )
+         action.setObjectName( name )
+         action.setText( name )
+         QtCore.QObject.connect( action, QtCore.SIGNAL('triggered()'), EXPORT(self._plugins.makePlugin(name,self)) )
+         
+         self.importMenu.addAction( action )
+      
+      # Install Pluggable Tools
+      for tabName in RES.getMultipartResource('Tools','Left'):
+         if tabName in self._plugins.pluginNames('PluggableTool'):
+            tabContents = self._plugins.makePlugin( tabName, self.leftToolTabs, app )
+            self.leftToolTabs.addTab( tabContents, tabName )
+      for tabName in RES.getMultipartResource('Tools','Right'):
+         if tabName in self._plugins.pluginNames('PluggableTool'):
+            tabContents = self._plugins.makePlugin( tabName, self.rightToolTabs, app )
+            self.rightToolTabs.addTab( tabContents, tabName )
+
    def exportFile( self ):
       pass
    
@@ -69,14 +106,6 @@ class MindTree( Application ):
    def _commitDocument( self ):
       self._outlineEditor.commitChanges( )
 
-   def _installImporterPlugins( self ):
-      for name in self._plugins.importerPluginNames():
-         action = QtGui.QAction( self )
-         action.setObjectName( name )
-         action.setText( name )
-         
-         self.importMenu.addAction( action )
-   
    def _installExporterPlugins( self ):
       pass
 
@@ -119,25 +148,19 @@ class MindTree( Application ):
       QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
       
       # Tools
-      self.tools = QtGui.QSplitter( self.splitter )
+      self.toolSplitter = QtGui.QSplitter( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
       sizePolicy.setVerticalStretch( 2 )
       sizePolicy.setHorizontalStretch( 1 )
-      self.tools.setSizePolicy( sizePolicy )
+      self.toolSplitter.setSizePolicy( sizePolicy )
+      self.toolSplitter.setMinimumHeight( 200 )
       
-      # Other tools
-      self.toolTabs = QtGui.QTabWidget( self.tools )
+      # tool tabs
+      self.leftToolTabs = QtGui.QTabWidget( self.toolSplitter )
       w = QtGui.QWidget()
-      self.toolTabs.addTab( w, '' )
+      self.leftToolTabs.addTab( w, 'left' )
       
-      # Keyboard Widget
-      self._kb = KeyboardWidget( self.tools )
-      #sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
-      #sizePolicy.setVerticalStretch( 2 )
-      #sizePolicy.setHorizontalStretch( 1 )
-      #self._kb.setSizePolicy(sizePolicy)
-      self._kb.setObjectName("tabWidget")
-      self._kb.setMinimumHeight( 180 )
+      self.rightToolTabs = QtGui.QTabWidget( self.toolSplitter )
       
       self.setCentralWidget(self.splitter)
 
@@ -147,8 +170,6 @@ class MindTree( Application ):
       self.actionClose     = RES.installAction( 'closeFile',  self )
       self.actionSave      = RES.installAction( 'saveFile',   self )
       self.actionSave_as   = RES.installAction( 'saveFileAs', self )
-      self.actionImport    = RES.installAction( 'importFile', self )
-      self.actionExport    = RES.installAction( 'exportFile', self )
       self.actionExit      = RES.installAction( 'exit',       self )
       self.actionHelp      = RES.installAction( 'help',       self )
       self.actionAbout     = RES.installAction( 'helpAbout',  self )
@@ -228,21 +249,16 @@ class MindTree( Application ):
 
 
 if __name__ == "__main__":
-   import os.path
-   sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTreeTkModelLib' ) )
-
    app = QtGui.QApplication( sys.argv )
 
    splash = QtGui.QSplashScreen( QtGui.QPixmap('resources/images/splash.gif') )
    splash.show( )
    app.processEvents( )
    
-   KeyboardWidget.theApp = app
-   
    RES.read( [ 'MindTreeRes.ini', 'MindTreeConfig.ini' ] )
    
    myapp = MindTree( )
-   myapp.initializePlugins( 'plugins' )
+   myapp.installPlugins( app, 'plugins' )
    
    myapp.resize(903, 719)
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
