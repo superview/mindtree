@@ -25,8 +25,8 @@
 
 *1.8* (public alpha)
    * Plugins
-      * Tool box - create the tabbed tool box
-      * Import/Export Plugins
+      * DONE: Tool box - create the tabbed tool box
+      * DONE: Import/Export Plugins
       * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
       * Find/Replace Plugin
 
