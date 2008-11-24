@@ -33,7 +33,7 @@
 *1.9* (public beta)
    * Distribution
       * Revamp Icons, Images, Cursors, etc.
-      * distutils script - write an initial script for distutils
+      * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
       * Help File
 
