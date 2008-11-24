@@ -6,7 +6,7 @@ sys.py3kwarning = True
 from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
 from OutlineModel import OutlineModel
-from ApplicationFramework import Application, Archiver, RES
+from ApplicationFramework import Application, Archiver, RES, PluginManager
 from Keyboard import KeyboardWidget
 from utilities import *
 
@@ -69,6 +69,17 @@ class MindTree( Application ):
    def _commitDocument( self ):
       self._outlineEditor.commitChanges( )
 
+   def _installImporterPlugins( self ):
+      for name in self._plugins.importerPluginNames():
+         action = QtGui.QAction( self )
+         action.setObjectName( name )
+         action.setText( name )
+         
+         self.importMenu.addAction( action )
+   
+   def _installExporterPlugins( self ):
+      pass
+
    # Implementation
    def _buildGUI(self):
       self._buildWidgets( )
@@ -107,12 +118,24 @@ class MindTree( Application ):
       
       QtCore.QObject.connect( self._outlineEditor, QtCore.SIGNAL( 'modelChanged()' ), self.onModelChanged )
       
-      # Keyboard Widget
-      self._kb = KeyboardWidget( self.splitter )
+      # Tools
+      self.tools = QtGui.QSplitter( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
       sizePolicy.setVerticalStretch( 2 )
       sizePolicy.setHorizontalStretch( 1 )
-      self._kb.setSizePolicy(sizePolicy)
+      self.tools.setSizePolicy( sizePolicy )
+      
+      # Other tools
+      self.toolTabs = QtGui.QTabWidget( self.tools )
+      w = QtGui.QWidget()
+      self.toolTabs.addTab( w, '' )
+      
+      # Keyboard Widget
+      self._kb = KeyboardWidget( self.tools )
+      #sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      #sizePolicy.setVerticalStretch( 2 )
+      #sizePolicy.setHorizontalStretch( 1 )
+      #self._kb.setSizePolicy(sizePolicy)
       self._kb.setObjectName("tabWidget")
       self._kb.setMinimumHeight( 180 )
       
@@ -162,8 +185,12 @@ class MindTree( Application ):
       self.menuFile.addAction(self.actionSave)
       self.menuFile.addAction(self.actionSave_as)
       self.menuFile.addSeparator()
-      self.menuFile.addAction(self.actionImport)
-      self.menuFile.addAction(self.actionExport)
+      self.importMenu = QtGui.QMenu( self.menuFile )
+      self.importMenu.setTitle( 'Import' )
+      self.menuFile.addMenu( self.importMenu )
+      self.exportMenu = QtGui.QMenu( self.menuFile )
+      self.exportMenu.setTitle( 'Export' )
+      self.menuFile.addMenu( self.exportMenu )
       self.menuFile.addSeparator()
       self.menuFile.addAction(self.actionExit)
       
@@ -215,7 +242,7 @@ if __name__ == "__main__":
    RES.read( [ 'MindTreeRes.ini', 'MindTreeConfig.ini' ] )
    
    myapp = MindTree( )
-   myapp.initializePlugins( 'plugins')
+   myapp.initializePlugins( 'plugins' )
    
    myapp.resize(903, 719)
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)

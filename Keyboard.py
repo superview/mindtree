@@ -16,11 +16,11 @@ KeyboardTabs = { 'Logic': [ # Logic
                               u'\u2194',        # biconditional
                               u'\u2200',        # universal quantifier
                               u'\u2203',        # existential quantifier
-                              u'\u2204',        # does not exist
+                              #u'\u2204',        # does not exist
                               u'\u25A1',        # alethic logic: Necessary
                               u'\u25C7'         # alethic logic: Possible
                               ],
-                           # Metalogic
+                            # Metalogic
                             [ u'\u22A6',        # assertion
                               u'\u22A7',        # models
                               u'\u2234',        # therefore
@@ -29,25 +29,28 @@ KeyboardTabs = { 'Logic': [ # Logic
                               u'\u22A4',        # tautology
                               u'\u22A5'         # contradiction
                               ],
-                            # Set Theory
-                            [ u'\u2205',        # NULL
-                              u'\u2208',        # member
-                              u'\u2209',        # not a member
-                              u'\u2229',        # intersection
-                              u'\u222A',        # union
-                              u'\u2282',        # subset
-                              u'\u2284',        # not a subset
-                              u'\u2286',        # proper subset
-                              u'\u2285',        # not a proper subset
-                              u'\u2283',        # superset
-                              u'\u2285',        # not a superset
-                              u'\u2287',        # proper superset
-                              u'\u2289',        # not a proper superset
-                              u'\u00D7'         # cross product
-                              ],
                             # Relations
                             [ u'\u225D',        # equal by definition
-                              u'\u2261'         # tripple equals
+                              u'\u2261',        # tripple equals
+                              ]
+                          ],
+                 'Set Theory': [
+                            [ u'\u2205',        # NULL
+                              u'\u00D7',        # cross product
+                              u'\u2229',        # intersection
+                              u'\u222A',        # union
+                              ],
+                            [ u'\u2208',        # member
+                              u'\u2282',        # subset
+                              u'\u2286',        # proper subset
+                              u'\u2283',        # superset
+                              u'\u2287',        # proper superset
+                              ],
+                            [ u'\u2209',        # not a member
+                              u'\u2284',        # not a subset
+                              u'\u2288',        # not a proper subset
+                              u'\u2285',        # not a superset
+                              u'\u2289'         # not a proper superset
                               ]
                           ],
                  'Math Script': [
@@ -197,8 +200,6 @@ class KeyboardWidget( QtGui.QTabWidget ):
 
    def addKeyboardTab( self, name, buttonRows ):
       kb = QtGui.QWidget()
-      #kb.setSizeIncrement(QtCore.QSize(1, 1))
-      #kb.setMinimumHeight( 200 )
       self.addTab(kb, "")
       
       self.setTabText( len(self._keyboards), name )
