@@ -10,6 +10,84 @@ from ApplicationFramework import Application, Archiver, RES, PluginManager
 from utilities import *
 
 
+#######################################
+### Default Plugin Implementations
+
+### Importer
+'''
+from OutlineModel import OutlineModel, TreeNode
+from PyQt4 import QtCore, QtGui
+
+from ApplicationFramework import ImporterPlugin, RES
+
+class MyImporter( ImporterPlugin ):
+   NAME              = 'MyImporterName'
+   VERSION           = ( 1, 0 )
+   BUILD_DATE        = ( 2008, 11, 15 )
+   
+   FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
+   FILE_EXTENSION    = 'mt'
+   
+   DEFAULT_SETTINGS = {
+                      'fileTypes':     'MindTree Data File (*.mt);;All Files (*.*)',
+                      'fileExtension': 'mt'
+                      }
+
+   def __init__( self, parentWidget ):
+      workingDir = RES.get( 'Project',  'directory'     )
+      
+      ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
+   
+   def _readFile( self, aFilename ):
+      # Manipulate the filename
+      from utilities import splitFilePath
+      disk,path,filename,extension = splitFilePath( aFilename )
+      documentName = filename[0].upper() + filename[1:]
+      
+      # Read in the data
+      import pickle
+      data = pickle.load( open( aFilename, 'rb' ) )
+      
+      # Convert the data
+      theConvertedProject = self.convertProject( data._tree, documentName )
+      
+      # Package the data for MindTree
+      theModel = OutlineModel( theConvertedProject )
+      return theModel, { }
+
+   def convertProject( self, model, title ):
+      pass
+   
+pluginClass = MT1ImportingArchiver
+'''
+
+### Exporter
+
+### Tool
+'''
+from ApplicationFramework import RES, PluggableTool
+from PyQt4 import QtCore, QtGui
+
+class MyTool( PluggableTool, QtGui.QWidget ):
+   NAME             = 'MyToolName'
+   VERSION          = ( 1, 0 )
+   BUILD_DATE       = ( 2008, 11, 24 )
+   
+   DEFAULT_SETTINGS = {
+                      }
+
+   def __init__( self, parent, app ):
+      PluggableTool.__init__( self )
+      QtGui.QWidget.__init__( self, parent )
+      
+      self._buildGui( parent )
+   
+   def _buildGui( self, aParent ):
+      pass
+   
+pluginClass = myTool
+'''
+
 class MindTreeArchiver( Archiver ):
    def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
       Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
@@ -76,7 +154,7 @@ class MindTree( Application ):
          action.setText( name )
          QtCore.QObject.connect( action, QtCore.SIGNAL('triggered()'), EXPORT(self._plugins.makePlugin(name,self)) )
          
-         self.importMenu.addAction( action )
+         self.exportMenu.addAction( action )
       
       # Install Pluggable Tools
       for tabName in RES.getMultipartResource('Tools','Left'):
