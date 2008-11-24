@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from ApplicationFramework import ImporterPlugin, RES
 
 class MT1ImportingArchiver( ImporterPlugin ):
-   NAME              = 'MindTree1Importer'
+   NAME              = 'MindTree 1.x'
    VERSION           = ( 1, 0 )
    BUILD_DATE        = ( 2008, 11, 15 )
    
