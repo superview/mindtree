@@ -7,7 +7,6 @@ from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
 from OutlineModel import OutlineModel
 from ApplicationFramework import Application, Archiver, RES, PluginManager
-#from Keyboard_ import KeyboardWidget
 from utilities import *
 
 
@@ -27,7 +26,8 @@ class MindTreeArchiver( Archiver ):
       # be included in the serialized data.
       data = aDocument[0].root( ), aDocument[1]
       Archiver._writeFile( self, data, aFilename )
-   
+
+
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
 
@@ -88,9 +88,6 @@ class MindTree( Application ):
             tabContents = self._plugins.makePlugin( tabName, self.rightToolTabs, app )
             self.rightToolTabs.addTab( tabContents, tabName )
 
-   def exportFile( self ):
-      pass
-   
    # Required Overrides
    def _makeDefaultModel( self ):
       '''Return an empty OutlineModel and empty resource dictionary.'''
@@ -105,9 +102,6 @@ class MindTree( Application ):
    
    def _commitDocument( self ):
       self._outlineEditor.commitChanges( )
-
-   def _installExporterPlugins( self ):
-      pass
 
    # Implementation
    def _buildGUI(self):
@@ -155,11 +149,7 @@ class MindTree( Application ):
       self.toolSplitter.setSizePolicy( sizePolicy )
       self.toolSplitter.setMinimumHeight( 200 )
       
-      # tool tabs
-      self.leftToolTabs = QtGui.QTabWidget( self.toolSplitter )
-      w = QtGui.QWidget()
-      self.leftToolTabs.addTab( w, 'left' )
-      
+      self.leftToolTabs  = QtGui.QTabWidget( self.toolSplitter )
       self.rightToolTabs = QtGui.QTabWidget( self.toolSplitter )
       
       self.setCentralWidget(self.splitter)
@@ -249,6 +239,9 @@ class MindTree( Application ):
 
 
 if __name__ == "__main__":
+   import os.path
+   sys.path.append( os.path.join( sys.path[0], 'Plugins', 'MindTreeTkModelLib' ) )
+
    app = QtGui.QApplication( sys.argv )
 
    splash = QtGui.QSplashScreen( QtGui.QPixmap('resources/images/splash.gif') )

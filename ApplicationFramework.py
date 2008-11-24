@@ -631,7 +631,7 @@ import imp
 
 class PluginManager( object ):
    PKG_INIT = '__init__' + os.path.extsep + 'py'
-   
+
    def __init__( self, pluginDir ):
       self._plugins        = { }
       
@@ -708,13 +708,13 @@ class PluginManager( object ):
       #self._info    = kind
       #self._version = version
       #self._date    = date
-   
+
    #def name( self ):
       #return self._name
-   
+
    #def info( self ):
       #return self._info, version, date
-   
+
    #def makeInstance( self, *args, **opts ):
       #return self._cls( *args, **opts )
 
