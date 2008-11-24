@@ -50,9 +50,9 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self.setTabKeyNavigation(False)
       
       # Drag and Drop Cursors
-      self.insertBefore_cursor  = RES.getDragCursor('OutlineView','DnD_insertBeforeCursor')
-      self.insertAfter_cursor   = RES.getDragCursor('OutlineView','DnD_insertAfterCursor')
-      self.insertChild_cursor   = RES.getDragCursor('OutlineView','DnD_insertChildCursor')
+      self.insertBefore_cursor  = RES.getCursor('OutlineView','DnD_insertBeforeCursor')
+      self.insertAfter_cursor   = RES.getCursor('OutlineView','DnD_insertAfterCursor')
+      self.insertChild_cursor   = RES.getCursor('OutlineView','DnD_insertChildCursor')
 
    def eventFilter( self, obj, event ):
       if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
@@ -218,13 +218,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
          statusTip = 'Drop as child'
       
       self.setStatusTip( statusTip )
-      self.drag.setDragCursor( cursor[0], QtCore.Qt.CopyAction + QtCore.Qt.MoveAction )
-      self.drag.setHotSpot( cursor[1] )
-      print( 'Updatable: {0}'.format(self.updatesEnabled()) )
-      self.repaint()
-      self.update()
-      self.window().repaint()
-      self.window().update()
+      self.setCursor( cursor )
 
 
 class ArticleViewWidget( QtGui.QTextEdit ):

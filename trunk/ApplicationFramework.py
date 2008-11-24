@@ -450,6 +450,8 @@ class Application( QtGui.QMainWindow ):
 
    def initializePlugins( self, pluginDir ):
       self._plugins = PluginManager( pluginDir )
+      self._installImporterPlugins( )
+      self._installExporterPlugins( )
 
    # Implementation
    def newFile( self ):
@@ -625,6 +627,13 @@ class Application( QtGui.QMainWindow ):
       """
       pass
 
+   def _installImporterPlugins( self, nameList ):
+      pass
+   
+   def _installExporterPlugins( self, nameList ):
+      pass
+
+
 # ---------------- Plugin Base Classes --------------------
 
 import os
@@ -681,9 +690,36 @@ class PluginManager( object ):
          RES.write( )
          f.close( )
 
-   def listPluginNames( self ):
+   def pluginNames( self ):
       return self._plugins.keys( )
 
+   def importerPluginNames( self ):
+      names = [ ]
+      for nm, cls in self._plugins.iteritems():
+         for base in cls.__bases__:
+            if base.__name__ == 'ImporterPlugin':
+               names.append( nm )
+      
+      return names
+   
+   def exporterPluginNames( self ):
+      names = [ ]
+      for nm, cls in self._plugins.iteritems():
+         for base in cls.__bases__:
+            if base.__name__ == 'ExporterPlugin':
+               names.append( nm )
+      
+      return names
+   
+   def toolPluginNames( self ):
+      names = [ ]
+      for nm, cls in self._plugins.iteritems():
+         for base in cls.__bases__:
+            if base.__name__ == 'PluggableTool':
+               names.append( nm )
+      
+      return names
+   
    def iterPlugins( self ):
       return self._plugins.iteritems( )
    
