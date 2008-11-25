@@ -207,6 +207,56 @@ class Resources( SafeConfigParser ):
 RES = Resources( )
 
 
+#class Project( object ):
+   #NAME_COUNTER = 0
+   
+   #def __init__( self, data=None, filename=None, title=None ):
+      #if data and filename and title:
+         #self._title          = title
+         #self._filename       = filename
+         #self._persistentData = data
+      #elif not data and not filename and not title:
+         #self._filename       = Project.generateUntitledFilename( )
+         #self._title          = splitFilePath( self._filename )[2]
+         #self._data           = self.makeDefaultPersistentData( )
+      
+      #self._modified       = False
+   
+   #def title( self ):
+      #return self._title
+   
+   #def filename( self ):
+      #return self._filename
+   
+   #def modified( self ):
+      #return self._modified
+   
+   #def setModified( self, isModified ):
+      #self._modified = False
+   
+   #def setPersistentData( self, data ):
+      #self._persistentData = data
+   
+   #def getPersistentData( self ):
+      #return self._persistentData
+   
+   #def __setitem__( self, name, value ):
+      #self._persistentData[ name ] = value
+   
+   #def __getitem__( self, name ):
+      #return self._persistentData[ name ]
+
+   #def generateUntitledFilename( self ):
+      #pass
+   
+   #def makeDefaultPersistentData( self ):
+      #pass
+   
+   #def validate( self ):
+      #pass
+   
+
+
 class Project( object ):
    NAME_COUNTER = 0
   
@@ -216,6 +266,7 @@ class Project( object ):
       self._filename        = filename
       self.modified         = False
       self.data             = data      # The actual data in the project
+      self.resources        = { }
       
       if filename is None:
          filename = self.genUntitledFilename( )
@@ -224,22 +275,14 @@ class Project( object ):
          disk,path,title,ext = splitFilePath(filename)
          self._title = title[0].upper() + title[1:]
       
+      if data is None:
+         data = { }
+      
       self.setFilename( filename )
 
    def title( self ):
       return self._title
 
-   def projectDir( self ):
-      return self._projectDir
-   
-   def backupDir( self, fullName=False ):
-      dirName = RES.get( 'Project', 'backupDir' )
-      
-      if fullName:
-         return os.path.join( self._projectDir, dirName )
-      else:
-         return dirName
-   
    def filename( self, fullName=False ):
       if fullName:
          return os.path.join( self._projectDir, self._filename )
@@ -257,21 +300,12 @@ class Project( object ):
    def activateProjectDir( self ):
       os.chdir( self._projectDir )
    
-   def isNew( self ):
-      if self._projectDir is None:
-         return True
-      else:
-         return False
-
-   def backup( self ):
-      return
-   
    def genUntitledFilename( self ):
       Project.NAME_COUNTER += 1
       return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
 
-   def validateModel( self ):
-      self.data[0].validateModel( )
+   def validate( self ):
+      self.data[0].validate( )
 
 
 class Archiver( object ):
@@ -352,8 +386,7 @@ class Archiver( object ):
       filename = self.askopenfilename( )
       
       try:
-         data = self._readFile(filename)
-         return Project( filename=filename, data=data )
+         return self._read(filename)
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -394,7 +427,7 @@ class Archiver( object ):
       aProject.setFilename( filename )
       
       try:
-         self._writeFile( aProject.data, aProject.filename( fullName=True ) )
+         self._write( aProject, aProject.filename(fullName=True) )
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -413,20 +446,21 @@ class Archiver( object ):
       return filename
 
    # Overridable Implementation
-   def _readFile( self, aFilename ):
-      """Read the file and return a document object.  If an error occurs,
+   def _read( self, aFilename ):
+      """Read the file and return a project object.  If an error occurs,
       raise an exception.
       """
       import pickle
-      return pickle.load( open( aFilename, 'rb' ) )
+      data = pickle.load( open( aFilename, 'rb' ) )
+      return Project( filename=aFilename, data=data )
 
-   def _writeFile( self, aDocument, aFilename ):
-      """Write the document to the named file.  If an error occurs,
+   def _write( self, aProject, filename ):
+      """Write the persistent data in the project.  If an error occurs,
       raise an exception.
       """
       import pickle
-      f = open( aFilename, 'wb' )
-      pickle.dump( aDocument, f, pickle.HIGHEST_PROTOCOL )
+      f = open( filename, 'wb' )
+      pickle.dump( aProject.data, f, pickle.HIGHEST_PROTOCOL )
    
 
 class Application( QtGui.QMainWindow ):
@@ -509,8 +543,8 @@ class Application( QtGui.QMainWindow ):
    
    def saveFile( self ):
       try:
-         if self._project.modified and self._project.backupDir():
-            self._project.backup()
+         #if self._project.modified:
+            #self._project.backup()
          
          self._commitDocument( )
          self._archiver.write( self._project, promptFilename=False )
@@ -523,8 +557,8 @@ class Application( QtGui.QMainWindow ):
    
    def saveFileAs( self, anArchiver=None ):
       try:
-         if self._project.modified and self._project.backupDir():
-            self._project.backup( )
+         #if self._project.modified:
+            #self._project.backup( )
          
          self._commitDocument( )
          theDoc = self._project.data
@@ -584,7 +618,7 @@ class Application( QtGui.QMainWindow ):
    def _closeCurrentProject( self ):
       if self._project:
          if self._project.modified:
-            if self._project.projectDir() and self._project.backupDir():
+            if self._project.projectDir():
                self.backup()
             
             self.askSaveChanges( )

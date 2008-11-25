@@ -6,7 +6,7 @@ sys.py3kwarning = True
 from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
 from OutlineModel import OutlineModel
-from ApplicationFramework import Application, Archiver, RES, PluginManager
+from ApplicationFramework import Application, Archiver, RES, PluginManager, Project
 from utilities import *
 
 
@@ -92,18 +92,25 @@ class MindTreeArchiver( Archiver ):
    def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
       Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
    
-   def _readFile( self, aFilename ):
-      data = Archiver._readFile( self, aFilename )
-      return OutlineModel( data[0] ), data[1]
+   def _read( self, filename ):
+      import pickle
+      data = pickle.load( open( filename, 'rb' ) )
+      root,resources = data
+      return Project( filename=filename, data=(OutlineModel(root), resources) )
 
-   def _writeFile( self, aDocument, aFilename ):
-      if not aDocument[0].validate( ):
+   def _write( self, project, filename ):
+      outlineModel, resources = project.data
+      
+      if not outlineModel.validate( ):
          raise
       
       # Since the OutlineModel class is a subclass of a Qt class, it cannot
       # be included in the serialized data.
-      data = aDocument[0].root( ), aDocument[1]
-      Archiver._writeFile( self, data, aFilename )
+      data = outlineModel.root(), resources
+      
+      import pickle
+      f = open( filename, 'wb' )
+      pickle.dump( data, f, pickle.HIGHEST_PROTOCOL )
 
 
 class MindTree( Application ):
@@ -172,7 +179,7 @@ class MindTree( Application ):
       return OutlineModel( ), { }
    
    def _setupModelInView( self ):
-      self._outlineView.setModel( self._project.data )
+      self._outlineView.setModel( self._project )
       Application._setupModelInView( self )
 
    def _updateWindowTitle( self, title ):

@@ -3,7 +3,7 @@
 from OutlineModel import OutlineModel, TreeNode
 from PyQt4 import QtCore, QtGui
 
-from ApplicationFramework import ImporterPlugin, RES
+from ApplicationFramework import ImporterPlugin, RES, Project
 
 class MT1ImportingArchiver( ImporterPlugin ):
    NAME              = 'MindTree 1.x'
@@ -24,7 +24,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
       self._document = QtGui.QTextDocument( )  # for converting text to html
    
-   def _readFile( self, aFilename ):
+   def _read( self, aFilename ):
       from utilities import splitFilePath
       disk,path,filename,extension = splitFilePath( aFilename )
       documentName = filename[0].upper() + filename[1:]
@@ -36,7 +36,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       theModel     = OutlineModel( theConvertedProject )
       theResources = { }
       
-      return theModel, theResources
+      return Project( filename=aFilename, data=(theModel, theResources) )
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )
