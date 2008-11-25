@@ -207,56 +207,6 @@ class Resources( SafeConfigParser ):
 RES = Resources( )
 
 
-#class Project( object ):
-   #NAME_COUNTER = 0
-   
-   #def __init__( self, data=None, filename=None, title=None ):
-      #if data and filename and title:
-         #self._title          = title
-         #self._filename       = filename
-         #self._persistentData = data
-      #elif not data and not filename and not title:
-         #self._filename       = Project.generateUntitledFilename( )
-         #self._title          = splitFilePath( self._filename )[2]
-         #self._data           = self.makeDefaultPersistentData( )
-      
-      #self._modified       = False
-   
-   #def title( self ):
-      #return self._title
-   
-   #def filename( self ):
-      #return self._filename
-   
-   #def modified( self ):
-      #return self._modified
-   
-   #def setModified( self, isModified ):
-      #self._modified = False
-   
-   #def setPersistentData( self, data ):
-      #self._persistentData = data
-   
-   #def getPersistentData( self ):
-      #return self._persistentData
-   
-   #def __setitem__( self, name, value ):
-      #self._persistentData[ name ] = value
-   
-   #def __getitem__( self, name ):
-      #return self._persistentData[ name ]
-
-   #def generateUntitledFilename( self ):
-      #pass
-   
-   #def makeDefaultPersistentData( self ):
-      #pass
-   
-   #def validate( self ):
-      #pass
-   
-
-
 class Project( object ):
    NAME_COUNTER = 0
   
@@ -306,6 +256,29 @@ class Project( object ):
 
    def validate( self ):
       self.data[0].validate( )
+
+   def backup( self ):
+      import datetime
+      import shutil
+      from filesystemTools import splitFilePath
+      
+      if not os.path.exists( self._filename ):
+         return
+      
+      if self._filename and (self._filename != ''):
+         disk,path,name,extension = splitFilePath( self._filename )
+         if extension == '':
+            extension = self._archiver.defaultExtension( )
+         
+         theDate = datetime.datetime.today( )
+         theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S' )
+         name = name + theDateTimeString + extension
+         
+         backupFilename = os.path.join( self._backupDirectory, name )
+         shutil.copyfile( self._filename, backupFilename )
+
+   def writeToFile( self, archiver=None, promptNewFilename=False ):
+      pass
 
 
 class Archiver( object ):
@@ -386,7 +359,7 @@ class Archiver( object ):
       filename = self.askopenfilename( )
       
       try:
-         return self._read(filename)
+         return filename, self._read(filename)
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -402,7 +375,7 @@ class Archiver( object ):
          msgBox.exec_()
          raise OperationCanceled()
    
-   def write( self, aProject, promptFilename=False ):
+   def write( self, data, filename=None ):
       """Write a document to a file.  The function may include user interaction,
       eg. Prompt the user for a filename.
       
@@ -419,15 +392,11 @@ class Archiver( object ):
       save the document under another name, but aFilename should be the
       default name.
       """
-      if promptFilename:
+      if not filename:
          filename = self.asksaveasfilename( )
-      else:
-         filename = aProject.filename( fullName=True )
-      
-      aProject.setFilename( filename )
       
       try:
-         self._write( aProject, aProject.filename(fullName=True) )
+         self._write( data, filename )
       except Exception, msg:
          msgBox = QtGui.QMessageBox()
          msgBox.setWindowTitle( 'Error' )
@@ -451,8 +420,7 @@ class Archiver( object ):
       raise an exception.
       """
       import pickle
-      data = pickle.load( open( aFilename, 'rb' ) )
-      return Project( filename=aFilename, data=data )
+      return pickle.load( open( aFilename, 'rb' ) )
 
    def _write( self, aProject, filename ):
       """Write the persistent data in the project.  If an error occurs,
@@ -509,7 +477,7 @@ class Application( QtGui.QMainWindow ):
       try:
          self._closeCurrentProject( )
          
-         self._project  = Project( data=self._makeDefaultModel( ) )
+         self._project = self._makeProject( )
          
          self._setupModelInView( )
          self.updateWindowTitle( )
@@ -522,10 +490,10 @@ class Application( QtGui.QMainWindow ):
       try:
          self._closeCurrentProject( )
          
-         if anArchiver:
-            self._project = anArchiver.read( )
-         else:
-            self._project = self._archiver.read( )
+         if not anArchiver:
+            anArchiver = self._archiver
+         
+         self._project = self._makeProject( archiver=anArchiver )
          
          if self._project is None:
             return False
@@ -547,8 +515,9 @@ class Application( QtGui.QMainWindow ):
             #self._project.backup()
          
          self._commitDocument( )
-         self._archiver.write( self._project, promptFilename=False )
-         self._project.modified = False
+         
+         self._project.writeToFile( self._archiver, promptNewFilename=False )
+         
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -561,17 +530,12 @@ class Application( QtGui.QMainWindow ):
             #self._project.backup( )
          
          self._commitDocument( )
-         theDoc = self._project.data
          
-         if anArchiver:
-            newName = anArchiver.write( self._project, promptFilename=True )
-         else:
-            newName = self._archiver.write( self._project, promptFilename=True )
+         if not anArchiver:
+            anArchiver = self._archiver
          
-         self._project = Project( filename=newName, data=self._project.data )
-         self._project.activateProjectDir( )
+         self._project.writeToFile( anArchiver, promptNewFilename=True )
          
-         self._project.modified = False
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -594,26 +558,6 @@ class Application( QtGui.QMainWindow ):
       except:
          exceptionPopup( )
    
-   def makeBackup( self ):
-      import datetime
-      import shutil
-      from filesystemTools import splitFilePath
-      
-      if not os.path.exists( self._filename ):
-         return
-      
-      if self._filename and (self._filename != ''):
-         disk,path,name,extension = splitFilePath( self._filename )
-         if extension == '':
-            extension = self._archiver.defaultExtension( )
-         
-         theDate = datetime.datetime.today( )
-         theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S' )
-         name = name + theDateTimeString + extension
-         
-         backupFilename = os.path.join( self._backupDirectory, name )
-         shutil.copyfile( self._filename, backupFilename )
-
    # Helper Methods
    def _closeCurrentProject( self ):
       if self._project:
@@ -661,7 +605,7 @@ class Application( QtGui.QMainWindow ):
       self._updateWindowTitle( theTitle ) 
 
    # Contract
-   def _makeDefaultModel( self ):
+   def _makeProject( self, archiver=None ):
       pass
    
    def _setupModelInView( self ):

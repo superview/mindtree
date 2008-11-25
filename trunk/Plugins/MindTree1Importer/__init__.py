@@ -36,7 +36,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       theModel     = OutlineModel( theConvertedProject )
       theResources = { }
       
-      return Project( filename=aFilename, data=(theModel, theResources) )
+      return theModel, theResources
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )
