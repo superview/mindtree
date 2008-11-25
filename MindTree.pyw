@@ -5,7 +5,7 @@ sys.py3kwarning = True
 
 from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
-from OutlineModel import OutlineModel
+from OutlineModel import OutlineModel, TreeNode
 from ApplicationFramework import Application, Archiver, RES, PluginManager, Project
 from utilities import *
 
@@ -88,6 +88,48 @@ class MyTool( PluggableTool, QtGui.QWidget ):
 pluginClass = myTool
 '''
 
+class MindTreeProject( Project ):
+   def __init__( self, filename=None, archiver=None, title=None, outline=None, resources=None ):
+      '''
+      nothing             - create a default project
+      filename, archiver  - load from file
+      archiver            - prompt for filename and load from file
+      data                - use the data to create a project
+      '''
+      if not outline:
+         if archiver:
+            filename,data = archiver.read( )
+            outline,resources = data
+         else:
+            filename  = self.genUntitledFilename( )
+            outline   = OutlineModel( )
+            resources = { }
+    
+      if isinstance( outline, TreeNode ):
+         outline = OutlineModel( outline )
+      
+      if resources is None:
+         resources = { }
+      
+      if filename is None:
+         raise
+      
+      Project.__init__( self, title=title, filename=filename, data=(outline,resources) )
+
+   def writeToFile( self, archiver, promptNewFilename=False ):
+      self.validate( )
+      outlineModel,resources = self.data
+      rootNode = outlineModel.root()
+      
+      if promptNewFilename:
+         filename = archiver.write( (rootNode,resources) )
+         self.setFilename( filename )
+         self.activateProjectDir( )
+      else:
+         archiver.write( (rootNode,resources), self.filename(fullName=True) )
+      
+      self.modified = False
+
 class MindTreeArchiver( Archiver ):
    def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
       Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
@@ -95,19 +137,11 @@ class MindTreeArchiver( Archiver ):
    def _read( self, filename ):
       import pickle
       data = pickle.load( open( filename, 'rb' ) )
-      root,resources = data
-      return Project( filename=filename, data=(OutlineModel(root), resources) )
+      return data
 
-   def _write( self, project, filename ):
-      outlineModel, resources = project.data
-      
-      if not outlineModel.validate( ):
-         raise
-      
+   def _write( self, data, filename ):
       # Since the OutlineModel class is a subclass of a Qt class, it cannot
       # be included in the serialized data.
-      data = outlineModel.root(), resources
-      
       import pickle
       f = open( filename, 'wb' )
       pickle.dump( data, f, pickle.HIGHEST_PROTOCOL )
@@ -174,9 +208,9 @@ class MindTree( Application ):
             self.rightToolTabs.addTab( tabContents, tabName )
 
    # Required Overrides
-   def _makeDefaultModel( self ):
+   def _makeProject( self, archiver=None ):
       '''Return an empty OutlineModel and empty resource dictionary.'''
-      return OutlineModel( ), { }
+      return MindTreeProject( archiver=archiver )
    
    def _setupModelInView( self ):
       self._outlineView.setModel( self._project )
