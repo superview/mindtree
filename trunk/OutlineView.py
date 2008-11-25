@@ -531,12 +531,11 @@ class OutlineView(QtGui.QSplitter):
       return toolbars
    
    # Basic Operations
-   def setModel( self, modelData ):
-      modelData[0].validate( )
-      
+   def setModel( self, project ):
+      project.validate( )
       
       try:
-         self._model, self._resources = modelData
+         self._model, self._resources = project.data
          self.swappingArticle = False
          
          self._articleView.clear( )
