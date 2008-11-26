@@ -25,6 +25,7 @@
 *1.8* (public alpha)
    * Plugins
       * DONE: Tool box - create the tabbed tool box
+      * DONE: Keyboard Plugin
       * Import/Export Plugins
          * DONE: MindTree 1 Importer
          * HTML Exporter Plugin
@@ -33,6 +34,9 @@
          * Backend
       * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
          * DONE: GUI
+         * Backend
+      * Resource Editor Plugin
+         * GUI
          * Backend
 
 *1.9* (public beta)
@@ -62,11 +66,6 @@
       * Print Preview
    * Plugins
       * Allow plugin settings to be stored in projects (e.g. keyboard)
-      * Make the Keyboard Plugin a single multi-tab plugin
-         * Logic Tab
-         * Greek Tab
-         * Math Script Symbols Tab
-         * Unicode Tab
       * Make the Keyboard Plugin GUI-Editable
       * Make a tabbed resource lists plugin
          * images tab
