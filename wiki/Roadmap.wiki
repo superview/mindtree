@@ -36,7 +36,7 @@
          * DONE: GUI
          * Backend
       * Resource Editor Plugin
-         * GUI
+         * DONE: GUI
          * Backend
 
 *1.9* (public beta)
