@@ -32,7 +32,7 @@
       * Find/Replace Plugin
          * DONE: GUI
          * Backend
-      * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
+      * Spell Checking Plugin
          * DONE: GUI
          * Backend
       * Resource Editor Plugin
