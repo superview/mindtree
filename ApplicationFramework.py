@@ -772,24 +772,6 @@ class PluginManager( object ):
       return self._plugins[ pluginName ]( *args, **opts )
 
 
-#class PluginHandle( object ):
-   #def __init__( self, name, cls, info, version, date ):
-      #self._name    = name
-      #self._cls     = cls
-      #self._info    = kind
-      #self._version = version
-      #self._date    = date
-
-   #def name( self ):
-      #return self._name
-
-   #def info( self ):
-      #return self._info, version, date
-
-   #def makeInstance( self, *args, **opts ):
-      #return self._cls( *args, **opts )
-
-
 class Plugin( object ):
    def __init__( self ):
       self.name = self.NAME

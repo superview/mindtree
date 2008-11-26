@@ -332,7 +332,7 @@ class KeyboardWidget( QtGui.QTabWidget, PluggableTool ):
                #}
                       }
    
-   def __init__( self, parent, app ):
+   def __init__( self, parent, outlineView ):
       KeyboardWidget.theApp = app
       
       QtGui.QTabWidget.__init__( self, parent )

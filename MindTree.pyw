@@ -187,11 +187,11 @@ class MindTree( Application ):
       # Install Pluggable Tools
       for tabName in RES.getMultipartResource('Tools','Left'):
          if tabName in self._plugins.pluginNames('PluggableTool'):
-            tabContents = self._plugins.makePlugin( tabName, self.leftToolTabs, app )
+            tabContents = self._plugins.makePlugin( tabName, self.leftToolTabs, self._outlineView )
             self.leftToolTabs.addTab( tabContents, tabName )
       for tabName in RES.getMultipartResource('Tools','Right'):
          if tabName in self._plugins.pluginNames('PluggableTool'):
-            tabContents = self._plugins.makePlugin( tabName, self.rightToolTabs, app )
+            tabContents = self._plugins.makePlugin( tabName, self.rightToolTabs, self._outlineView )
             self.rightToolTabs.addTab( tabContents, tabName )
 
    # Required Overrides

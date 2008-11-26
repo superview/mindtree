@@ -13,7 +13,7 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
                          'font' : 'Lucida Sans Unicode:12',
                       }
    
-   def __init__( self, parent, app ):
+   def __init__( self, parent, outlineView ):
       Resources.theApp = app
       
       QtGui.QTabWidget.__init__( self, parent )
