@@ -5,7 +5,7 @@ sys.py3kwarning = True
 
 from PyQt4 import QtCore, QtGui
 from OutlineView import OutlineView
-from OutlineModel import OutlineModel, TreeNode
+from OutlineModel import OutlineModel
 from ApplicationFramework import Application, Archiver, RES, PluginManager, Project
 from utilities import *
 
@@ -89,48 +89,49 @@ pluginClass = myTool
 '''
 
 class MindTreeProject( Project ):
-   DEFAULT_ARCHIVER = None
-   
-   def __init__( self, filename=None, archiver=None, title=None, outline=None, resources=None ):
-      '''
-      nothing             - create a default project
-      filename, archiver  - load from file
-      archiver            - prompt for filename and load from file
-      data                - use the data to create a project
-      '''
-      if not outline:
-         if archiver:
-            filename,data = archiver.read( )
-            outline,resources = data
-         else:
-            filename  = self.genUntitledFilename( )
-            outline   = OutlineModel( )
-            resources = { }
-    
-      if isinstance( outline, TreeNode ):
-         outline = OutlineModel( outline )
-      
-      if resources is None:
-         resources = { }
-      
-      if filename is None:
-         raise
-      
-      Project.__init__( self, title=title, filename=filename, data=(outline,resources) )
+   def __init__( self, data=None, workspace=None, filename=None, name=None ):
+      self.data = None
+      Project.__init__( self, data, workspace, filename, name )
 
-   def writeToFile( self, archiver, promptNewFilename=False ):
+   # Required Overrides
+   def validate( self ):
+      Project.validate( self )
+      
+      outlineModel,resources = self.data
+      outlineModel.validate( )
+      
+      #for name,entry in resources.iteritems():
+         #if not isinstance( name, (str,unicode) ):
+            #raise
+         
+         #if not 
+   
+   def setDefaultData( self ):
+      Project.setDefaultData( self )
+      
+      outlineModel = OutlineModel( )
+      resources    = { }
+      self.data = outlineModel,resources
+
+   def setPersistentData( self, data=None ):
+      baseClassData, rootNode, resources = data
+      Project.setPersistentData( self, baseClassData )
+      
+      outlineModel = OutlineModel( rootNode )
+      self.data = outlineModel,resources
+      
+      try:
+         self.validate( )
+      except:
+         self.setDefaultData( )
+
+   def getPersistentData( self ):
       self.validate( )
       outlineModel,resources = self.data
       rootNode = outlineModel.root()
       
-      if promptNewFilename:
-         filename = archiver.write( (rootNode,resources) )
-         self.setFilename( filename )
-         self.activateProjectDir( )
-      else:
-         archiver.write( (rootNode,resources), self.filename(fullName=True) )
-      
-      self.modified = False
+      baseClassData = Project.getPersistentData( self )
+      return ( baseClassData, rootNode, resources )
 
 
 class MindTree( Application ):
@@ -139,7 +140,7 @@ class MindTree( Application ):
    def __init__( self ):
       fileTypes  = RES.get( 'Application', 'fileTypes'     )
       fileExts   = RES.get( 'Application', 'fileExtension' )
-      workingDir = RES.get( 'Project',     'directory'     )
+      workingDir = RES.get( 'Project',     'workspace'     )
       
       Application.__init__( self, Archiver(self,fileTypes,fileExts,workingDir) )
       
@@ -158,7 +159,7 @@ class MindTree( Application ):
       # Install Importer Plugins
       def IMPORT( pluginObj ):
          def _import( ):
-            return self.openFile( pluginObj )
+            return self.importFile( pluginObj )
          return _import
       
       for name in self._plugins.pluginNames( 'ImporterPlugin' ):
@@ -172,7 +173,7 @@ class MindTree( Application ):
       # Install Exporter Plugins
       def EXPORT( pluginObj ):
          def _import( ):
-            return self.saveFileAs( pluginObj )
+            return self.exportFile( pluginObj )
          return _import
       
       for name in self._plugins.pluginNames( 'ExporterPlugin' ):
@@ -194,9 +195,9 @@ class MindTree( Application ):
             self.rightToolTabs.addTab( tabContents, tabName )
 
    # Required Overrides
-   def _makeProject( self, archiver=None ):
+   def _makeProject( self, filename=None, data=None ):
       '''Return an empty OutlineModel and empty resource dictionary.'''
-      return MindTreeProject( archiver=archiver )
+      return MindTreeProject( data=data, filename=filename )
    
    def _setupModelInView( self ):
       self._outlineView.setModel( self._project )
@@ -349,23 +350,31 @@ if __name__ == "__main__":
 
    app = QtGui.QApplication( sys.argv )
 
+   # Display Splash Screen
    splash = QtGui.QSplashScreen( QtGui.QPixmap('resources/images/splash.gif') )
    splash.show( )
    app.processEvents( )
-   
+
+   # Load Resources
    RES.read( [ 'MindTreeRes.ini', 'MindTreeCfg.ini' ] )
    
+   # Create the application
    myapp = MindTree( )
-   myapp.installPlugins( app, 'plugins' )
-   
-   myapp.resize(903, 719)
-   sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+   myapp.resize( 903, 719 )
+   sizePolicy = QtGui.QSizePolicy( QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding )
    sizePolicy.setHorizontalStretch( 1 )
    sizePolicy.setVerticalStretch( 1 )
-   myapp.setSizePolicy(sizePolicy)
-   
-   myapp.newFile( )
+   myapp.setSizePolicy( sizePolicy )
    myapp.show( )
+   
+   # Install Plugins
+   myapp.installPlugins( app, 'plugins' )
+   
+   # Install a default project
+   myapp.newFile( )
+   
+   # Destroy the Splash Screen
    splash.finish( myapp )
 
+   # Run the event loop
    sys.exit( app.exec_() )

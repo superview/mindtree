@@ -47,6 +47,12 @@ class Resources( SafeConfigParser ):
       return self._actions[ name ]
 
    # Resource Values
+   def get( self, section, option, translate=False ):
+      resValue = SafeConfigParser.get( self, section, option )
+      if translate:
+         resValue = QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8)
+      return resValue
+
    def getPath( self, section, option ):
       return os.path.normpath( self.get(section,option) )
 
@@ -116,8 +122,11 @@ class Resources( SafeConfigParser ):
       else:
          raise
 
-   def getMultipartResource( self, section, option, sep=':' ):
-      return self.get(section,option).split(':')
+   def getMultipartResource( self, section, option, translate=False, sep=':' ):
+      parts = self.get(section,option).split(':')
+      if translate:
+         parts = [ QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) for resValue in parts ]
+      return parts
 
    def makeActionObj( self, name, actionName, parent, handlerObj=None, handlerFn=None, **resources ):
       if handlerFn is None:
@@ -348,45 +357,55 @@ class Archiver( object ):
       import pickle
       return pickle.load( open( aFilename, 'rb' ) )
 
-   def _write( self, aProject, filename ):
+   def _write( self, data, filename ):
       """Write the persistent data in the project.  If an error occurs,
       raise an exception.
       """
       import pickle
       f = open( filename, 'wb' )
-      pickle.dump( aProject.data, f, pickle.HIGHEST_PROTOCOL )
+      pickle.dump( data, f, pickle.HIGHEST_PROTOCOL )
    
 
 class Project( object ):
    NAME_COUNTER = 0
-   DEFAULT_ARCHIVER = None
-  
-   def __init__( self, title=None, filename=None, data=None ):
-      self._title           = title
-      self._projectDir      = None
-      self._filename        = filename
-      self.modified         = False
-      self.data             = data      # The actual data in the project
-      self.resources        = { }
-      
-      if filename is None:
-         filename = self.genUntitledFilename( )
-      
-      if title is None:
-         disk,path,title,ext = splitFilePath(filename)
-         self._title = title[0].upper() + title[1:]
-      
-      if data is None:
-         data = { }
-      
-      self.setFilename( filename )
 
-   def title( self ):
-      return self._title
+   def __init__( self, data=None, workspace=None, filename=None, name=None ):
+      '''
+      empty              init as default
+      archiver           init from file
+      data               init from data
+      '''
+      self._name       = name
+      self._workspace  = workspace
+      self._filename   = filename
+      self._modified   = False
+      
+      if data is not None:
+         self.setPersistentData( data )
+      else:
+         self.setDefaultData( )
+      
+      if self._filename:
+         disk,path,name,ext = splitFilePath(self._filename)
+         
+         if self._name is None:
+            self._name = self._name[0].upper() + self._name[1:]
+         
+         if self._workspace is None:
+            self._workspace = os.path.join( disk, path )
+      
+      if self._workspace is None:
+         self._workspace = RES.get( 'Project','workspace' )
+
+   def name( self ):
+      return self._name
+
+   def setName( self, newTitle ):
+      self._name = newTitle
 
    def filename( self, fullName=False ):
       if fullName:
-         return os.path.join( self._projectDir, self._filename )
+         return os.path.join( self._workspace, self._filename )
       else:
          return self._filename
 
@@ -399,14 +418,11 @@ class Project( object ):
       self._filename   = name + extension
 
    def activateProjectDir( self ):
-      os.chdir( self._projectDir )
+      os.chdir( self._workspace )
    
-   def genUntitledFilename( self ):
+   def genDefaultName( self ):
       Project.NAME_COUNTER += 1
       return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
-
-   def validate( self ):
-      self.data[0].validate( )
 
    def backup( self ):
       import datetime
@@ -428,9 +444,23 @@ class Project( object ):
          backupFilename = os.path.join( self._backupDirectory, name )
          shutil.copyfile( self._filename, backupFilename )
 
-   def writeToFile( self, archiver=None, promptNewFilename=False ):
-      pass
+   # Contract
+   def validate( self ):
+      if not isinstance( self._name, (str,unicode) ):
+         raise
 
+   def setDefaultData( self ):
+      self._name = self.genDefaultName( )
+
+   def setPersistentData( self, data ):
+      if not isinstance( data, (str,unicode) ):
+         raise
+      
+      self._name = data
+
+   def getPersistentData( self ):
+      return self._name
+   
 
 class Application( QtGui.QMainWindow ):
    '''File handling operations (new, open, save, etc.) can get quite confusing
@@ -467,10 +497,10 @@ class Application( QtGui.QMainWindow ):
          saveAs() on prompt
    '''
    # Management
-   def __init__( self, anArchiver ):
+   def __init__( self, archiver ):
       QtGui.QMainWindow.__init__( self )
       
-      self._archiver   = anArchiver
+      self._archiver   = archiver
       self._project    = None
 
    # Implementation
@@ -487,14 +517,12 @@ class Application( QtGui.QMainWindow ):
       except:
          exceptionPopup( )
    
-   def openFile( self, anArchiver=None ):
+   def openFile( self ):
       try:
          self._closeCurrentProject( )
          
-         if not anArchiver:
-            anArchiver = self._archiver
-         
-         self._project = self._makeProject( archiver=anArchiver )
+         filename, data = self._archiver.read( )
+         self._project = self._makeProject( filename, data )
          
          if self._project is None:
             return False
@@ -517,7 +545,10 @@ class Application( QtGui.QMainWindow ):
          
          self._commitDocument( )
          
-         self._project.writeToFile( self._archiver, promptNewFilename=False )
+         self._project.validate( )
+         data = self._project.getPersistentData( )
+         filename = self._project.filename( fullName=True )
+         self._archiver.write( data, filename )
          
          self.updateWindowTitle( )
       except OperationCanceled:
@@ -525,17 +556,55 @@ class Application( QtGui.QMainWindow ):
       except:
          exceptionPopup( )
    
-   def saveFileAs( self, anArchiver=None ):
+   def saveFileAs( self ):
       try:
          #if self._project.modified:
             #self._project.backup( )
          
          self._commitDocument( )
          
-         if not anArchiver:
-            anArchiver = self._archiver
+         self._project.validate( )
+         data = self._project.getPersistentData( )
+         self._archiver.write( data )
          
-         self._project.writeToFile( anArchiver, promptNewFilename=True )
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( )
+   
+   def importFile( self, anArchiver ):
+      try:
+         self._closeCurrentProject( )
+         
+         filename, data = anArchiver.read( )
+         self._project = self._makeProject( filename, data )
+         
+         if self._project is None:
+            return False
+         
+         # Setup the project directory
+         self._project.activateProjectDir( )
+         
+         # Install the Model
+         self._setupModelInView( )
+         self.updateWindowTitle( )
+      except OperationCanceled:
+         pass
+      except:
+         exceptionPopup( )
+   
+   
+   def exportFile( self, anArchiver ):
+      try:
+         #if self._project.modified:
+            #self._project.backup( )
+         
+         self._commitDocument( )
+         
+         self._project.validate( )
+         data = self._project.getPersistentData( )
+         anArchiver.write( data )
          
          self.updateWindowTitle( )
       except OperationCanceled:
@@ -606,7 +675,7 @@ class Application( QtGui.QMainWindow ):
       self._updateWindowTitle( theTitle ) 
 
    # Contract
-   def _makeProject( self, archiver=None ):
+   def _makeProject( self, filename=None, data=None ):
       pass
    
    def _setupModelInView( self ):
