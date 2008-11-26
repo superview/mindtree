@@ -17,9 +17,13 @@
 
 *1.7* (internal)
    * Outline Editing
-      * DONE: Drag & Drop - Get it working within a single outline widget
-      * Drag & Drop Cursor - Update cursor during drag to indicate the drop position.
-      * Drag & Drop Status tip - Update status tip during drag to print the drop position.
+      * Drag & Drop
+         * DONE: Get working
+         * Cursor - Update cursor during drag to indicate the drop position.
+         * Status tip - Update status tip during drag to print the drop position.
+      * DONE: Cut & Paste
+      * DONE: Menu Items
+      * DONE: Toolbars
       * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
 
 *1.8* (public alpha)
