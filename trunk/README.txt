@@ -1,23 +1,32 @@
 Compatibility
+=============
 
-MindTree 1.0.0 is compatible with Python 2.5 only.
-
-MindTree uses Tkinter and Tix to build its GUI.  Most standard python
-distributions include everything you need to use MindTree.  MindTree is known
-to work with the following Python 2.5 distributions with no additional
-packages.
-
-   - Windows Distributions of Python from Python.org
-   - LINUX Distributions of Python from Python.org
-   - All Python distributions from ActiveState.com
-
-MindTree includes a SpellChecker plugin which will not work on a default
-install.  If you wish to use the SpellChecker, you must install pyEnchant.
-You can find the installer for this package here:  http://pyenchant.sourceforge.net/
+MindTree 1.5 (or later) is compatible with Python 2.6, PyQt and PyEnchant.
 
 Installation
+============
 
-The simplist way to install MindTree is to unzip the archive.
+Environment
 
-To run, run the MIndTree.py python script.
+Before you can run MindTree, you must install the supporting tools: Python,
+PyQt and PyEnchant (optional).  These packages are free of cost, available on
+the web and very simple to install.  MindTree functions without PyEnchant
+installed, however the Spell Checker tool will not work without it.
+
+Python:    http://python.org/download.
+PyQt:      http://www.riverbankcomputing.co.uk/software/pyqt/download
+PyEnchant: http://pyenchant.sourceforge.net/download.php
+
+Application
+
+The simplist way to install MindTree is to unzip the downloaded file.
+
+Running MindTree
+================
+
+To run, run the MindTree.pyw python script.
+
+In windows you should be able to click on the MindTree.pyw file.  From a
+command-line you can type 'python MindTree.pyw'.
+
 
