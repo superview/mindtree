@@ -207,80 +207,6 @@ class Resources( SafeConfigParser ):
 RES = Resources( )
 
 
-class Project( object ):
-   NAME_COUNTER = 0
-  
-   def __init__( self, title=None, filename=None, data=None ):
-      self._title           = title
-      self._projectDir      = None
-      self._filename        = filename
-      self.modified         = False
-      self.data             = data      # The actual data in the project
-      self.resources        = { }
-      
-      if filename is None:
-         filename = self.genUntitledFilename( )
-      
-      if title is None:
-         disk,path,title,ext = splitFilePath(filename)
-         self._title = title[0].upper() + title[1:]
-      
-      if data is None:
-         data = { }
-      
-      self.setFilename( filename )
-
-   def title( self ):
-      return self._title
-
-   def filename( self, fullName=False ):
-      if fullName:
-         return os.path.join( self._projectDir, self._filename )
-      else:
-         return self._filename
-
-   def setFilename( self, filename ):
-      backupDir = RES.get( 'Project', 'backupDir' )
-      
-      disk,path,name,extension = splitFilePath( filename )
-      self._projectDir = os.path.join( disk, path )
-      self._backupDir  = os.path.join( self._projectDir, backupDir )
-      self._filename   = name + extension
-
-   def activateProjectDir( self ):
-      os.chdir( self._projectDir )
-   
-   def genUntitledFilename( self ):
-      Project.NAME_COUNTER += 1
-      return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
-
-   def validate( self ):
-      self.data[0].validate( )
-
-   def backup( self ):
-      import datetime
-      import shutil
-      from filesystemTools import splitFilePath
-      
-      if not os.path.exists( self._filename ):
-         return
-      
-      if self._filename and (self._filename != ''):
-         disk,path,name,extension = splitFilePath( self._filename )
-         if extension == '':
-            extension = self._archiver.defaultExtension( )
-         
-         theDate = datetime.datetime.today( )
-         theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S' )
-         name = name + theDateTimeString + extension
-         
-         backupFilename = os.path.join( self._backupDirectory, name )
-         shutil.copyfile( self._filename, backupFilename )
-
-   def writeToFile( self, archiver=None, promptNewFilename=False ):
-      pass
-
-
 class Archiver( object ):
    def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
       self._parentWidget     = parentWidget
@@ -430,6 +356,81 @@ class Archiver( object ):
       f = open( filename, 'wb' )
       pickle.dump( aProject.data, f, pickle.HIGHEST_PROTOCOL )
    
+
+class Project( object ):
+   NAME_COUNTER = 0
+   DEFAULT_ARCHIVER = None
+  
+   def __init__( self, title=None, filename=None, data=None ):
+      self._title           = title
+      self._projectDir      = None
+      self._filename        = filename
+      self.modified         = False
+      self.data             = data      # The actual data in the project
+      self.resources        = { }
+      
+      if filename is None:
+         filename = self.genUntitledFilename( )
+      
+      if title is None:
+         disk,path,title,ext = splitFilePath(filename)
+         self._title = title[0].upper() + title[1:]
+      
+      if data is None:
+         data = { }
+      
+      self.setFilename( filename )
+
+   def title( self ):
+      return self._title
+
+   def filename( self, fullName=False ):
+      if fullName:
+         return os.path.join( self._projectDir, self._filename )
+      else:
+         return self._filename
+
+   def setFilename( self, filename ):
+      backupDir = RES.get( 'Project', 'backupDir' )
+      
+      disk,path,name,extension = splitFilePath( filename )
+      self._projectDir = os.path.join( disk, path )
+      self._backupDir  = os.path.join( self._projectDir, backupDir )
+      self._filename   = name + extension
+
+   def activateProjectDir( self ):
+      os.chdir( self._projectDir )
+   
+   def genUntitledFilename( self ):
+      Project.NAME_COUNTER += 1
+      return 'Untitled{0:02d}'.format(Project.NAME_COUNTER)
+
+   def validate( self ):
+      self.data[0].validate( )
+
+   def backup( self ):
+      import datetime
+      import shutil
+      from filesystemTools import splitFilePath
+      
+      if not os.path.exists( self._filename ):
+         return
+      
+      if self._filename and (self._filename != ''):
+         disk,path,name,extension = splitFilePath( self._filename )
+         if extension == '':
+            extension = self._archiver.defaultExtension( )
+         
+         theDate = datetime.datetime.today( )
+         theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S' )
+         name = name + theDateTimeString + extension
+         
+         backupFilename = os.path.join( self._backupDirectory, name )
+         shutil.copyfile( self._filename, backupFilename )
+
+   def writeToFile( self, archiver=None, promptNewFilename=False ):
+      pass
+
 
 class Application( QtGui.QMainWindow ):
    '''File handling operations (new, open, save, etc.) can get quite confusing
