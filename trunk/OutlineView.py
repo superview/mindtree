@@ -529,7 +529,14 @@ class OutlineView(QtGui.QSplitter):
       toolbars = [ self._treetoolbar ]
       toolbars.extend( self._articleView.getToolbars() )
       return toolbars
-   
+
+   # Subwidget Access (mainly used by pluggable tools
+   def outlineWidget( self ):
+      return self._outlineView
+
+   def articleWidget( self ):
+      return self._articleView
+
    # Basic Operations
    def setModel( self, project ):
       project.validate( )
