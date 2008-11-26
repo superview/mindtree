@@ -19,7 +19,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
                       }
 
    def __init__( self, parentWidget ):
-      workingDir = RES.get( 'Project',  'directory'     )
+      workingDir = RES.get( 'Project',  'workspace'     )
       
       ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
       self._document = QtGui.QTextDocument( )  # for converting text to html
@@ -33,10 +33,10 @@ class MT1ImportingArchiver( ImporterPlugin ):
       data = pickle.load( open( aFilename, 'rb' ) )
       
       theConvertedProject = self.convertProject( data._tree, documentName )
-      theModel     = OutlineModel( theConvertedProject )
+      theRootNode     = theConvertedProject
       theResources = { }
       
-      return theModel, theResources
+      return documentName, theRootNode, theResources
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )

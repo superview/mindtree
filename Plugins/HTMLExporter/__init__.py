@@ -17,7 +17,7 @@ class HtmlExporter( ExporterPlugin ):
    IMAGE_DIR              = r'img'
 
    def __init__( self, parentWidget ):
-      workingDir = RES.get( 'Project',  'directory'     )
+      workingDir = RES.get( 'Project',  'workspace'     )
       
       ExporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
    
