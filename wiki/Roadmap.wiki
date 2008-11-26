@@ -25,7 +25,9 @@
 *1.8* (public alpha)
    * Plugins
       * DONE: Tool box - create the tabbed tool box
-      * DONE: Import/Export Plugins
+      * Import/Export Plugins
+         * DONE: MindTree 1 Importer
+         * HTML Exporter Plugin
       * Find/Replace Plugin
          * DONE: GUI
          * Backend
