@@ -1,5 +1,4 @@
 #summary This document lists future versions and features.
-#labels Featured
 
 *1.5* (internal)
    * Outline Viewer App
@@ -28,7 +27,11 @@
       * DONE: Tool box - create the tabbed tool box
       * DONE: Import/Export Plugins
       * Find/Replace Plugin
+         * DONE: GUI
+         * Backend
       * Spell Checking Plugin (provided pyEnchant for Python 2.6 is ready)
+         * DONE: GUI
+         * Backend
 
 *1.9* (public beta)
    * Distribution
