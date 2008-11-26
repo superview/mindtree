@@ -89,6 +89,8 @@ pluginClass = myTool
 '''
 
 class MindTreeProject( Project ):
+   DEFAULT_ARCHIVER = None
+   
    def __init__( self, filename=None, archiver=None, title=None, outline=None, resources=None ):
       '''
       nothing             - create a default project
@@ -130,22 +132,6 @@ class MindTreeProject( Project ):
       
       self.modified = False
 
-class MindTreeArchiver( Archiver ):
-   def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
-      Archiver.__init__( self, parentWidget, fileTypes, defaultExtension, initialDir )
-   
-   def _read( self, filename ):
-      import pickle
-      data = pickle.load( open( filename, 'rb' ) )
-      return data
-
-   def _write( self, data, filename ):
-      # Since the OutlineModel class is a subclass of a Qt class, it cannot
-      # be included in the serialized data.
-      import pickle
-      f = open( filename, 'wb' )
-      pickle.dump( data, f, pickle.HIGHEST_PROTOCOL )
-
 
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
@@ -155,7 +141,7 @@ class MindTree( Application ):
       fileExts   = RES.get( 'Application', 'fileExtension' )
       workingDir = RES.get( 'Project',     'directory'     )
       
-      Application.__init__( self, MindTreeArchiver(self,fileTypes,fileExts,workingDir) )
+      Application.__init__( self, Archiver(self,fileTypes,fileExts,workingDir) )
       
       self.setObjectName("MainWindow")
       
