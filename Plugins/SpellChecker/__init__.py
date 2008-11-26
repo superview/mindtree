@@ -4,8 +4,11 @@ from tkApplicationFramework import PluggableTool
 import Tkinter
 import Tix
 
-import enchant.checker
-from enchant.tokenize import EmailFilter, URLFilter
+try:
+   import enchant.checker
+   from enchant.tokenize import EmailFilter, URLFilter
+except:
+   pass
 
 class SpellChecker( PluggableTool ):
    NAME             = 'Spelling'
@@ -23,7 +26,11 @@ class SpellChecker( PluggableTool ):
       self._language    = Tkinter.StringVar( )
       
       language = self.getOption( 'language' )
-      self._chkr = enchant.checker.SpellChecker(language, filters=[EmailFilter,URLFilter])
+      
+      try:
+         self._chkr = enchant.checker.SpellChecker(language, filters=[EmailFilter,URLFilter])
+      except:
+         pass
       
       self._currentLine  = 0
       self._maxLine      = 0
