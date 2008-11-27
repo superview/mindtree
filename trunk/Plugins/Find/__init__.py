@@ -9,7 +9,7 @@ class Find( PluggableTool, QtGui.QWidget ):
    DEFAULT_SETTINGS = {
                       }
 
-   def __init__( self, parent, outlineView ):
+   def __init__( self, parent, app, outlineView ):
       PluggableTool.__init__( self )
       QtGui.QWidget.__init__( self, parent )
       
