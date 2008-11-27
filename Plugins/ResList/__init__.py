@@ -15,6 +15,7 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
    
    def __init__( self, parent, app, outlineView ):
       Resources.theApp = app
+      self._outlineView = outlineView
       
       QtGui.QTabWidget.__init__( self, parent )
       PluggableTool.__init__( self )
@@ -61,6 +62,17 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
       self._insertBtn = QtGui.QPushButton( self )
       self._insertBtn.setText( RES.get('Tool.Resources','insertBtnLabel',translate=True) )
       gridLayout.addWidget( self._insertBtn, row, 2, 1, 1 )
+      
+      row += 1
+      
+      self._refreshBtn = QtGui.QPushButton( self )
+      self._refreshBtn.setText( 'Refresh' )
+      gridLayout.addWidget( self._refreshBtn, row, 2, 1, 1 )
+      QtCore.QObject.connect( self._refreshBtn, QtCore.SIGNAL('clicked()'), self.populate )
+
+   def populate( self ):
+      resources = self._outlineView.getResources()
+      self._resList.addItems( resources.keys() )
 
  
 pluginClass = Resources

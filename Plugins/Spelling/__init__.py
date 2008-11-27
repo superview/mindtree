@@ -144,7 +144,7 @@ class Spelling( PluggableTool, QtGui.QWidget ):
    
    def replace( self ):
       newWord = unicode(self._suggestion.text())
-      if newWord == self._chkr.word:
+      if (newWord == self._chkr.word) or (newWord == ''):
          return
       
       # Replace the text in the article view widget
