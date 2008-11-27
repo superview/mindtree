@@ -37,11 +37,9 @@
          * DONE: GUI
          * Backend
       * DONE: Spell Checking Plugin
-         * DONE: GUI
-         * DONE: Backend
-      * Resource Editor Plugin
-         * DONE: GUI
-         * Backend
+      * Resource List Plugin
+         * Resource View
+         * Resource Editing/Creation
 
 *1.9* (public beta)
    * Distribution
