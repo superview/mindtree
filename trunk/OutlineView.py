@@ -537,6 +537,9 @@ class OutlineView(QtGui.QSplitter):
    def articleWidget( self ):
       return self._articleView
 
+   def getResources( self ):
+      return self._resources
+   
    # Basic Operations
    def setModel( self, project ):
       project.validate( )
