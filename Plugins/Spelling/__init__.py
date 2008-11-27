@@ -19,7 +19,7 @@ class Spelling( PluggableTool, QtGui.QWidget ):
                       'personalwordlist':     ''
                       }
 
-   def __init__( self, parent, outlineView ):
+   def __init__( self, parent, app, outlineView ):
       PluggableTool.__init__( self )
       QtGui.QWidget.__init__( self, parent )
       
@@ -57,6 +57,16 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       self._context.addItems( RES.getMultipartResource('Tool.Find','contextList',translate=True) )
       gridLayout.addWidget( self._context, row, 1, 1, 3 )
       
+      ### Since we only currently support the article context, we must select
+      ### make it fixed.
+      for idx,name in enumerate( RES.get('Tool.Spelling','contextList') ):
+         if name.upper() == 'ARTICLE':
+            break
+      
+      self._context.setCurrentIndex( idx )
+      self._context.setEditable( False )
+      self._context.setEnabled( False )
+      
       row += 1
       
       self._recheckBtn = QtGui.QPushButton( self )
@@ -65,8 +75,9 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       gridLayout.addWidget( self._recheckBtn, row, 0, 1, 1 )
       
       self._sugList    = QtGui.QListWidget( self )
+      self._sugList.setSelectionMode( QtGui.QAbstractItemView.SingleSelection )
       gridLayout.addWidget( self._sugList, row, 1, 4, 1 )
-      QtCore.QObject.connect( self._sugList, QtCore.SIGNAL('itemActivated(QListWidgetItem)'), self.selectSuggestion )
+      QtCore.QObject.connect( self._sugList, QtCore.SIGNAL('itemSelectionChanged()'), self.selectSuggestion )
       
       self._suggestion = QtGui.QLineEdit( self )
       gridLayout.addWidget( self._suggestion, row, 2, 1, 2 )
@@ -106,49 +117,101 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       self._addBtn.setText( RES.get('Tool.Spelling','addBtnLabel',translate=True) )
       QtCore.QObject.connect( self._addBtn, QtCore.SIGNAL('clicked()'), self.add )
       gridLayout.addWidget( self._addBtn, row, 2, 1, 1 )
+      
+      self._spellingSelection = QtGui.QTextEdit.ExtraSelection( )
+      format = QtGui.QTextCharFormat( )
+      format.setFontUnderline( True )
+      format.setUnderlineStyle( QtGui.QTextCharFormat.SpellCheckUnderline )
+      format.setUnderlineColor( QtGui.QColor( 'red' ) )
+      self._spellingSelection.format = format
 
    def recheck( self ):
-      textToCheck = self._outlineView.articleWidget( ).toPlainText( )
+      self._sugList.clear( )
+      textToCheck = unicode(self._outlineView.articleWidget( ).toPlainText( ))
       self._chkr.set_text( textToCheck )
       self.next( )
 
    def stop( self ):
-      pass
+      self._sugList.clear( )
+      self._outlineView.articleWidget().setExtraSelections( [ ] )
 
-   def selectSuggestion( self, itemList ):
-      pass
+   def selectSuggestion( self ):
+      selectedItems = self._sugList.selectedItems( )
+      if len(selectedItems) > 0:
+         itemIndex = self._sugList.indexFromItem(selectedItems[ 0 ])
+         string = unicode(itemIndex.data().toString())
+         self._suggestion.setText( string )
    
    def replace( self ):
-      pass
-   
+      newWord = unicode(self._suggestion.text())
+      if newWord == self._chkr.word:
+         return
+      
+      # Replace the text in the article view widget
+      wordPos = self._chkr.wordpos
+      wordLen = len(self._chkr.word)
+      cursor = self._outlineView.articleWidget().textCursor()
+      cursor.setPosition( wordPos )
+      cursor.setPosition( wordPos + wordLen, QtGui.QTextCursor.KeepAnchor )
+      self._outlineView.articleWidget().setTextCursor( cursor )
+      self._outlineView.articleWidget().insertPlainText( newWord )
+      
+      # Replace the text in the spell checker
+      self._chkr.replace( newWord )
+      
+      # Clear the error info from the article widget and suggestion list
+      self._sugList.clear( )
+      self._outlineView.articleWidget().setExtraSelections( [ ] )
+      
+      self.next( )
+
    def replaceAll( self ):
-      pass
+      self._globalReplace[ self._chkr.word ] = unicode(self._suggestion.text())
+      self.replace( )
    
    def ignore( self ):
-      pass
+      self.next( )
    
    def ignoreAll( self ):
-      pass
+      self._chkr.ignore_always( )
+      self.next( )
    
    def add( self ):
-      pass
+      self._chkr.add_to_personal( unicode(self._suggestion.text()) )
+      self.next( )
 
    def next( self ):
       self._errWord = ''
+      self._sugList.clear( )
+      #removeAllSpellingMarkings
       
-      pass
-   
-   def _next( self ):
+      # Identify the next error that's not in the global replace list
       try:
          self._chkr.next( )
+         while self._chkr.word in self._globalReplace:
+            self._errWord = self._globalReplace[ self._chkr.word ]
+            self.replace( )
       except StopIteration:
-         if self._scanLineNum == len(self._textLines):
-            raise StopIteration
-         else:
-            self._chkr.set_text( self._textLines[ self._scanLineNum ] )
-            self._scanLineNum += 1
-         
-         self._next()
-
+         return
+      
+      # Mark the error in the article widget
+      wordPos = self._chkr.wordpos
+      wordLen = len(self._chkr.word)
+      cursor = self._outlineView.articleWidget().textCursor()
+      cursor.setPosition( wordPos )
+      cursor.setPosition( wordPos + wordLen, QtGui.QTextCursor.KeepAnchor )
+      self._spellingSelection.cursor = cursor
+      self._outlineView.articleWidget().setExtraSelections( [ self._spellingSelection ] )
+      
+      # Put the suggestions into the list widget
+      self._errWord = self._chkr.word
+      for word in self._chkr.suggest( ):
+         self._sugList.addItem( word )
+      
+      # Select the first entry in the list widget as the default
+      rootIndex = self._sugList.rootIndex()
+      indexOfFirst = rootIndex.child( 0, 0 )
+      self._sugList.setCurrentIndex( indexOfFirst )
+   
 
 pluginClass = Spelling
