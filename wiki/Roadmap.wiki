@@ -36,9 +36,9 @@
       * Find/Replace Plugin
          * DONE: GUI
          * Backend
-      * Spell Checking Plugin
+      * DONE: Spell Checking Plugin
          * DONE: GUI
-         * Backend
+         * DONE: Backend
       * Resource Editor Plugin
          * DONE: GUI
          * Backend
