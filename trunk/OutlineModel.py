@@ -113,34 +113,34 @@ class TreeNode( object ):
       return TreeNodeIterator( self )
 
 
-class TreeNodeIterator( object ):
-   def __init__( self, node ):
-      self._iterRoot = node
-      self._next     = node
+#class TreeNodeIterator( object ):
+   #def __init__( self, node ):
+      #self._iterRoot = node
+      #self._next     = node
    
-   def next( self ):
-      if self._next is None:
-         raise StopIteration
+   #def next( self ):
+      #if self._next is None:
+         #raise StopIteration
       
-      result = self._next
+      #result = self._next
       
-      if self._next.hasChildren( ):
-         self._next = self._next.child(0)
-         return result
-      else:
-         while self._next is not self._iterRoot:
-            whichChildIsCurrent = self._next.row()
-            nextSibling = whichChildIsCurrent + 1
-            parent = self._next.parent( )
+      #if self._next.hasChildren( ):
+         #self._next = self._next.child(0)
+         #return result
+      #else:
+         #while self._next is not self._iterRoot:
+            #whichChildIsCurrent = self._next.row()
+            #nextSibling = whichChildIsCurrent + 1
+            #parent = self._next.parent( )
             
-            try:
-               self._next = parent.child( nextSibling )
-               return result
-            except:
-               self._next = parent
+            #try:
+               #self._next = parent.child( nextSibling )
+               #return result
+            #except:
+               #self._next = parent
       
-      self._next = None
-      return result
+      #self._next = None
+      #return result
 
 
 class OutlineModel(QtCore.QAbstractItemModel):
@@ -160,12 +160,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       global EmptyArticleIcon, FullArticleIcon
       OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
       OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
-      
-      for ct,idx in enumerate( self ): #OutlineModelIterator(self.index(0,0,QtCore.QModelIndex())) ):
-         try:
-            print( '{0:4}: {1}'.format( ct,unicode(idx.data().toString()) ) )
-         except:
-            print( '{0:4}: #UNPRINTABLE#'.format( ct ) )
 
    def root( self ):
       return self._rootNode
@@ -444,4 +438,55 @@ class OutlineModelIterator( object ):
       self._next = None
       return result
 
+
+class ArticleIterator( object ):
+   '''ArticleIterator iterates over the articles in an Outline
+
+   A textIterator must be an iterator class (provide a next() function which
+   returns the next item in the sequence or raises StopIteration if there are
+   no items left in the sequence.  textIterator must also supply a restart(text)
+   which takes a string as an argument.  This function should reinit the
+   iterator to begin scanning the text passed in.  TextIterator may be used as
+   a base class to provide some of the implementation.
+
+   When textIterator is passed into this constructor, it may be ready to iterate
+   OR it can raise StopIteration and allow ArticleTextIterator to initialize it.
+   '''
+   def __init__( self, treeNodeIterator, textIterator ):
+      self._treeIter         = treeNodeIterator
+      self._textIter         = textIterator
+      
+      self._currentNodeIndex = None
+   
+   def next( self ):
+      try:
+         articleIterResult = self._textIter.next( )
+      except StopIteration:
+         self._currentNodeIndex = self._treeIter.next( )
+         textToIterate = self._currentNodeIndex.internalPointer().article()
+         self._textIter.restart( textToIterate )
+         articleIterResult = self._textIter.next( )
+      
+      return self._currentNodeIndex, articleIterResult
+
+
+class TextIterator( object ):
+   '''TextIterator iterates over a piece of text.  Each call to next returns
+   information on pieces of the text of interest.
+   '''
+   def __init__( self, articleText=None ):
+      self._text = None
+      
+      if articleText:
+         self.restart( articleText )
+
+   # Contract
+   def next( self ):
+      'Derived class implementation should call this method before doing anything.'
+      if self._text is None:
+         raise StopIteration
+
+   def restart( self, text ):
+      'Derived class implementation should call this method before doing anything.'
+      self._text = text
 
