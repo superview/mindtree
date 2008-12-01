@@ -1,26 +1,38 @@
-from ApplicationFramework import RES, PluggableTool
+from MindTreeApplicationFramework import *
 from PyQt4 import QtCore, QtGui
 
 try:
    import enchant.checker
    from enchant.tokenize import EmailFilter, URLFilter
 except:
-   if RES.getboolean('Tool.Spelling','hideIfPyEnchantNotFound'):
+   if RES.getboolean('Spelling','hideIfPyEnchantNotFound'):
       raise
 
 
-class Spelling( PluggableTool, QtGui.QWidget ):
+class Spelling( MindTreePluggableTool, QtGui.QWidget ):
    NAME             = 'Spelling'
    VERSION          = ( 1, 0 )
    BUILD_DATE       = ( 2008, 11, 24 )
    
    DEFAULT_SETTINGS = {
-                      'language':             'en_US',
-                      'personalwordlist':     ''
+                      # Resources
+                      'hideIfPyEnchantNotFound': 'True',
+                      'scopeLabel':              'Scope',
+                      'scopeList':               'selection:article:subtree:all',
+                      'recheckBtnLabel':         'Recheck',
+                      'stopBtnLabel':            'Stop',
+                      'replaceBtnLabel':         'Replace',
+                      'replaceAllBtnLabel':      'Replace All',
+                      'ignoreBtnLabel':          'Ignore',
+                      'ignoreAllBtnLabel':       'Ignore All',
+                      'addBtnLabel':             'Add',
+                      # Configuration
+                      'language':                'en_US',
+                      'personalwordlist':        ''
                       }
 
    def __init__( self, parent, app, outlineView ):
-      PluggableTool.__init__( self )
+      MindTreePluggableTool.__init__( self, parent, app, outlineView )
       QtGui.QWidget.__init__( self, parent )
       
       try:
@@ -29,7 +41,7 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       except:
          pass
       
-      self._outlineView  = outlineView
+      #self._outlineView  = outlineView
       self._cursor       = None
       self._currentLine  = 0
       self._maxLine      = 0
@@ -50,27 +62,27 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       row = 0
       
       label = QtGui.QLabel( self )
-      label.setText( RES.get('Tool.Spelling','contextLabel') )
+      label.setText( RES.get('Spelling','scopeLabel') )
       gridLayout.addWidget( label, row, 0, 1, 1 )
       
-      self._context = QtGui.QComboBox( self )
-      self._context.addItems( RES.getMultipartResource('Tool.Find','contextList',translate=True) )
-      gridLayout.addWidget( self._context, row, 1, 1, 3 )
+      self._scope = QtGui.QComboBox( self )
+      self._scope.addItems( RES.getMultipartResource('Spelling','scopeList',translate=True) )
+      gridLayout.addWidget( self._scope, row, 1, 1, 3 )
       
       ### Since we only currently support the article context, we must select
       ### make it fixed.
-      for idx,name in enumerate( RES.get('Tool.Spelling','contextList') ):
+      for idx,name in enumerate( RES.get('Spelling','scopeList') ):
          if name.upper() == 'ARTICLE':
             break
       
-      self._context.setCurrentIndex( idx )
-      self._context.setEditable( False )
-      self._context.setEnabled( False )
+      self._scope.setCurrentIndex( idx )
+      self._scope.setEditable( False )
+      self._scope.setEnabled( False )
       
       row += 1
       
       self._recheckBtn = QtGui.QPushButton( self )
-      self._recheckBtn.setText( RES.get('Tool.Spelling','recheckBtnLabel',translate=True) )
+      self._recheckBtn.setText( RES.get('Spelling','recheckBtnLabel',translate=True) )
       QtCore.QObject.connect( self._recheckBtn, QtCore.SIGNAL('clicked()'), self.recheck )
       gridLayout.addWidget( self._recheckBtn, row, 0, 1, 1 )
       
@@ -85,45 +97,45 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       row += 1
       
       self._stopBtn = QtGui.QPushButton( self )
-      self._stopBtn.setText( RES.get('Tool.Spelling','stopBtnLabel',translate=True) )
+      self._stopBtn.setText( RES.get('Spelling','stopBtnLabel',translate=True) )
       QtCore.QObject.connect( self._stopBtn, QtCore.SIGNAL('clicked()'), self.stop )
       gridLayout.addWidget( self._stopBtn, row, 0, 1, 1 )
       
       self._replaceBtn = QtGui.QPushButton( self )
-      self._replaceBtn.setText( RES.get('Tool.Spelling','replaceBtnLabel',translate=True) )
+      self._replaceBtn.setText( RES.get('Spelling','replaceBtnLabel',translate=True) )
       QtCore.QObject.connect( self._replaceBtn, QtCore.SIGNAL('clicked()'), self.replace )
       gridLayout.addWidget( self._replaceBtn, row, 2, 1, 1 )
       
       self._replaceAllBtn = QtGui.QPushButton( self )
-      self._replaceAllBtn.setText( RES.get('Tool.Spelling','replaceAllBtnLabel',translate=True) )
+      self._replaceAllBtn.setText( RES.get('Spelling','replaceAllBtnLabel',translate=True) )
       QtCore.QObject.connect( self._replaceAllBtn, QtCore.SIGNAL('clicked()'), self.replaceAll )
       gridLayout.addWidget( self._replaceAllBtn, row, 3, 1, 1 )
       
       row += 1
       
       self._ignoreBtn = QtGui.QPushButton( self )
-      self._ignoreBtn.setText( RES.get('Tool.Spelling','ignoreBtnLabel',translate=True) )
+      self._ignoreBtn.setText( RES.get('Spelling','ignoreBtnLabel',translate=True) )
       QtCore.QObject.connect( self._ignoreBtn, QtCore.SIGNAL('clicked()'), self.ignore )
       gridLayout.addWidget( self._ignoreBtn, row, 2, 1, 1 )
       
       self._ignoreAllBtn = QtGui.QPushButton( self )
-      self._ignoreAllBtn.setText( RES.get('Tool.Spelling','ignoreAllBtnLabel',translate=True) )
+      self._ignoreAllBtn.setText( RES.get('Spelling','ignoreAllBtnLabel',translate=True) )
       QtCore.QObject.connect( self._ignoreAllBtn, QtCore.SIGNAL('clicked()'), self.ignoreAll )
       gridLayout.addWidget( self._ignoreAllBtn, row, 3, 1, 1 )
       
       row += 1
       
       self._addBtn = QtGui.QPushButton( self )
-      self._addBtn.setText( RES.get('Tool.Spelling','addBtnLabel',translate=True) )
+      self._addBtn.setText( RES.get('Spelling','addBtnLabel',translate=True) )
       QtCore.QObject.connect( self._addBtn, QtCore.SIGNAL('clicked()'), self.add )
       gridLayout.addWidget( self._addBtn, row, 2, 1, 1 )
       
-      self._spellingSelection = QtGui.QTextEdit.ExtraSelection( )
+      # Define the special selection
       format = QtGui.QTextCharFormat( )
       format.setFontUnderline( True )
       format.setUnderlineStyle( QtGui.QTextCharFormat.SpellCheckUnderline )
       format.setUnderlineColor( QtGui.QColor( 'red' ) )
-      self._spellingSelection.format = format
+      self.defineTextSelector( format )
 
    def recheck( self ):
       self._sugList.clear( )
@@ -147,21 +159,19 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       if (newWord == self._chkr.word) or (newWord == ''):
          return
       
+      articleWidget = self._outlineView.articleWidget()
+      spellingCursor = self.specialSelection().cursor
+      
       # Replace the text in the article view widget
-      wordPos = self._chkr.wordpos
-      wordLen = len(self._chkr.word)
-      cursor = self._outlineView.articleWidget().textCursor()
-      cursor.setPosition( wordPos )
-      cursor.setPosition( wordPos + wordLen, QtGui.QTextCursor.KeepAnchor )
-      self._outlineView.articleWidget().setTextCursor( cursor )
-      self._outlineView.articleWidget().insertPlainText( newWord )
+      spellingCursor.removeSelectedText()
+      articleWidget.insertPlainText( newWord )
       
       # Replace the text in the spell checker
       self._chkr.replace( newWord )
       
       # Clear the error info from the article widget and suggestion list
       self._sugList.clear( )
-      self._outlineView.articleWidget().setExtraSelections( [ ] )
+      spellingCursor.clearSelection()
       
       self.next( )
 
@@ -183,7 +193,7 @@ class Spelling( PluggableTool, QtGui.QWidget ):
    def next( self ):
       self._errWord = ''
       self._sugList.clear( )
-      #removeAllSpellingMarkings
+      self.specialSelection().cursor.clearSelection()
       
       # Identify the next error that's not in the global replace list
       try:
@@ -197,11 +207,7 @@ class Spelling( PluggableTool, QtGui.QWidget ):
       # Mark the error in the article widget
       wordPos = self._chkr.wordpos
       wordLen = len(self._chkr.word)
-      cursor = self._outlineView.articleWidget().textCursor()
-      cursor.setPosition( wordPos )
-      cursor.setPosition( wordPos + wordLen, QtGui.QTextCursor.KeepAnchor )
-      self._spellingSelection.cursor = cursor
-      self._outlineView.articleWidget().setExtraSelections( [ self._spellingSelection ] )
+      self.applyTextSelector( wordPos, wordPos + wordLen )
       
       # Put the suggestions into the list widget
       self._errWord = self._chkr.word

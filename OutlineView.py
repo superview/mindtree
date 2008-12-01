@@ -31,7 +31,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
       # Drag and Drop
       self.setDragEnabled( True )
       self.setAcceptDrops( True )
-      #self.setDropIndicatorShown( True )
+      self.setDropIndicatorShown( True )
       self.setDragDropMode( QtGui.QAbstractItemView.InternalMove )
       
       # Entry Editing
@@ -149,6 +149,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
 
    def dragMoveEvent( self, event ):
       index,relation = self._dnd_insertionPos( event )
+      self.setCurrentIndex( index )
       self.setSelection( QtCore.QRect( event.pos(), event.pos() ), QtGui.QItemSelectionModel.ClearAndSelect )
       self._selectCursor( relation )
 
@@ -158,7 +159,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
          event.acceptProposedAction( )
 
    def dragLeaveEvent( self, event ):
-      QtGui.QTreeView.dragLeaveEvent( self, event )
+      self.setState( QtGui.QAbstractItemView.NoState )
 
    def dropEvent( self, event ):
       if event.source() is self:
@@ -219,6 +220,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
       
       self.setStatusTip( statusTip )
       self.setCursor( cursor )
+      QtGui.QApplication.setOverrideCursor( cursor )
 
 
 class ArticleViewWidget( QtGui.QTextEdit ):
@@ -227,10 +229,12 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
       self._resources = { }
+      self._specialSelections = { }
       
       self._buildGui( )
       self._updateToolbars( )
 
+   # Slots
    def addImageResource( self, resURL, filename ):
       resType = QtGui.QTextDocument.ImageResource
       self._resources[ resURL ] = ( resType, filename )
@@ -641,6 +645,7 @@ class OutlineView(QtGui.QSplitter):
       # Save the currently active article
       self.swappingArticle = True
       
+      # Commit active article content
       if oldSelection:
          if isinstance( oldSelection, QtCore.QModelIndex ):
             index = oldSelection
