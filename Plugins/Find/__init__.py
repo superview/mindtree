@@ -1,8 +1,32 @@
 from MindTreeApplicationFramework import *
-from OutlineModel import OutlineModelIterator
+from OutlineModel import OutlineModelIterator, ArticleIterator, TextIterator
 from PyQt4 import QtCore, QtGui
 
 import re
+
+
+class FindIterator( TextIterator ):
+   def __init__( self, reObj ):
+      TextIterator.__init__( self )
+      self._regexObj = reObj
+      self._pos      = 0
+   
+   def restart( self, text ):
+      TextIterator.restart( self, text )
+      self._pos      = 0
+   
+   def next( self ):
+      TextIterator.next( self )
+      
+      match = self._regexObj.search( self._text, self._pos )
+      try:
+         start, stop = match.span( )
+      except:
+         raise StopIteration
+      
+      self._pos = stop
+      
+      return start,stop
 
 
 class Find( MindTreePluggableTool, QtGui.QWidget ):
@@ -150,28 +174,31 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       if self._outlineIter is None:
          self._outlineIter = self.createSearchIterator( )
       
-      if self._selectedScope == 'Article':
-         self._textToScan = unicode(self._articleWidget.toPlainText())
-         self._scanPos = 0
+      nodeIndex, span = self._outlineIter.next( )
+      print( '{0:4}-{1:4}:  {2}'.format( span[0], span[1], nodeIndex.data() ) )
       
-      match = self._seeker.search( self._textToScan, self._scanPos ) 
-      if match:
-         beginPos, endPos = match.span()
-         
-         # Mark the text
-         cursor = self._outlineView.articleWidget().textCursor()
-         cursor.setPosition( beginPos )
-         cursor.setPosition( endPos, QtGui.QTextCursor.KeepAnchor )
-         self._findSelection.cursor = cursor
-         self._outlineView.articleWidget().setExtraSelections( [ self._findSelection ] )
-         
-         # Advance the cursor
-         cursor = self._outlineView.articleWidget().textCursor()
-         cursor.setPosition( endPos )
-         self._outlineView.articleWidget().setTextCursor( cursor )
+      #if self._selectedScope == 'Article':
+         #self._textToScan = unicode(self._articleWidget.toPlainText())
+         #self._scanPos = 0
       
-      elif self._selectedScope == 'Selection':
-         return
+      #match = self._seeker.search( self._textToScan, self._scanPos ) 
+      #if match:
+         #beginPos, endPos = match.span()
+         
+         ## Mark the text
+         #cursor = self._outlineView.articleWidget().textCursor()
+         #cursor.setPosition( beginPos )
+         #cursor.setPosition( endPos, QtGui.QTextCursor.KeepAnchor )
+         #self._findSelection.cursor = cursor
+         #self._outlineView.articleWidget().setExtraSelections( [ self._findSelection ] )
+         
+         ## Advance the cursor
+         #cursor = self._outlineView.articleWidget().textCursor()
+         #cursor.setPosition( endPos )
+         #self._outlineView.articleWidget().setTextCursor( cursor )
+      
+      #elif self._selectedScope == 'Selection':
+         #return
 
    def replace( self ):
       if self._searchIter is None:
@@ -202,7 +229,7 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       wholeWords = self._wholeWords.isChecked()
       
       # Create the regex search object
-      self._seeker = self.buildRegex( pattern, regex, ignoreCase, wholeWords )
+      regexObj = self.buildRegex( pattern, regex, ignoreCase, wholeWords )
       
       # Determine the index to the subtree to be searched
       if self._selectedScope.upper() in ( 'SELECTION', 'ARTICLE', 'SUBTREE' ):
@@ -212,6 +239,7 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       else:
          raise Exception
       
+      return ArticleIterator( OutlineModelIterator(index), FindIterator(regexObj) )
       # Create the search iterator
       return OutlineModelIterator( index )
 

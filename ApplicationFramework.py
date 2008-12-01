@@ -47,8 +47,12 @@ class Resources( SafeConfigParser ):
       return self._actions[ name ]
 
    # Resource Values
-   def get( self, section, option, translate=False ):
-      resValue = SafeConfigParser.get( self, section, option )
+   def get( self, section, option, translate=False, default=None ):
+      try:
+         resValue = SafeConfigParser.get( self, section, option )
+      except:
+         resValue = default
+      
       if translate:
          resValue = QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8)
       return resValue
