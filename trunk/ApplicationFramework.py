@@ -720,8 +720,11 @@ class PluginManager( object ):
             # Store the default settings for this plugin
             if pluginClass and (not RES.has_section( pluginClass.NAME )):
                RES.add_section( pluginClass.NAME )
+            if pluginClass:
+               configuredOptions = RES.options( pluginClass.NAME )
                for opt,val in pluginClass.DEFAULT_SETTINGS.iteritems( ):
-                  RES.set( pluginClass.NAME, opt, val )
+                  if opt.lower() not in configuredOptions:
+                     RES.set( pluginClass.NAME, opt, val )
 
    def _importPlugin( self, pluginName ):
       try:
@@ -729,7 +732,7 @@ class PluginManager( object ):
          module      = imp.load_module( pluginName, *moduleInfo )
          pluginClass = module.pluginClass
       except ImportError:
-         print( 'Plugin %s not found' % pluginName )
+         print( 'The Plugin %s cannot be imported' % pluginName )
          return
       except AttributeError:
          print( 'Plugin instance %s.plugin not defined' % pluginName )

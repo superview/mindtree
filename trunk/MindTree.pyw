@@ -4,10 +4,7 @@ import sys
 sys.py3kwarning = True
 
 from PyQt4 import QtCore, QtGui
-from OutlineView import OutlineView
-from OutlineModel import OutlineModel
-from ApplicationFramework import Application, Archiver, RES, PluginManager, Project
-from utilities import *
+from MindTreeApplicationFramework import *
 
 
 #######################################
@@ -88,52 +85,6 @@ class MyTool( PluggableTool, QtGui.QWidget ):
 pluginClass = myTool
 '''
 
-class MindTreeProject( Project ):
-   def __init__( self, data=None, workspace=None, filename=None, name=None ):
-      self.data = None
-      Project.__init__( self, data, workspace, filename, name )
-
-   # Required Overrides
-   def validate( self ):
-      Project.validate( self )
-      
-      outlineModel,resources = self.data
-      outlineModel.validate( )
-      
-      #for name,entry in resources.iteritems():
-         #if not isinstance( name, (str,unicode) ):
-            #raise
-         
-         #if not 
-   
-   def setDefaultData( self ):
-      Project.setDefaultData( self )
-      
-      outlineModel = OutlineModel( )
-      resources    = { }
-      self.data = outlineModel,resources
-
-   def setPersistentData( self, data=None ):
-      baseClassData, rootNode, resources = data
-      Project.setPersistentData( self, baseClassData )
-      
-      outlineModel = OutlineModel( rootNode )
-      self.data = outlineModel,resources
-      
-      try:
-         self.validate( )
-      except:
-         self.setDefaultData( )
-
-   def getPersistentData( self ):
-      self.validate( )
-      outlineModel,resources = self.data
-      rootNode = outlineModel.root()
-      
-      baseClassData = Project.getPersistentData( self )
-      return ( baseClassData, rootNode, resources )
-
-
 class MindTree( Application ):
    UNTITLED_FILENAME_CT = 1
 
@@ -186,11 +137,11 @@ class MindTree( Application ):
       
       # Install Pluggable Tools
       for tabName in RES.getMultipartResource('Tools','Left'):
-         if tabName in self._plugins.pluginNames('PluggableTool'):
+         if tabName in self._plugins.pluginNames('MindTreePluggableTool'):
             tabContents = self._plugins.makePlugin( tabName, self.leftToolTabs, app, self._outlineView )
             self.leftToolTabs.addTab( tabContents, tabName )
       for tabName in RES.getMultipartResource('Tools','Right'):
-         if tabName in self._plugins.pluginNames('PluggableTool'):
+         if tabName in self._plugins.pluginNames('MindTreePluggableTool'):
             tabContents = self._plugins.makePlugin( tabName, self.rightToolTabs, app, self._outlineView )
             self.rightToolTabs.addTab( tabContents, tabName )
 

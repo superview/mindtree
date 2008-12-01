@@ -1,8 +1,8 @@
 from PyQt4 import QtCore, QtGui, Qt
-from ApplicationFramework import PluggableTool, RES
+from MindTreeApplicationFramework import *
 
 
-class Resources( QtGui.QTabWidget, PluggableTool ):
+class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
    theApp = None
 
    NAME             = 'Resources'
@@ -10,7 +10,15 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
    BUILD_DATE       = ( 2008, 11, 24 )
 
    DEFAULT_SETTINGS = {
-                         'font' : 'Lucida Sans Unicode:12',
+                      # Resources
+                      'filterLabel':            'Filter',
+                      'filterList':             'all:images:bookmarks:links',
+                      'addBtnLabel':            'Add',
+                      'removeBtnLabel':         'Remove',
+                      'modifyBtnLabel':         'Modify',
+                      'insertBtnLabel':         'Insert',
+                      # Configuration
+                      'font':                   'Lucida Sans Unicode:12'
                       }
    
    def __init__( self, parent, app, outlineView ):
@@ -18,7 +26,7 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
       self._outlineView = outlineView
       
       QtGui.QTabWidget.__init__( self, parent )
-      PluggableTool.__init__( self )
+      MindTreePluggableTool.__init__( self, parent, app, outlineView )
       
       gridLayout = QtGui.QGridLayout( self )
       gridLayout.setObjectName( 'ResGridLayout' )
@@ -29,11 +37,11 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
       gridLayout.addLayout( boxLayout, row, 0, 1, 2 )
       
       label = QtGui.QLabel( self )
-      label.setText( RES.get('Tool.Resources','filterLabel',translate=True) )
+      label.setText( RES.get('Resources','filterLabel',translate=True) )
       boxLayout.addWidget( label, QtCore.Qt.AlignHCenter )
       
       self._filter = QtGui.QComboBox( self )
-      self._filter.addItems( RES.getMultipartResource('Tool.Resources','filterList',translate=True) )
+      self._filter.addItems( RES.getMultipartResource('Resources','filterList',translate=True) )
       boxLayout.addWidget( self._filter, QtCore.Qt.AlignHCenter )
       
       row += 1
@@ -42,25 +50,25 @@ class Resources( QtGui.QTabWidget, PluggableTool ):
       gridLayout.addWidget( self._resList, row, 0, 4, 2 )
       
       self._addBtn = QtGui.QPushButton( self )
-      self._addBtn.setText( RES.get('Tool.Resources','addBtnLabel',translate=True) )
+      self._addBtn.setText( RES.get('Resources','addBtnLabel',translate=True) )
       gridLayout.addWidget( self._addBtn, row, 2, 1, 1 )
       
       row += 1
       
       self._removeBtn = QtGui.QPushButton( self )
-      self._removeBtn.setText( RES.get('Tool.Resources','removeBtnLabel',translate=True) )
+      self._removeBtn.setText( RES.get('Resources','removeBtnLabel',translate=True) )
       gridLayout.addWidget( self._removeBtn, row, 2, 1, 1 )
       
       row += 1
       
       self._modifyBtn = QtGui.QPushButton( self )
-      self._modifyBtn.setText( RES.get('Tool.Resources','modifyBtnLabel',translate=True) )
+      self._modifyBtn.setText( RES.get('Resources','modifyBtnLabel',translate=True) )
       gridLayout.addWidget( self._modifyBtn, row, 2, 1, 1 )
       
       row += 1
       
       self._insertBtn = QtGui.QPushButton( self )
-      self._insertBtn.setText( RES.get('Tool.Resources','insertBtnLabel',translate=True) )
+      self._insertBtn.setText( RES.get('Resources','insertBtnLabel',translate=True) )
       gridLayout.addWidget( self._insertBtn, row, 2, 1, 1 )
       
       row += 1

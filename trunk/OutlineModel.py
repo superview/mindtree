@@ -100,6 +100,49 @@ class TreeNode( object ):
       
       return True
 
+   def hasChildren( self ):
+      return len(self._childNodes) > 0
+   
+   def child( self, which ):
+      return self._childNodes[ which ]
+   
+   def parent( self ):
+      return self._parentNode
+   
+   def __iter__( self ):
+      return TreeNodeIterator( self )
+
+
+class TreeNodeIterator( object ):
+   def __init__( self, node ):
+      self._iterRoot = node
+      self._next     = node
+   
+   def next( self ):
+      if self._next is None:
+         raise StopIteration
+      
+      result = self._next
+      
+      if self._next.hasChildren( ):
+         self._next = self._next.child(0)
+         return result
+      else:
+         while self._next is not self._iterRoot:
+            whichChildIsCurrent = self._next.row()
+            nextSibling = whichChildIsCurrent + 1
+            parent = self._next.parent( )
+            
+            try:
+               self._next = parent.child( nextSibling )
+               return result
+            except:
+               self._next = parent
+      
+      self._next = None
+      return result
+
+
 class OutlineModel(QtCore.QAbstractItemModel):
    EmptyArticleIcon = None
    FullArticleIcon  = None
@@ -117,6 +160,12 @@ class OutlineModel(QtCore.QAbstractItemModel):
       global EmptyArticleIcon, FullArticleIcon
       OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
       OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
+      
+      for ct,idx in enumerate( self ): #OutlineModelIterator(self.index(0,0,QtCore.QModelIndex())) ):
+         try:
+            print( '{0:4}: {1}'.format( ct,unicode(idx.data().toString()) ) )
+         except:
+            print( '{0:4}: #UNPRINTABLE#'.format( ct ) )
 
    def root( self ):
       return self._rootNode
@@ -356,3 +405,43 @@ class OutlineModel(QtCore.QAbstractItemModel):
          
          # Do the insertion
          self.insertNode( refIndex, insertionRow, newNode )
+
+   def __iter__( self ):
+      return OutlineModelIterator( self.index(0,0,QtCore.QModelIndex()) )
+   
+   def indexForNode( self, aNode ):
+      if aNode.parent() is None:
+         return self.index( 0, 0, QtCore.QModelIndex() )
+      else:
+         return self.index( aNode.row(), 0, self.makeIndexForNode( aNode.parent() ) )
+
+
+class OutlineModelIterator( object ):
+   def __init__( self, index=None ):
+      self._rootIndex = index
+      self._next      = index
+   
+   def next( self ):
+      if self._next is None:
+         raise StopIteration
+      
+      result = self._next
+      
+      if len(self._next.internalPointer()._childNodes) > 0:
+         self._next = self._next.child(0,0)
+         return result
+      else:
+         while self._next.isValid() and (self._next is not self._rootIndex):
+            siblingRow = self._next.row() + 1
+            siblingNode = self._next.sibling(siblingRow,0)
+            
+            if siblingNode.isValid():
+               self._next = siblingNode
+               return result
+            else:
+               self._next = self._next.parent()
+      
+      self._next = None
+      return result
+
+

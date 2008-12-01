@@ -1,5 +1,5 @@
 from PyQt4 import QtCore, QtGui, Qt
-from ApplicationFramework import PluggableTool, RES
+from MindTreeApplicationFramework import *
 
 
 def CALLBACK( callback, *args, **kwargs ):
@@ -186,7 +186,7 @@ class _KBTab( object ):
          w.insert( string )
 
 
-class KeyboardWidget( QtGui.QTabWidget, PluggableTool ):
+class KeyboardWidget( QtGui.QTabWidget, MindTreePluggableTool ):
    NAME_COUNTER = 0
    theApp = None
 
@@ -336,7 +336,7 @@ class KeyboardWidget( QtGui.QTabWidget, PluggableTool ):
       KeyboardWidget.theApp = app
       
       QtGui.QTabWidget.__init__( self, parent )
-      PluggableTool.__init__( self )
+      MindTreePluggableTool.__init__( self, parent, app, outlineView )
       
       self._keyboards = [ ]
       
