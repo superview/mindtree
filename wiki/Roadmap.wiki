@@ -21,7 +21,7 @@
       * DONE: Cut & Paste
       * DONE: Menu Items
       * DONE: Toolbars
-      * Shortcuts - 'Tab' and 'Shift-Tab' aren't working properly.
+      * DONE: Shortcuts
 
 *1.8* (public alpha)
    * Plugins
