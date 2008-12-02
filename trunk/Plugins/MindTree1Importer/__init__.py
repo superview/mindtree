@@ -40,7 +40,6 @@ class MT1ImportingArchiver( ImporterPlugin ):
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )
-      #newModelOutline.setTitle( unicode(title) )
       newModelOutline.setTitle( title )
       return newModelOutline
 
