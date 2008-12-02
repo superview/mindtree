@@ -30,11 +30,11 @@
    * Plugins
       * DONE: Tool box - create the tabbed tool box
       * DONE: Keyboard Plugin
+      * DONE: Find/Replace Plugin
+      * DONE: Spell Checking Plugin
       * Import/Export Plugins
          * DONE: MindTree 1 Importer
          * HTML Exporter Plugin
-      * DONE: Find/Replace Plugin
-      * DONE: Spell Checking Plugin
       * Resource List Plugin
          * Resource View
          * Resource Editing/Creation
