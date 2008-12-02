@@ -42,7 +42,5 @@ if __name__=='__main__':
    
    index = model.index( 0, 0, QtCore.QModelIndex() )
    regex = re.compile( 'the', re.IGNORECASE )
-   itr   = ArticleIterator( OutlineModelIterator(index), FindIterator(regex) )
-   while True:
-      node,span = itr.next()
+   for node,span in ArticleIterator( index, FindIterator(regex), recurse=False ):
       print( '{0:4}-{1:4}:  {2}'.format( span[0], span[1], unicode(node.data().toString()) ) )

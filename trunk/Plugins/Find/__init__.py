@@ -59,7 +59,6 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       MindTreePluggableTool.__init__( self, parent, app, outlineView )
       QtGui.QWidget.__init__( self, parent )
       
-      self._selectedScope  = None
       self._outlineIter    = None
       self._matchIter      = None
       
@@ -147,12 +146,13 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       QtCore.QObject.connect( self._replAllBtn, QtCore.SIGNAL('clicked()'), self.replaceAll )
       buttonBox.addWidget( self._replAllBtn )
       
-      self._findSelection = QtGui.QTextEdit.ExtraSelection( )
+      #self._findSelection = QtGui.QTextEdit.ExtraSelection( )
       format = QtGui.QTextCharFormat( )
       format.setFontUnderline( True )
       format.setUnderlineStyle( QtGui.QTextCharFormat.SpellCheckUnderline )
       format.setUnderlineColor( QtGui.QColor( 'green' ) )
-      self._findSelection.format = format
+      self.defineTextSelector( format )
+      #self._findSelection.format = format
 
    def scopeChanged( self, index ):
       self.clearFinder( )
@@ -174,12 +174,14 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       if self._outlineIter is None:
          self._outlineIter = self.createSearchIterator( )
       
-      nodeIndex, span = self._outlineIter.next( )
-      print( '{0:4}-{1:4}:  {2}'.format( span[0], span[1], nodeIndex.data() ) )
-      
-      #if self._selectedScope == 'Article':
-         #self._textToScan = unicode(self._articleWidget.toPlainText())
-         #self._scanPos = 0
+      try:
+         nodeIndex, span, text = self._outlineIter.next( )
+         fromPos, toPos = span
+         self.applyTextSelector( fromPos, toPos )
+         #print( '\n{0:4}-{1:4}:  {2}'.format( fromPos, toPos, unicode(nodeIndex.data().toString()) ) )
+         #print( text[ fromPos - 10 : toPos + 10 ] )
+      except:
+         pass
       
       #match = self._seeker.search( self._textToScan, self._scanPos ) 
       #if match:
@@ -212,14 +214,14 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       
       pass
    
-   def createNewSearch( self ):
+   def createSearchIterator( self ):
       # Grab some basic information
       outlineWidget = self._outlineView.outlineWidget()
       outlineModel  = self._outlineView.getModel()
       
       # Detemine the scope of the search
       scope = self._scope.currentIndex()
-      self._selectedScope = RES.getMultipartResource('Find','scopeList')[ scope ]
+      scope = RES.getMultipartResource('Find','scopeList')[ scope ]
       
       # Collect search parameters
       pattern    = unicode(self._pattern.text())
@@ -232,16 +234,19 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       regexObj = self.buildRegex( pattern, regex, ignoreCase, wholeWords )
       
       # Determine the index to the subtree to be searched
-      if self._selectedScope.upper() in ( 'SELECTION', 'ARTICLE', 'SUBTREE' ):
+      if scope.upper() in ( 'SELECTION', 'ARTICLE', 'SUBTREE' ):
          index = outlineWidget.currentIndex()
-      elif context.upper() == 'ALL':
+      elif scope.upper() == 'ALL':
          index = outlineModel.index(0,0)
       else:
          raise Exception
       
-      return ArticleIterator( OutlineModelIterator(index), FindIterator(regexObj) )
-      # Create the search iterator
-      return OutlineModelIterator( index )
+      if scope.upper() in ( 'SELECTION', 'ARTICLE' ):
+         recurse = False
+      else:
+         recurse = True
+      
+      return ArticleIterator( index, FindIterator(regexObj), recurse )
 
    @staticmethod
    def buildRegex( pattern, regex, ignoreCase, wholeWords ):
