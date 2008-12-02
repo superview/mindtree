@@ -431,7 +431,7 @@ class OutlineModelIterator( object ):
          self._nextIndex = self._nextIndex.child(0,0)
          return result
       else:
-         while self._nextIndex.isValid() and (self._nextIndex is not self._rootIndex):
+         while self._nextIndex.isValid() and (self._nextIndex != self._rootIndex):
             siblingRow = self._nextIndex.row() + 1
             siblingNode = self._nextIndex.sibling(siblingRow,0)
             
@@ -445,7 +445,11 @@ class OutlineModelIterator( object ):
       return result
 
 
-class ArticleIterator( OutlineModelIterator ):
+class NoMoreSubstrings( Exception ):
+   pass
+
+
+class ArticleSubstringIterator( object ):
    '''ArticleIterator iterates over the articles in an Outline
 
    A textIterator must be an iterator class (provide a next() function which
@@ -458,52 +462,50 @@ class ArticleIterator( OutlineModelIterator ):
    When textIterator is passed into this constructor, it may be ready to iterate
    OR it can raise StopIteration and allow ArticleTextIterator to initialize it.
    '''
-   def __init__( self, index, textIterator, recurse=True ):
-      OutlineModelIterator.__init__( self, index, recurse )
-      self._textIter         = textIterator
-      self._articleText      = None
+   def __init__( self, outlineInter ):
+      self._outlineIter      = outlineInter
+      self._text             = None
       self._currentNodeIndex = None
       
       self._document = QtGui.QTextDocument( )  # used to convert html to text
    
-   def next( self ):
-      try:
-         articleIterResult = self._textIter.next( )
-      except StopIteration:
-         self._currentNodeIndex = OutlineModelIterator.next( self )
-         self._articleText = self._currentNodeIndex.internalPointer().article()
-         
-         # Convert the article to plain text
-         self._document.setHtml( self._articleText )
-         self._articleText = unicode(self._document.toPlainText( ))
-         
-         # Initialize the iterator
-         self._textIter.restart( self._articleText )
-         articleIterResult = self._textIter.next( )
-      
-      return self._currentNodeIndex, articleIterResult, self._articleText
-
-
-class TextIterator( object ):
-   '''TextIterator iterates over a piece of text.  Each call to next returns
-   information on pieces of the text of interest.
-   '''
-   def __init__( self, articleText=None ):
-      self._text = None
-      
-      if articleText:
-         self.restart( articleText )
-
    def __iter__( self ):
       return self
    
-   # Contract
    def next( self ):
-      'Derived class implementation should call this method before doing anything.'
-      if self._text is None:
-         raise StopIteration
+      try:
+         fromPos,toPos = self._nextSubstringOfInterest( )
+      except NoMoreSubstrings:
+         # We are now ready to iterate through a new article
+         
+         while True:
+            # Get the contents of the new article
+            self._currentNodeIndex = self._outlineIter.next( )
+            articleText = self._currentNodeIndex.internalPointer().article()
+            
+            # Convert the article to plain text
+            self._document.setHtml( articleText )
+            articleText = unicode(self._document.toPlainText( ))
+            
+            # Reinitialize the iteration over the article segments
+            self._setTextToParse( articleText )
+            try:
+               fromPos,toPos = self._nextSubstringOfInterest( )
+               break
+            except NoMoreSubstrings:
+               pass
+      
+      return self._currentNodeIndex, fromPos, toPos
 
-   def restart( self, text ):
+   def _setTextToParse( self, newText ):
       'Derived class implementation should call this method before doing anything.'
-      self._text = text
+      self._text = newText
+
+   def _nextSubstringOfInterest( self ):
+      '''Derived class implementation should call this method before doing anything.
+      
+      If there are no substrings to return, raise NoMoreSubstrings.
+      '''
+      if self._text is None:
+         raise NoMoreSubstrings
 

@@ -122,7 +122,6 @@ class OutlineViewWidget( QtGui.QTreeView ):
          import copy
          if event.button() == QtCore.Qt.LeftButton:
             self._dragStartPosition = copy.copy( event.pos() )
-            print( 'Clicked {0}'.format(self._dragStartPosition) )
          
          QtGui.QTreeView.mousePressEvent( self, event )
 

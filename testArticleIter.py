@@ -1,31 +1,35 @@
 from Plugins import MindTree1Importer
-from OutlineModel import OutlineModel, TextIterator, OutlineModelIterator, ArticleIterator
+from OutlineModel import OutlineModel, OutlineModelIterator, ArticleSubstringIterator, NoMoreSubstrings
 from PyQt4 import QtCore, QtGui
 import re
 import sys
 
-class FindIterator( TextIterator ):
-   def __init__( self, reObj ):
-      TextIterator.__init__( self )
+class FindSubstringIterator( ArticleSubstringIterator ):
+   def __init__( self, outlineIterator, reObj ):
+      ArticleSubstringIterator.__init__( self, outlineIterator )
       self._regexObj = reObj
       self._pos      = 0
    
-   def restart( self, text ):
-      TextIterator.restart( self, text )
+   def _setTextToParse( self, newText ):
+      ArticleSubstringIterator._setTextToParse( self, newText )
       self._pos      = 0
    
-   def next( self ):
-      TextIterator.next( self )
+   def _nextSubstringOfInterest( self ):
+      ArticleSubstringIterator._nextSubstringOfInterest( self )
       
       match = self._regexObj.search( self._text, self._pos )
       try:
          start, stop = match.span( )
       except:
-         raise StopIteration
+         raise NoMoreSubstrings
+      
+      if start < 0:
+         raise NoMoreSubstrings
       
       self._pos = stop
       
       return start,stop
+
 
 if __name__=='__main__':
    import os.path
@@ -40,7 +44,11 @@ if __name__=='__main__':
    
    model = OutlineModel( rootNode )
    
+   #index = model.index( 0, 0, QtCore.QModelIndex() )
+   #for idx in OutlineModelIterator(index):
+      #print( unicode(idx.data().toString()) )
+   
    index = model.index( 0, 0, QtCore.QModelIndex() )
-   regex = re.compile( 'the', re.IGNORECASE )
-   for node,span in ArticleIterator( index, FindIterator(regex), recurse=False ):
-      print( '{0:4}-{1:4}:  {2}'.format( span[0], span[1], unicode(node.data().toString()) ) )
+   regex = re.compile( 'The' )
+   for node,fromPos,toPos in FindSubstringIterator( OutlineModelIterator(index,recurse=True), regex ):
+      print( '{0:4}-{1:4}:  {2}'.format( fromPos, toPos, unicode(node.data().toString()) ) )

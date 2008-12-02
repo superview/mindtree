@@ -95,4 +95,9 @@ class MindTreePluggableTool( PluggableTool ):
       
       return self._textSelectors[name]
 
+   def showSelection( self, index, fromPos=None, toPos=None, moveUserCursor=True, name=None ):
+      self._outlineWidget.setCurrentIndex( index )
+      
+      if fromPos and toPos and name:
+         self.applyTextSelector( fromPos, toPos, moveUserCursor, name )
 
