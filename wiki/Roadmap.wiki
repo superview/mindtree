@@ -17,10 +17,7 @@
 
 *1.7* (internal)
    * Outline Editing
-      * Drag & Drop
-         * DONE: Get working
-         * Cursor - Update cursor during drag to indicate the drop position.
-         * Status tip - Update status tip during drag to print the drop position.
+      * DONE: Drag & Drop - Drop always does an insert before.
       * DONE: Cut & Paste
       * DONE: Menu Items
       * DONE: Toolbars
@@ -58,6 +55,7 @@
       * Make Content Views/Editors into plugins
       * User Preferences
    * Outline View
+      * Drag & Drop - Find some way to indicate to user a drop of before,after or as a child of so that full D&D can be implemented.
       * Full Undo/Redo (tree editing and across editing of different articles)
    * Article View
       * New Objects
