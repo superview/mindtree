@@ -178,29 +178,8 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
          nodeIndex, span, text = self._outlineIter.next( )
          fromPos, toPos = span
          self.applyTextSelector( fromPos, toPos )
-         #print( '\n{0:4}-{1:4}:  {2}'.format( fromPos, toPos, unicode(nodeIndex.data().toString()) ) )
-         #print( text[ fromPos - 10 : toPos + 10 ] )
       except:
          pass
-      
-      #match = self._seeker.search( self._textToScan, self._scanPos ) 
-      #if match:
-         #beginPos, endPos = match.span()
-         
-         ## Mark the text
-         #cursor = self._outlineView.articleWidget().textCursor()
-         #cursor.setPosition( beginPos )
-         #cursor.setPosition( endPos, QtGui.QTextCursor.KeepAnchor )
-         #self._findSelection.cursor = cursor
-         #self._outlineView.articleWidget().setExtraSelections( [ self._findSelection ] )
-         
-         ## Advance the cursor
-         #cursor = self._outlineView.articleWidget().textCursor()
-         #cursor.setPosition( endPos )
-         #self._outlineView.articleWidget().setTextCursor( cursor )
-      
-      #elif self._selectedScope == 'Selection':
-         #return
 
    def replace( self ):
       if self._searchIter is None:
