@@ -109,7 +109,7 @@ class Resources( SafeConfigParser ):
       filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
       hotspotX = int(hotspotX)
       hotspotY = int(hotspotY)
-      pixmap = QtGui.QPixmap( filename )
+      pixmap = QtGui.QPixmap( filename, None, QtCore.Qt.MonoOnly )
       hotspot = QtCore.QPoint( hotspotX, hotspotY )
       return pixmap, hotspot
 
