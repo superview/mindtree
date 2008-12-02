@@ -1,28 +1,31 @@
 from MindTreeApplicationFramework import *
-from OutlineModel import OutlineModelIterator, ArticleIterator, TextIterator
+from OutlineModel import OutlineModelIterator, ArticleSubstringIterator
 from PyQt4 import QtCore, QtGui
 
 import re
 
 
-class FindIterator( TextIterator ):
-   def __init__( self, reObj ):
-      TextIterator.__init__( self )
+class FindSubstringIterator( ArticleSubstringIterator ):
+   def __init__( self, outlineIterator, reObj ):
+      ArticleSubstringIterator.__init__( self, outlineIterator )
       self._regexObj = reObj
       self._pos      = 0
    
-   def restart( self, text ):
-      TextIterator.restart( self, text )
+   def _setTextToParse( self, newText ):
+      ArticleSubstringIterator._setTextToParse( self, newText )
       self._pos      = 0
    
-   def next( self ):
-      TextIterator.next( self )
+   def _nextSubstringOfInterest( self ):
+      ArticleSubstringIterator._nextSubstringOfInterest( self )
       
       match = self._regexObj.search( self._text, self._pos )
       try:
          start, stop = match.span( )
       except:
-         raise StopIteration
+         raise NoMoreSubstrings
+      
+      if start < 0:
+         raise NoMoreSubstrings
       
       self._pos = stop
       
@@ -93,22 +96,19 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       
       self._useRegex = QtGui.QCheckBox( self )
       self._useRegex.setText( RES.get('Find','regexLabel',translate=True) )
-      checked = QtCore.Qt.Checked if RES.getboolean('Find','useRegex') else QtCore.Qt.Unchecked
-      self._useRegex.setCheckState( checked )
+      self._useRegex.setCheckState( QtCore.Qt.Checked if RES.getboolean('Find','useRegex') else QtCore.Qt.Unchecked )
       gridLayout.addWidget( self._useRegex, row, 1, 1, 1 )
       QtCore.QObject.connect( self._useRegex, QtCore.SIGNAL('stateChanged(int)'), self.checkStateChanged )
       
       self._ignoreCase = QtGui.QCheckBox( self )
       self._ignoreCase.setText( RES.get('Find','ignoreCaseLabel',translate=True) )
-      checked = QtCore.Qt.Checked if RES.getboolean('Find','ignoreCase') else QtCore.Qt.Unchecked
-      self._ignoreCase.setCheckState( checked )
+      self._ignoreCase.setCheckState( QtCore.Qt.Checked if RES.getboolean('Find','ignoreCase') else QtCore.Qt.Unchecked )
       gridLayout.addWidget( self._ignoreCase, row, 2, 1, 1 )
       QtCore.QObject.connect( self._ignoreCase, QtCore.SIGNAL('stateChanged(int)'), self.checkStateChanged )
       
       self._wholeWords = QtGui.QCheckBox( self )
       self._wholeWords.setText( RES.get('Find','wholeWordsLabel',translate=True) )
-      checked = QtCore.Qt.Checked if RES.getboolean('Find','wholeWordsOnly') else QtCore.Qt.Unchecked
-      self._wholeWords.setCheckState( checked )
+      self._wholeWords.setCheckState( QtCore.Qt.Checked if RES.getboolean('Find','wholeWordsOnly') else QtCore.Qt.Unchecked )
       gridLayout.addWidget( self._wholeWords, row, 3, 1, 1 )
       QtCore.QObject.connect( self._wholeWords, QtCore.SIGNAL('stateChanged(int)'), self.checkStateChanged )
       
@@ -123,7 +123,7 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       
       row += 1
       
-      buttonBox = QtGui.QBoxLayout( QtGui.QBoxLayout.LeftToRight, self )
+      buttonBox = QtGui.QBoxLayout( QtGui.QBoxLayout.LeftToRight )
       gridLayout.addLayout( buttonBox, row, 0, 1, 4 )
       
       self._prevBtn = QtGui.QPushButton( self )
@@ -146,13 +146,11 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       QtCore.QObject.connect( self._replAllBtn, QtCore.SIGNAL('clicked()'), self.replaceAll )
       buttonBox.addWidget( self._replAllBtn )
       
-      #self._findSelection = QtGui.QTextEdit.ExtraSelection( )
       format = QtGui.QTextCharFormat( )
       format.setFontUnderline( True )
       format.setUnderlineStyle( QtGui.QTextCharFormat.SpellCheckUnderline )
       format.setUnderlineColor( QtGui.QColor( 'green' ) )
       self.defineTextSelector( format )
-      #self._findSelection.format = format
 
    def scopeChanged( self, index ):
       self.clearFinder( )
@@ -164,6 +162,11 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       self.clearFinder( )
    
    def clearFinder( self ):
+      try:
+         self.specialSelection().cursor.clearSelection()
+      except:
+         pass
+      
       self._outlineIter = None
       self._matchIter   = None
    
@@ -175,11 +178,13 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
          self._outlineIter = self.createSearchIterator( )
       
       try:
-         nodeIndex, span, text = self._outlineIter.next( )
-         fromPos, toPos = span
+         nodeIndex, fromPos, toPos = self._outlineIter.next( )
+         self._outlineWidget.setCurrentIndex( nodeIndex )
          self.applyTextSelector( fromPos, toPos )
-      except:
-         pass
+      except StopIteration:
+         self.clearFinder()
+         self.setStatusTip( 'Search reached end of selected scope.' )
+      pass
 
    def replace( self ):
       if self._searchIter is None:
@@ -194,6 +199,8 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       pass
    
    def createSearchIterator( self ):
+      self._outlineView.commitChanges()
+      
       # Grab some basic information
       outlineWidget = self._outlineView.outlineWidget()
       outlineModel  = self._outlineView.getModel()
@@ -225,7 +232,7 @@ class Find( MindTreePluggableTool, QtGui.QWidget ):
       else:
          recurse = True
       
-      return ArticleIterator( index, FindIterator(regexObj), recurse )
+      return FindSubstringIterator( OutlineModelIterator(index,recurse), regexObj )
 
    @staticmethod
    def buildRegex( pattern, regex, ignoreCase, wholeWords ):

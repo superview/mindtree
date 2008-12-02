@@ -33,7 +33,7 @@ class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
       
       row = 0
       
-      boxLayout = QtGui.QBoxLayout( QtGui.QBoxLayout.LeftToRight, self )
+      boxLayout = QtGui.QBoxLayout( QtGui.QBoxLayout.LeftToRight )
       gridLayout.addLayout( boxLayout, row, 0, 1, 2 )
       
       label = QtGui.QLabel( self )
