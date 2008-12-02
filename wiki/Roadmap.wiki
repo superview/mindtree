@@ -33,9 +33,7 @@
       * Import/Export Plugins
          * DONE: MindTree 1 Importer
          * HTML Exporter Plugin
-      * Find/Replace Plugin
-         * DONE: GUI
-         * Backend
+      * DONE: Find/Replace Plugin
       * DONE: Spell Checking Plugin
       * Resource List Plugin
          * Resource View
