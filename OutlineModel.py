@@ -411,35 +411,41 @@ class OutlineModel(QtCore.QAbstractItemModel):
 
 
 class OutlineModelIterator( object ):
-   def __init__( self, index=None ):
+   def __init__( self, index=None, recurse=True ):
       self._rootIndex = index
-      self._next      = index
+      self._nextIndex = index
+      self._recurse   = recurse
+   
+   def __iter__( self ):
+      return self
    
    def next( self ):
-      if self._next is None:
+      if self._nextIndex is None:
          raise StopIteration
       
-      result = self._next
+      result = self._nextIndex
       
-      if len(self._next.internalPointer()._childNodes) > 0:
-         self._next = self._next.child(0,0)
+      if not self._recurse:
+         self._nextIndex = None
+      elif len(self._nextIndex.internalPointer()._childNodes) > 0:
+         self._nextIndex = self._nextIndex.child(0,0)
          return result
       else:
-         while self._next.isValid() and (self._next is not self._rootIndex):
-            siblingRow = self._next.row() + 1
-            siblingNode = self._next.sibling(siblingRow,0)
+         while self._nextIndex.isValid() and (self._nextIndex is not self._rootIndex):
+            siblingRow = self._nextIndex.row() + 1
+            siblingNode = self._nextIndex.sibling(siblingRow,0)
             
             if siblingNode.isValid():
-               self._next = siblingNode
+               self._nextIndex = siblingNode
                return result
             else:
-               self._next = self._next.parent()
+               self._nextIndex = self._nextIndex.parent()
       
-      self._next = None
+      self._nextIndex = None
       return result
 
 
-class ArticleIterator( object ):
+class ArticleIterator( OutlineModelIterator ):
    '''ArticleIterator iterates over the articles in an Outline
 
    A textIterator must be an iterator class (provide a next() function which
@@ -452,22 +458,30 @@ class ArticleIterator( object ):
    When textIterator is passed into this constructor, it may be ready to iterate
    OR it can raise StopIteration and allow ArticleTextIterator to initialize it.
    '''
-   def __init__( self, treeNodeIterator, textIterator ):
-      self._treeIter         = treeNodeIterator
+   def __init__( self, index, textIterator, recurse=True ):
+      OutlineModelIterator.__init__( self, index, recurse )
       self._textIter         = textIterator
-      
+      self._articleText      = None
       self._currentNodeIndex = None
+      
+      self._document = QtGui.QTextDocument( )  # used to convert html to text
    
    def next( self ):
       try:
          articleIterResult = self._textIter.next( )
       except StopIteration:
-         self._currentNodeIndex = self._treeIter.next( )
-         textToIterate = self._currentNodeIndex.internalPointer().article()
-         self._textIter.restart( textToIterate )
+         self._currentNodeIndex = OutlineModelIterator.next( self )
+         self._articleText = self._currentNodeIndex.internalPointer().article()
+         
+         # Convert the article to plain text
+         self._document.setHtml( self._articleText )
+         self._articleText = unicode(self._document.toPlainText( ))
+         
+         # Initialize the iterator
+         self._textIter.restart( self._articleText )
          articleIterResult = self._textIter.next( )
       
-      return self._currentNodeIndex, articleIterResult
+      return self._currentNodeIndex, articleIterResult, self._articleText
 
 
 class TextIterator( object ):
@@ -480,6 +494,9 @@ class TextIterator( object ):
       if articleText:
          self.restart( articleText )
 
+   def __iter__( self ):
+      return self
+   
    # Contract
    def next( self ):
       'Derived class implementation should call this method before doing anything.'

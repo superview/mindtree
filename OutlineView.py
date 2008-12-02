@@ -565,7 +565,8 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup( )
       
       indexOfFirst = self._model.index( 0, 0, QtCore.QModelIndex() )
-      self.selectionChanged( indexOfFirst )
+      self._outlineView.setCurrentIndex( indexOfFirst )
+      #self.selectionChanged( indexOfFirst )
 
    def getModel( self ):
       return self._model, self._resources
