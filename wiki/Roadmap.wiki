@@ -49,6 +49,8 @@
       * Make Content Views/Editors into plugins
       * User Preferences
    * Outline View
+      * Internal links (implement as resources)
+      * External links (implement as resources)
       * Drag & Drop - Find some way to indicate to user a drop of before,after or as a child of so that full D&D can be implemented.
       * Full Undo/Redo (tree editing and across editing of different articles)
    * Article View
