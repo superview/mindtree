@@ -35,7 +35,7 @@ class MyImporter( ImporterPlugin ):
       
       ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
    
-   def _readFile( self, aFilename ):
+   def _read( self, aFilename ):
       # Manipulate the filename
       from utilities import splitFilePath
       disk,path,filename,extension = splitFilePath( aFilename )
@@ -123,9 +123,9 @@ class MindTree( Application ):
       
       # Install Exporter Plugins
       def EXPORT( pluginObj ):
-         def _import( ):
+         def _export( ):
             return self.exportFile( pluginObj )
-         return _import
+         return _export
       
       for name in self._plugins.pluginNames( 'ExporterPlugin' ):
          action = QtGui.QAction( self )

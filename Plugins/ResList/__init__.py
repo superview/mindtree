@@ -2,6 +2,9 @@ from PyQt4 import QtCore, QtGui, Qt
 from MindTreeApplicationFramework import *
 
 
+raise DisablePlugin
+
+
 class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
    theApp = None
 
