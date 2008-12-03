@@ -29,7 +29,7 @@
       * DONE: Find/Replace Plugin
       * DONE: Spell Checking Plugin
       * DONE: MindTree 1 Importer
-      * HTML Exporter Plugin
+      * DONE: HTML Exporter Plugin
 
 *1.9* (public beta) Estimated Dec 2008
    * Distribution
