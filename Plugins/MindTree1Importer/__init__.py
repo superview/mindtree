@@ -6,12 +6,9 @@ from PyQt4 import QtCore, QtGui
 from ApplicationFramework import ImporterPlugin, RES, Project
 
 class MT1ImportingArchiver( ImporterPlugin ):
-   NAME              = 'MindTree 1.x'
+   NAME              = 'MindTree1.x'
    VERSION           = ( 1, 0 )
    BUILD_DATE        = ( 2008, 11, 15 )
-
-   FILE_TYPES        = 'MindTree Data File (*.mt);;All Files (*.*)'
-   FILE_EXTENSION    = 'mt'
 
    DEFAULT_SETTINGS = {
                       'fileTypes':     'MindTree Data File (*.mt);;All Files (*.*)',
@@ -19,9 +16,11 @@ class MT1ImportingArchiver( ImporterPlugin ):
                       }
 
    def __init__( self, parentWidget ):
-      workingDir = RES.get( 'Project',  'workspace', '' )
+      workingDir     = RES.get('Project',    'workspace', '' )
+      fileTypes      = RES.get('MindTree1.x','fileTypes')
+      fileExtensions = RES.get('MindTree1.x','fileExtension')
       
-      ImporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
+      ImporterPlugin.__init__( self, parentWidget, fileTypes, fileExtensions, workingDir )
       self._document = QtGui.QTextDocument( )  # for converting text to html
 
    def _read( self, aFilename ):
