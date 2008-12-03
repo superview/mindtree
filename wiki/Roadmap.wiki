@@ -31,9 +31,6 @@
       * Import/Export Plugins
          * DONE: MindTree 1 Importer
          * HTML Exporter Plugin
-      * Resource List Plugin
-         * Resource View
-         * Resource Editing/Creation
 
 *1.9* (public beta) Estimated Dec 2008
    * Distribution
@@ -73,6 +70,9 @@
          * terms/definitions tab
          * external links tab
          * references tab
+      * Resource List Plugin
+         * Resource View
+         * Resource Editing/Creation
       * Customizable HTML exporting
       * Implement remaining contexts for Spell Checker
    * Distribution
