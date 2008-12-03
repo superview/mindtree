@@ -704,6 +704,10 @@ import sys
 import imp
 
 
+class DisablePlugin( Exception ):
+   pass
+
+
 class PluginManager( object ):
    PKG_INIT = '__init__' + os.path.extsep + 'py'
 
@@ -740,6 +744,8 @@ class PluginManager( object ):
          return
       except AttributeError:
          print( 'Plugin instance %s.plugin not defined' % pluginName )
+         return
+      except DisablePlugin:
          return
       
       try:
@@ -815,7 +821,7 @@ class ImporterPlugin( Plugin, Archiver ):
       Plugin.__init__( self )
       Archiver.__init__( self, aView, fileTypes, defaultExtension, initialDir )
    
-   def _readFile( self, aFilename ):
+   def _read( self, aFilename ):
       """Read the file and return a document object.  If an error occurs,
       raise an exception.
       """
@@ -828,7 +834,7 @@ class ExporterPlugin( Plugin, Archiver ):
       Plugin.__init__( self )
       Archiver.__init__( self, aView, fileTypes, defaultExtension, initialDir )
 
-   def _writeFile( self, aDocument, aFilename ):
+   def _write( self, aDocument, aFilename ):
       """Write the document to the named file.  If an error occurs,
       raise an exception.
       """

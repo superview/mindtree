@@ -3,7 +3,6 @@ import os.path
 import traceback
 from PyQt4 import QtGui, QtCore
 
-
 def fatalErrorPopup( msg ):
    msgBox = QtGui.QMessageBox( )
    msgBox.setWindowTitle( 'Fatal Error' )

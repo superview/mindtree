@@ -3,10 +3,13 @@ import sys
 
 class DualHtmlEditor( QtGui.QSplitter ):
    def __init__( self, parent ):
+      self._sourceView = None
+      self._htmlView   = None
+      
       QtGui.QSplitter.__init__( self, parent )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 10 )
-      sizePolicy.setHorizontalStretch( 10 )
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 1 )
       self.setSizePolicy(sizePolicy)
       self.setMinimumSize(QtCore.QSize(700, 700))
       self.setOrientation(QtCore.Qt.Horizontal)
@@ -14,6 +17,15 @@ class DualHtmlEditor( QtGui.QSplitter ):
       
       self._buildGui( )
    
+   def setText( self, text ):
+      self._sourceView.setText( text )
+
+   # Slots
+   def onTextChanged( self ):
+      text = self._sourceView.toPlainText( )
+      self._htmlView.setHtml( text )
+
+   # Widget Construction
    def _buildGui( self ):
       self._buildWidgets( )
       
@@ -26,16 +38,18 @@ class DualHtmlEditor( QtGui.QSplitter ):
       # Source View
       self._sourceView = QtGui.QTextEdit( self )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 5 )
+      sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 1 )
       self._sourceView.setSizePolicy( sizePolicy )
       self._sourceView.setMinimumHeight( 100 )
       self._sourceView.setMinimumWidth( 200 )
+      QtCore.QObject.connect( self._sourceView, QtCore.SIGNAL('textChanged()'), self.onTextChanged )
       
       # Html View
       self._htmlView   = QtGui.QTextEdit( self )
+      self._htmlView.setEnabled( False )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-      sizePolicy.setVerticalStretch( 5 )
+      sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 1 )
       self._htmlView.setSizePolicy( sizePolicy )
       self._htmlView.setMinimumHeight( 100 )
@@ -55,13 +69,11 @@ if __name__ == '__main__':
    app = QtGui.QApplication( sys.argv )
    
    win = QtGui.QMainWindow( )
-   edit = QtWebKit.QWebView( win )
-   edit.setHtml( 'one two three' )
+   edit = DualHtmlEditor( win )
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
    sizePolicy.setVerticalStretch( 5 )
    sizePolicy.setHorizontalStretch( 1 )
    edit.setSizePolicy( sizePolicy )
-   #edit = DualHtmlEditor( win )
    
    win.resize( 903, 719 )
    sizePolicy = QtGui.QSizePolicy( QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding )

@@ -41,6 +41,9 @@ class TreeNode( object ):
       
       return self._data[ column ]
 
+   def title( self ):
+      return self._data[0]
+
    def article( self ):
       return self._article
 
@@ -106,6 +109,9 @@ class TreeNode( object ):
    def child( self, which ):
       return self._childNodes[ which ]
    
+   def childList( self ):
+      return self._childNodes
+
    def parent( self ):
       return self._parentNode
    
@@ -260,11 +266,11 @@ class OutlineModel(QtCore.QAbstractItemModel):
       encodedData = self.serializeNode( index )
       
       mimeObject = QtCore.QMimeData( )
-      mimeObject.setData( RES.get('OutlineView','nodeMimeType'), encodedData )
+      mimeObject.setData( RES.get('Mime','mindTreeOutline'), encodedData )
       return mimeObject
 
    def demimifyNode( self, mimeObject ):
-      encodedData = mimeObject.data( RES.get('OutlineView','nodeMimeType') )
+      encodedData = mimeObject.data( RES.get('Mime','mindTreeOutline') )
       return self.deserialize( encodedData )
 
    # Basic Overrides
@@ -370,9 +376,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       return self.removeNode( self.index( rowNum, 0, parentIndex ) )
    
    # Drag and Drop Overrides
-   def mimeTypes( self ):
-      return [ RES.get('OutlineView','nodeMimeType') ]
-
    def supportedDropActions( self ):
       return QtCore.Qt.MoveAction
 
