@@ -61,6 +61,9 @@
          * Lists
          * Tables
       * Print Preview
+      * Pluggable Editors
+         * Direct HTML editing (dual view)
+         * Restructured text   (dual view)
    * Plugins
       * Allow plugin settings to be stored in projects (e.g. keyboard)
       * Make the Keyboard Plugin GUI-Editable
