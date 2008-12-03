@@ -33,15 +33,14 @@
 
 *1.9* (public beta) Estimated Dec 2008
    * Distribution
-      * Revamp Icons, Images, Cursors, etc.
       * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
-      * Help File
 
 *2.0* (Final) Estimated Feb 2009
-   * All Capabilities of MindTree 1.x
+   * Help File
 
 *Future Versions*
+   * Revamp Icons, Images, Cursors, etc.
    * Application
       * MDI - Multiple views of a single outline
       * Cut & Paste across views
