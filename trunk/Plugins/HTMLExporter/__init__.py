@@ -1,18 +1,40 @@
 from __future__ import print_function, unicode_literals
 from OutlineModel import OutlineModel, TreeNode
 from PyQt4 import QtCore, QtGui
+from ApplicationFramework import ExporterPlugin, RES
 
+class HtmlExporter( ExporterPlugin ):
+   NAME              = 'HTML'
+   VERSION           = ( 1, 0 )
+   BUILD_DATE        = ( 2008, 11, 15 )
 
-class HTMLBuilder( object ):
-                   # ( icon file,                   width, height )
-   LINE_VERT       = ( "img/ftv2vertline.png",     16,    22     )
-   LINE_EMPTY      = ( "img/ftv2blank.png",        16,    22     )
-   DOC_LINE_NODE   = ( "img/ftv2node.png",         16,    22     )
-   DOC_LINE_LAST   = ( "img/ftv2lastnode.png",     16,    22     )
-   FLD_LINE_NODE   = ( "img/ftv2pnode.png",        16,    22     )
-   FLD_LINE_LAST   = ( "img/ftv2plastnode.png",    16,    22     )
-   DOC_ICON        = ( "img/ftv2doc.png",          24,    22     )
-   FLD_ICON        = ( "img/ftv2folderclosed.png", 24,    22     )
+   DEFAULT_SETTINGS = {
+                      'fileTypes':     'HTML Web Page (*.htm);;All Files (*.*)',
+                      'fileExtension': 'htm',
+                      
+                      # Images
+                      'imageDir':      'img',
+                      'lineVertical':  '%(imageDir)s/ftv2vertline.png: 16:22',
+                      'lineEmpty':     '%(imageDir)s/ftv2blank.png:    16:22',
+                      'lineLeaf':      '%(imageDir)s/ftv2node.png:     16:22',
+                      'lineLeafLast':  '%(imageDir)s/ftv2lastnode.png: 16:22',
+                      'lineNode':      '%(imageDir)s/ftv2pnode.png:    16:22',
+                      'lineNodeLast':  '%(imageDir)s/ftv2plastnode.png:16:22',
+                      'iconLeaf':      '%(imageDir)s/ftv2doc.png:      16:22',
+                      'iconNodeClosed':'%(imageDir)s/ftv2folderclosed.png:16:22'
+                      
+                      # Source Templates
+                      }
+
+                   # ( icon file,                  width, height )
+   lineVertial       = ( "img/ftv2vertline.png",     16,    22     )
+   lineEmpty      = ( "img/ftv2blank.png",        16,    22     )
+   lineLeaf   = ( "img/ftv2node.png",         16,    22     )
+   lineLeafLast   = ( "img/ftv2lastnode.png",     16,    22     )
+   lineNode   = ( "img/ftv2pnode.png",        16,    22     )
+   lineNodeLast   = ( "img/ftv2plastnode.png",    16,    22     )
+   iconLeaf        = ( "img/ftv2doc.png",          24,    22     )
+   iconNodeClosed        = ( "img/ftv2folderclosed.png", 24,    22     )
 
    OUTLINE_HEAD    = '''<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -185,7 +207,13 @@ class HTMLBuilder( object ):
    </STYLE>
 '''
 
-   def __init__( self ):
+   def __init__( self, parentWidget ):
+      workingDir    = RES.get('Project', 'workspace' )
+      fileTypes     = RES.get('HTML',    'fileTypes' )
+      fileExtension = RES.get('HTML',    'fileExtension' )
+      
+      ExporterPlugin.__init__( self, parentWidget, fileTypes, fileExtension, workingDir )
+      
       # Output Files
       self.frame         = None
       self.outline       = None
@@ -196,6 +224,21 @@ class HTMLBuilder( object ):
       self._articleCount = 0
       self._nestingStack = None
 
+   def write( self, aDocument, aFilename=None, promptFilename=False ):
+      rootDir = self.askdir( 'Target Location...' )
+      
+      name, rootNode, resources = aDocument
+      
+      import os
+      if not os.path.exists( rootDir ):
+         os.mkdir( rootDir )
+      
+      rootDir = rootDir.replace( '/', os.sep )
+      htmlDir = rootDir
+      imgDir  = os.path.join( rootDir, RES.get('HTML','imageDir') )
+      
+      self.buildHTML( rootNode, rootDir, htmlDir, imgDir, name )
+   
    def buildTreeElementStr( self, element, id = None ):
       if ( id is not None ):
          return "<img src=%s width=%d height=%d onclick=\"toggleFolder(\'folder%s\', this)\" />" % ( element[0], element[1], element[2], id )
@@ -209,9 +252,9 @@ class HTMLBuilder( object ):
       # -----------
       for scope in self._nestingStack:
          if scope == False:
-            result += self.buildTreeElementStr( HTMLBuilder.LINE_VERT )
+            result += self.buildTreeElementStr( self.lineVertial )
          else:
-            result += self.buildTreeElementStr( HTMLBuilder.LINE_EMPTY )
+            result += self.buildTreeElementStr( self.lineEmpty )
       
       # open/close & icon
       # -----------------
@@ -219,21 +262,21 @@ class HTMLBuilder( object ):
          if isLastInSubtree:
             if len(node.childList()) == 0:
                # Doc Last Node
-               result += self.buildTreeElementStr( HTMLBuilder.DOC_LINE_LAST )
-               result += self.buildTreeElementStr( HTMLBuilder.DOC_ICON )
+               result += self.buildTreeElementStr( self.lineLeafLast )
+               result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Last Node
-               result += self.buildTreeElementStr( HTMLBuilder.FLD_LINE_LAST, self._articleCount )
-               result += self.buildTreeElementStr( HTMLBuilder.FLD_ICON, self._articleCount )
+               result += self.buildTreeElementStr( self.lineNodeLast, self._articleCount )
+               result += self.buildTreeElementStr( self.iconNodeClosed, self._articleCount )
          else:
             if len(node.childList()) == 0:
                # Doc Node
-               result += self.buildTreeElementStr( HTMLBuilder.DOC_LINE_NODE )
-               result += self.buildTreeElementStr( HTMLBuilder.DOC_ICON )
+               result += self.buildTreeElementStr( self.lineLeaf )
+               result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Node
-               result += self.buildTreeElementStr( HTMLBuilder.FLD_LINE_NODE, self._articleCount )
-               result += self.buildTreeElementStr( HTMLBuilder.FLD_ICON, self._articleCount )
+               result += self.buildTreeElementStr( self.lineNode, self._articleCount )
+               result += self.buildTreeElementStr( self.iconNodeClosed, self._articleCount )
       
       return result
 
@@ -313,18 +356,18 @@ class HTMLBuilder( object ):
       self.articles       = open( articlesPathName, "w" )
       
       try:
-         self.frame.write( HTMLBuilder.FRAME_FILE_FORMAT.format( frameName=name, frameTreename=outlineName, frameNotesname=articlesName ) )
+         self.frame.write( self.FRAME_FILE_FORMAT.format( frameName=name, frameTreename=outlineName, frameNotesname=articlesName ) )
          
          # Write the tree file
-         self.writeTree( HTMLBuilder.OUTLINE_HEAD.format(title=name) )
+         self.writeTree( self.OUTLINE_HEAD.format(title=name) )
          self.buildTree( rootNode, articlesName )
-         self.writeTree( HTMLBuilder.OUTLINE_TAIL )
+         self.writeTree( self.OUTLINE_TAIL )
          
          # Write the articles file
-         self.writeArticle( '<HTML><HEAD><TITLE>{title}</TITLE>{styles}</HEAD><BODY>'.format(title=name,styles=HTMLBuilder.STYLES) )
+         self.writeArticle( '<HTML><HEAD><TITLE>{title}</TITLE>{styles}</HEAD><BODY>'.format(title=name,styles=self.STYLES) )
          self.buildArticles( rootNode )
          self.writeArticle( '</BODY></HTML>' )
-
+      
       except Exception:
          print( 'Exception raised while processing article: {0}' % ( self._currentNode.title() ) )
          raise
@@ -335,13 +378,13 @@ class HTMLBuilder( object ):
 
    # Helper Functions
    def writeFrame( self, string ):
-      self.frame.write( HTMLBuilder.encode(string) )
+      self.frame.write( self.encode(string) )
    
    def writeTree( self, string ):
-      self.outline.write( HTMLBuilder.encode(string) )
+      self.outline.write( self.encode(string) )
    
    def writeArticle( self, string ):
-      self.articles.write( HTMLBuilder.encode(string) )
+      self.articles.write( self.encode(string) )
    
    @staticmethod
    def encode( string ):
@@ -356,41 +399,4 @@ class HTMLBuilder( object ):
       
       return result
 
-
-from ApplicationFramework import ExporterPlugin, RES
-
-class HtmlExporter( ExporterPlugin ):
-   NAME              = 'HTML Exporter'
-   VERSION           = ( 1, 0 )
-   BUILD_DATE        = ( 2008, 11, 15 )
-   
-   FILE_TYPES        = 'HTML Web Page (*.htm);;All Files (*.*)'
-   FILE_EXTENSION    = 'htm'
-   
-   DEFAULT_SETTINGS = { }
-
-   HTML_DIR               = r''
-   IMAGE_DIR              = r'img'
-
-   def __init__( self, parentWidget ):
-      workingDir = RES.get( 'Project',  'workspace'     )
-      
-      ExporterPlugin.__init__( self, parentWidget, self.FILE_TYPES, self.FILE_EXTENSION, workingDir )
-   
-   def write( self, aDocument, aFilename=None, promptFilename=False ):
-      rootDir = self.askdir( 'Target Location...' )
-      
-      name, rootNode, resources = aDocument
-      
-      import os
-      if not os.path.exists( rootDir ):
-         os.mkdir( rootDir )
-      
-      rootDir = rootDir.replace( '/', os.sep )
-      htmlDir = os.path.join( rootDir, HtmlExporter.HTML_DIR  )
-      imgDir  = os.path.join( rootDir, HtmlExporter.IMAGE_DIR )
-      
-      builder = HTMLBuilder( )
-      builder.buildHTML( rootNode, rootDir, htmlDir, imgDir, name )
-   
 pluginClass = HtmlExporter
