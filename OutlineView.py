@@ -153,8 +153,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self._selectCursor( relation )
 
    def dragEnterEvent( self, event ):
-      print( 'Entered' )
-      if event.mimeData().hasFormat( RES.get('OutlineView','nodeMimeType') ):
+      if event.mimeData().hasFormat( RES.get('Mime','mindTreeOutline') ):
          event.acceptProposedAction( )
 
    def dragLeaveEvent( self, event ):
@@ -178,7 +177,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
             
             # Extract the node
             mimeData = event.mimeData()
-            if not mimeData.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+            if not mimeData.hasFormat( RES.get('Mime','mindTreeOutline') ):
                return
             
             node = self.model().demimifyNode(mimeData)
@@ -596,10 +595,12 @@ class OutlineView(QtGui.QSplitter):
    
    def deleteNode( self, index=None ):
       if index is None:
-         index = self.currentIndex()
+         index = self._outlineView.currentIndex()
       
       try:
-         self.model().removeNode( index )
+         if not self._outlineView.model().removeNode( index ):
+            return
+         
          self.onModelChanged()
       except:
          exceptionPopup()
@@ -801,7 +802,7 @@ class OutlineView(QtGui.QSplitter):
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
-         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+         if not mimeObject.hasFormat( RES.get('Mime','mindTreeOutline') ):
             return
          
          node = self._model.demimifyNode( mimeObject )
@@ -815,7 +816,7 @@ class OutlineView(QtGui.QSplitter):
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
-         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+         if not mimeObject.hasFormat( RES.get('Mime','mindTreeOutline') ):
             return
          
          node = self._model.demimifyNode( mimeObject )
@@ -829,7 +830,7 @@ class OutlineView(QtGui.QSplitter):
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
-         if not mimeObject.hasFormat( RES.get('OutlineView','nodeMimeType') ):
+         if not mimeObject.hasFormat( RES.get('Mime','mindTreeOutline') ):
             return
          
          node = self._model.demimifyNode( mimeObject )

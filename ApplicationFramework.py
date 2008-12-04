@@ -397,6 +397,8 @@ class Project( object ):
          
          if self._workspace is None:
             self._workspace = os.path.join( disk, path )
+      elif self._name:
+         pass
       
       if self._workspace is None:
          self._workspace = RES.get( 'Project','workspace' )
@@ -454,7 +456,9 @@ class Project( object ):
          raise
 
    def setDefaultData( self ):
-      self._name = self.genDefaultName( )
+      self._name      = self.genDefaultName( )
+      self._filename  = self._name + os.extsep + self._defaultFileExtension()
+      self._workspace = ''
 
    def setPersistentData( self, data ):
       if not isinstance( data, (str,unicode) ):
@@ -465,6 +469,8 @@ class Project( object ):
    def getPersistentData( self ):
       return self._name
    
+   def _defaultFileExtension( self ):
+      pass
 
 class Application( QtGui.QMainWindow ):
    '''File handling operations (new, open, save, etc.) can get quite confusing
@@ -554,6 +560,7 @@ class Application( QtGui.QMainWindow ):
          filename = self._project.filename( fullName=True )
          self._archiver.write( data, filename )
          
+         self._project.modified = False
          self.updateWindowTitle( )
       except OperationCanceled:
          pass

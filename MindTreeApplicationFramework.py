@@ -15,12 +15,6 @@ class MindTreeProject( Project ):
       
       outlineModel,resources = self.data
       outlineModel.validate( )
-      
-      #for name,entry in resources.iteritems():
-         #if not isinstance( name, (str,unicode) ):
-            #raise
-         
-         #if not 
    
    def setDefaultData( self ):
       Project.setDefaultData( self )
@@ -48,6 +42,9 @@ class MindTreeProject( Project ):
       
       baseClassData = Project.getPersistentData( self )
       return ( baseClassData, rootNode, resources )
+
+   def _defaultFileExtension( self ):
+      return RES.get('Application','fileExtension')
 
 
 class MindTreePluggableTool( PluggableTool ):

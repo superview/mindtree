@@ -228,7 +228,7 @@ class MindTree( Application ):
       
       self.menuFile = QtGui.QMenu(self.menubar)
       self.menuFile.setObjectName("menuFile")
-      self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
+      self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "Project", None, QtGui.QApplication.UnicodeUTF8))
       
       self.menuTools = QtGui.QMenu(self.menubar)
       self.menuTools.setObjectName("menuTools")
@@ -307,7 +307,7 @@ if __name__ == "__main__":
    app.processEvents( )
 
    # Load Resources
-   RES.read( [ 'MindTreeRes.ini', 'MindTreeCfg.ini' ] )
+   RES.read( [ 'resources.ini', 'preferences.ini' ] )
    
    # Create the application
    myapp = MindTree( )
