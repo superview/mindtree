@@ -64,6 +64,9 @@
    * Plugins
       * Allow plugin settings to be stored in projects (e.g. keyboard)
       * Make the Keyboard Plugin GUI-Editable
+      * Make a Project plugin with info
+         * Project Name
+         * Number of Nodes
       * Make a tabbed resource lists plugin
          * images tab
          * bookmarks tab
