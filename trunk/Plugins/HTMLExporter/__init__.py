@@ -9,34 +9,31 @@ class HtmlExporter( ExporterPlugin ):
    BUILD_DATE        = ( 2008, 11, 15 )
 
    DEFAULT_SETTINGS = {
+                      # File Information
                       'fileTypes':     'HTML Web Page (*.htm);;All Files (*.*)',
                       'fileExtension': 'htm',
                       
                       # Images
                       'imageDir':      'img',
-                      'lineVertical':  '%(imageDir)s/ftv2vertline.png: 16:22',
-                      'lineEmpty':     '%(imageDir)s/ftv2blank.png:    16:22',
-                      'lineLeaf':      '%(imageDir)s/ftv2node.png:     16:22',
-                      'lineLeafLast':  '%(imageDir)s/ftv2lastnode.png: 16:22',
-                      'lineNode':      '%(imageDir)s/ftv2pnode.png:    16:22',
-                      'lineNodeLast':  '%(imageDir)s/ftv2plastnode.png:16:22',
-                      'iconLeaf':      '%(imageDir)s/ftv2doc.png:      16:22',
-                      'iconNodeClosed':'%(imageDir)s/ftv2folderclosed.png:16:22'
+                      'lineImageSize': '16:22',   # All line images must have this size
+                      'iconImageSize': '24:22',   # All icons must have this size
+                      'lineVertical':  '%(imageDir)s/ftv2vertline.png',
+                      'lineEmpty':     '%(imageDir)s/ftv2blank.png',
+                      'lineLeaf':      '%(imageDir)s/ftv2node.png',
+                      'lineLeafLast':  '%(imageDir)s/ftv2lastnode.png',
+                      'lineNode':      '%(imageDir)s/ftv2pnode.png',
+                      'lineNodeLast':  '%(imageDir)s/ftv2plastnode.png',
+                      'iconLeaf':      '%(imageDir)s/ftv2doc.png',
+                      'iconNodeClosed':'%(imageDir)s/ftv2folderclosed.png',
                       
                       # Source Templates
+                      #'treeSrcHead':      HtmlExporter.OUTLINE_HEAD,
+                      #'treeSrcTail':      HtmlExporter.OUTLINE_TAIL,
+                      #'frameSrc':         HtmlExporter.FRAME_FILE_FORMAT,
+                      #'articleSrcStyles': HtmlExporter.STYLES
                       }
 
-                   # ( icon file,                  width, height )
-   lineVertial       = ( "img/ftv2vertline.png",     16,    22     )
-   lineEmpty      = ( "img/ftv2blank.png",        16,    22     )
-   lineLeaf   = ( "img/ftv2node.png",         16,    22     )
-   lineLeafLast   = ( "img/ftv2lastnode.png",     16,    22     )
-   lineNode   = ( "img/ftv2pnode.png",        16,    22     )
-   lineNodeLast   = ( "img/ftv2plastnode.png",    16,    22     )
-   iconLeaf        = ( "img/ftv2doc.png",          24,    22     )
-   iconNodeClosed        = ( "img/ftv2folderclosed.png", 24,    22     )
-
-   OUTLINE_HEAD    = '''<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+   OUTLINE_HEAD   = '''<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
    <meta http-equiv="Content-Type" content="text/xhtml;charset="iso-8859-1" />
    <meta http-equiv="Content-Style-Type" content="text/css" />
@@ -223,6 +220,22 @@ class HtmlExporter( ExporterPlugin ):
       self._currentNode  = None
       self._articleCount = 0
       self._nestingStack = None
+      
+      # Tree images and icons
+      lineImgSz     = RES.getMultipartResource('HTML','lineImageSize')
+      imgWd,imgHt   = [ int(val) for val in lineImgSz ]
+      
+      iconImgSz     = RES.getMultipartResource('HTML','iconImageSize')
+      iconWd,iconHt = [ int(val) for val in iconImgSz ]
+      
+      self.lineVertial    = ( RES.get('HTML','lineVertical'),  imgWd, imgHt )
+      self.lineEmpty      = ( RES.get('HTML','lineEmpty'),     imgWd, imgHt )
+      self.lineLeaf       = ( RES.get('HTML','lineLeaf'),      imgWd, imgHt )
+      self.lineLeafLast   = ( RES.get('HTML','lineLeafLast'),  imgWd, imgHt )
+      self.lineNode       = ( RES.get('HTML','lineNode'),      imgWd, imgHt )
+      self.lineNodeLast   = ( RES.get('HTML','lineNodeLast'),  imgWd, imgHt )
+      self.iconLeaf       = ( RES.get('HTML','iconLeaf'),      iconWd, iconHt )
+      self.iconNodeClosed = ( RES.get('HTML','iconNodeClosed'),iconWd, iconHt )
 
    def write( self, aDocument, aFilename=None, promptFilename=False ):
       rootDir = self.askdir( 'Target Location...' )
@@ -280,61 +293,70 @@ class HtmlExporter( ExporterPlugin ):
       
       return result
 
-   def _buildTree( self, nodeList, notesName ):
-      last = nodeList[-1]
-      for node in nodeList:
-         self._articleCount += 1
-         self._currentNode  =  node
-         self.writeTree( '<p>' )
-         
-         # Build the Outline Tree
-         self.writeTree( self.buildTreeEntryStr( node, node is last ) )
-         
-         # Item
-         title   = node.title()
-         article = node.article()
-         if article and (len(article) > 0):
-            text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, self._articleCount, title )
-            self.writeTree( text )
-         
-         else:
-            self.writeTree( title )
-         
-         # subtrees
-         if len(node.childList()) > 0:
-            self.writeTree( '<div id="folder{0}">\n'.format(self._articleCount) )
-            self._nestingStack.append( node is last )
-            self._buildTree( node.childList(), notesName )
-            self._nestingStack.pop( )
-            self.writeTree( '</div>\n' )
+   def _buildTree( self, node, notesName, isLastSubNode ):
+      self._articleCount += 1
+      self._currentNode  =  node
+      self.writeTree( '<p>' )
+      
+      # Build the Outline Tree
+      self.writeTree( self.buildTreeEntryStr( node, isLastSubNode ) )
+      
+      # Item
+      title   = node.title()
+      article = node.article()
+      if article and (len(article) > 0):
+         text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, self._articleCount, title )
+         self.writeTree( text )
+      
+      else:
+         self.writeTree( title )
+      
+      # subtrees
+      if len(node.childList()) > 0:
+         self.writeTree( '<div id="folder{0}">\n'.format(self._articleCount) )
+         self._nestingStack.append( isLastSubNode )
+         lastSubNode = node.childList()[-1]
+         for subNode in node.childList():
+            self._buildTree( subNode, notesName, subNode is lastSubNode )
+         self._nestingStack.pop( )
+         self.writeTree( '</div>\n' )
 
-   def buildTree( self, rootNode, articlesName ):
+   def buildTree( self, rootNode, articlesName, name ):
       self._articleCount = 0
       self._currentNode  = rootNode
       self._nestingStack = [ ]
-      self._buildTree( rootNode.childList(), articlesName )
+      
+      self.writeTree( self.OUTLINE_HEAD.format(title=name) )
+      lastSubNode = rootNode.childList()[-1]
+      for subNode in rootNode.childList():
+         self._buildTree( subNode, articlesName, subNode is lastSubNode )
+      self.writeTree( self.OUTLINE_TAIL )
    
-   def _buildArticles( self, nodeList ):
-      for node in nodeList:
-         self._articleCount += 1
-         self._currentNode   = node
-         
-         # Item
-         title   = node.title()
-         article = node.article()
-         if article and (len(article) > 0):
-            self.writeArticle( '<A NAME="{0}">'.format(self._articleCount) )
-            self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
-            self.writeArticle( article )
-         else:
-            self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
-         
-         self._buildArticles( node.childList() )
+   def _buildArticles( self, node ):
+      self._articleCount += 1
+      self._currentNode   = node
+      
+      # Item
+      title   = node.title()
+      article = node.article()
+      if article and (len(article) > 0):
+         self.writeArticle( '<A NAME="{0}">'.format(self._articleCount) )
+         self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
+         self.writeArticle( article )
+      else:
+         self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
+      
+      for subNode in node.childList():
+         self._buildArticles( subNode )
 
-   def buildArticles( self, rootNode ):
+   def buildArticles( self, rootNode, name ):
       self._articleCount = 0
       self._currentNode  = rootNode
-      self._buildArticles( rootNode.childList() )
+      
+      self.writeArticle( '<HTML><HEAD><TITLE>{title}</TITLE>{styles}</HEAD><BODY>'.format(title=name,styles=self.STYLES) )
+      for node in rootNode.childList():
+         self._buildArticles( node )
+      self.writeArticle( '</BODY></HTML>' )
 
    def buildHTML( self, rootNode, rootPath, htmDir, imgDir, name ):
       import os
@@ -357,16 +379,8 @@ class HtmlExporter( ExporterPlugin ):
       
       try:
          self.frame.write( self.FRAME_FILE_FORMAT.format( frameName=name, frameTreename=outlineName, frameNotesname=articlesName ) )
-         
-         # Write the tree file
-         self.writeTree( self.OUTLINE_HEAD.format(title=name) )
-         self.buildTree( rootNode, articlesName )
-         self.writeTree( self.OUTLINE_TAIL )
-         
-         # Write the articles file
-         self.writeArticle( '<HTML><HEAD><TITLE>{title}</TITLE>{styles}</HEAD><BODY>'.format(title=name,styles=self.STYLES) )
-         self.buildArticles( rootNode )
-         self.writeArticle( '</BODY></HTML>' )
+         self.buildTree( rootNode, articlesName, name )
+         self.buildArticles( rootNode, name )
       
       except Exception:
          print( 'Exception raised while processing article: {0}' % ( self._currentNode.title() ) )

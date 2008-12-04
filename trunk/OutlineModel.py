@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from ApplicationFramework import RES
+from uuid import *
 import os.path
 
 
@@ -19,12 +20,10 @@ class TreeNode( object ):
       assert isinstance( parent,  TreeNode) or (parent is None)
       assert isinstance( article, (str,unicode) ) or (article is None)
       
-      if article is None:
-         article = ''
-      
       # Contents
-      self._data        = [ title ]
-      self._article     = article
+      self._id         = uuid4()
+      self._data       = [ title ]
+      self._article    = article if article is not None else ''
       
       # Structure
       self._parentNode = parent
@@ -36,6 +35,9 @@ class TreeNode( object ):
       node._parentNode = self
       self._childNodes.append(node)
 
+   def id( self ):
+      return self._id
+   
    def data( self, column ):
       assert isinstance( column, int )
       
@@ -68,7 +70,11 @@ class TreeNode( object ):
          return False
       
       members = self.__dict__.keys()
-      if len(members) != 4:
+      if len(members) != 5:
+         return False
+      
+      # Validate _id
+      if not isinstance(self._id,UUID):
          return False
       
       # Validate _data
