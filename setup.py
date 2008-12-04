@@ -4,6 +4,7 @@ import glob
 import sys
 import os
 import os.path
+
 #import enchant.utils
 
 try:
@@ -16,31 +17,31 @@ def files(folder):
       if os.path.isfile(path):
          yield path
 
-# Setup some initial values
-name='MindTree'
-version='1.6'
-pythonVersion='%d.%d' % (sys.version_info[:2])
-descr='Notes organizer/Outliner/PIM for Python %s.' % pythonVersion
-long_descr='MindTree is an outliner application designed for taking and organizing notes and publishing these notes to the web.  Requires Python %s.' % pythonVersion
-author='Ron Longo'
-author_email='ron.longo@cox.net'
-proj_url='http://code.google.com/p/mindtree'
-dist_url=proj_url + '/downloads/list'
-entryPoint='MindTree.py'
 
-#tixDataFiles = [
-               #('DLLs', glob.glob(sys.prefix+'/DLLs/tix84.dll')),
-               #('tcl/tix8.4', files(sys.prefix+'/tcl/tix8.4')),
-               #('tcl/tix8.4/bitmaps', files(sys.prefix+'/tcl/tix8.4/bitmaps')),
-               #('tcl/tix8.4/pref', files(sys.prefix+'/tcl/tix8.4/pref')),
-               #]
+# #########################
+# Collect Distribution Info
 
-#enchantDataFiles = enchant.utils.win32_data_files()
+from ConfigParser import SafeConfigParser
 
+RES = SafeConfigParser()
+RES.read( [ 'resources.ini' ] )
+
+name =          RES.get('Application','NAME')
+version =       RES.get('Application','VERSION')
+pythonVersion = RES.get('Application','REQUIRED_PYTHON_VERSION')
+descr =         RES.get('Application','description')
+long_descr =    RES.get('Application','longDescription')
+author =        RES.get('Application','author')
+author_email =  RES.get('Application','authorEmail')
+proj_url =      RES.get('Application','projectURL')
+dist_url =      RES.get('Application','distributionURL')
+entryPoint =    RES.get('Application','entryPoint')
+license =       RES.get('Application','license')
+
+distName =      ('%s-%s' % ( name, version )) + os.extsep + 'zip'
+distPath =      os.path.join( '..', 'sdist', distName )
 
 # Make sure we've changed the version number
-distName = ('%s-%s' % ( name, version )) + os.extsep + 'zip'
-distPath = os.path.join( '..', 'sdist', distName )
 print( 'Current path: ', os.getcwd() )
 print( 'Checking for ', distPath )
 if os.path.exists( distPath ):
@@ -51,6 +52,16 @@ if os.path.exists( distPath ):
    result = raw_input( '>>> ' )
    if result != 'YES':
       sys.exit( )
+
+
+#tixDataFiles = [
+               #('DLLs', glob.glob(sys.prefix+'/DLLs/tix84.dll')),
+               #('tcl/tix8.4', files(sys.prefix+'/tcl/tix8.4')),
+               #('tcl/tix8.4/bitmaps', files(sys.prefix+'/tcl/tix8.4/bitmaps')),
+               #('tcl/tix8.4/pref', files(sys.prefix+'/tcl/tix8.4/pref')),
+               #]
+
+#enchantDataFiles = enchant.utils.win32_data_files()
 
 
 # Create the Distribution
@@ -64,7 +75,7 @@ setup( name=name,
        maintainer_email=author_email,
        url=proj_url,
        download_url=dist_url,
-       license='Apache License 2.0',
+       license=license,
        windows=[entryPoint],
        #data_files=tixDataFiles, enchantDataFiles,
        classifiers=[
