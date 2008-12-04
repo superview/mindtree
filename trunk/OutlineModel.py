@@ -125,40 +125,10 @@ class TreeNode( object ):
       return TreeNodeIterator( self )
 
 
-#class TreeNodeIterator( object ):
-   #def __init__( self, node ):
-      #self._iterRoot = node
-      #self._next     = node
-   
-   #def next( self ):
-      #if self._next is None:
-         #raise StopIteration
-      
-      #result = self._next
-      
-      #if self._next.hasChildren( ):
-         #self._next = self._next.child(0)
-         #return result
-      #else:
-         #while self._next is not self._iterRoot:
-            #whichChildIsCurrent = self._next.row()
-            #nextSibling = whichChildIsCurrent + 1
-            #parent = self._next.parent( )
-            
-            #try:
-               #self._next = parent.child( nextSibling )
-               #return result
-            #except:
-               #self._next = parent
-      
-      #self._next = None
-      #return result
-
-
 class OutlineModel(QtCore.QAbstractItemModel):
    EmptyArticleIcon = None
    FullArticleIcon  = None
-
+   
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
       self._rootNode    = None
@@ -216,6 +186,16 @@ class OutlineModel(QtCore.QAbstractItemModel):
       parentIndex = index.parent()
       row         = index.row()
       
+      # We cannot delete the root node
+      if index.internalPointer() is self._rootNode:
+         return False
+      
+      # We cannot delete the only node of a tree with only once node
+      parentNode = index.internalPointer().parent()
+      if parentNode is self._rootNode:
+         if len(parentNode.childList()) == 1:
+            return False
+      
       # Get the parent node
       theParentNode = parentIndex.internalPointer()
       if theParentNode is None:
@@ -225,7 +205,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       children = theParentNode._childNodes
       if (row < 0) or (row > len(children)):
          return False
-         #raise InvalidRowError( )
       
       # Remove the node
       self.beginRemoveRows( parentIndex, row, row )
@@ -332,7 +311,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       elif role == QtCore.Qt.DecorationRole:
          article = item.article()
          
-         #if (article[1] is None) or (article[1] == ''):
          if article == '':
             return OutlineModel.EmptyArticleIcon
          else:
@@ -382,6 +360,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
       return self.removeNode( self.index( rowNum, 0, parentIndex ) )
    
    # Drag and Drop Overrides
+   def mimeTypes( self ):
+      return [ RES.get('Mime','mindTreeOutline') ]
+
    def supportedDropActions( self ):
       return QtCore.Qt.MoveAction
 
@@ -453,7 +434,7 @@ class OutlineModelIterator( object ):
       self._nextIndex = None
       return result
 
-
+ 
 class NoMoreSubstrings( Exception ):
    pass
 
