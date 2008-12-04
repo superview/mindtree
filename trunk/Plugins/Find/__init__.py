@@ -34,8 +34,8 @@ class FindSubstringIterator( ArticleSubstringIterator ):
 
 class Find( MindTreePluggableTool, QtGui.QWidget ):
    NAME             = 'Find'
-   VERSION          = ( 1, 0 )
-   BUILD_DATE       = ( 2008, 11, 24 )
+   VERSION          = ( 1, 1 )
+   BUILD_DATE       = ( 2008, 12, 4 )
    
    DEFAULT_SETTINGS = {
                       # Resources

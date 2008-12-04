@@ -7,8 +7,8 @@ from ApplicationFramework import ImporterPlugin, RES, Project
 
 class MT1ImportingArchiver( ImporterPlugin ):
    NAME              = 'MindTree1.x'
-   VERSION           = ( 1, 0 )
-   BUILD_DATE        = ( 2008, 11, 15 )
+   VERSION           = ( 1, 1 )
+   BUILD_DATE        = ( 2008, 12, 4 )
 
    DEFAULT_SETTINGS = {
                       'fileTypes':     'MindTree Data File (*.mt);;All Files (*.*)',
