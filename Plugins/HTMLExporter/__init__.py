@@ -218,7 +218,6 @@ class HtmlExporter( ExporterPlugin ):
       
       # Tree Walking
       self._currentNode  = None
-      self._articleCount = 0
       self._nestingStack = None
       
       # Tree images and icons
@@ -259,6 +258,9 @@ class HtmlExporter( ExporterPlugin ):
          return "<img src=%s width=%d height=%d />" % element
 
    def buildTreeEntryStr( self, node, isLastInSubtree ):
+      assert isinstance( node,            TreeNode )
+      assert isinstance( isLastInSubtree, bool     )
+      
       result = ""
       
       # Scope Lines
@@ -279,8 +281,8 @@ class HtmlExporter( ExporterPlugin ):
                result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Last Node
-               result += self.buildTreeElementStr( self.lineNodeLast, self._articleCount )
-               result += self.buildTreeElementStr( self.iconNodeClosed, self._articleCount )
+               result += self.buildTreeElementStr( self.lineNodeLast, node.id().hex )
+               result += self.buildTreeElementStr( self.iconNodeClosed, node.id().hex )
          else:
             if len(node.childList()) == 0:
                # Doc Node
@@ -288,13 +290,12 @@ class HtmlExporter( ExporterPlugin ):
                result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Node
-               result += self.buildTreeElementStr( self.lineNode, self._articleCount )
-               result += self.buildTreeElementStr( self.iconNodeClosed, self._articleCount )
+               result += self.buildTreeElementStr( self.lineNode, node.id().hex )
+               result += self.buildTreeElementStr( self.iconNodeClosed, node.id().hex )
       
       return result
 
    def _buildTree( self, node, notesName, isLastSubNode ):
-      self._articleCount += 1
       self._currentNode  =  node
       self.writeTree( '<p>' )
       
@@ -305,7 +306,7 @@ class HtmlExporter( ExporterPlugin ):
       title   = node.title()
       article = node.article()
       if article and (len(article) > 0):
-         text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, self._articleCount, title )
+         text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, node.id().hex, title )
          self.writeTree( text )
       
       else:
@@ -313,7 +314,7 @@ class HtmlExporter( ExporterPlugin ):
       
       # subtrees
       if len(node.childList()) > 0:
-         self.writeTree( '<div id="folder{0}">\n'.format(self._articleCount) )
+         self.writeTree( '<div id="folder{0}">\n'.format(node.id().hex) )
          self._nestingStack.append( isLastSubNode )
          lastSubNode = node.childList()[-1]
          for subNode in node.childList():
@@ -322,7 +323,6 @@ class HtmlExporter( ExporterPlugin ):
          self.writeTree( '</div>\n' )
 
    def buildTree( self, rootNode, articlesName, name ):
-      self._articleCount = 0
       self._currentNode  = rootNode
       self._nestingStack = [ ]
       
@@ -333,14 +333,13 @@ class HtmlExporter( ExporterPlugin ):
       self.writeTree( self.OUTLINE_TAIL )
    
    def _buildArticles( self, node ):
-      self._articleCount += 1
       self._currentNode   = node
       
       # Item
       title   = node.title()
       article = node.article()
       if article and (len(article) > 0):
-         self.writeArticle( '<A NAME="{0}">'.format(self._articleCount) )
+         self.writeArticle( '<A NAME="{0}">'.format(node.id().hex) )
          self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
          self.writeArticle( article )
       else:
@@ -350,7 +349,6 @@ class HtmlExporter( ExporterPlugin ):
          self._buildArticles( subNode )
 
    def buildArticles( self, rootNode, name ):
-      self._articleCount = 0
       self._currentNode  = rootNode
       
       self.writeArticle( '<HTML><HEAD><TITLE>{title}</TITLE>{styles}</HEAD><BODY>'.format(title=name,styles=self.STYLES) )
