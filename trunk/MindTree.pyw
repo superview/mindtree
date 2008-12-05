@@ -4,6 +4,7 @@ import sys
 sys.py3kwarning = True
 
 from PyQt4 import QtCore, QtGui
+from OutlineView import OutlineView
 from MindTreeApplicationFramework import *
 
 
@@ -151,7 +152,7 @@ class MindTree( Application ):
       return MindTreeProject( data=data, filename=filename )
    
    def _setupModelInView( self ):
-      self._outlineView.setModel( self._project )
+      self._outlineView.setProject( self._project )
       Application._setupModelInView( self )
 
    def _updateWindowTitle( self, title ):

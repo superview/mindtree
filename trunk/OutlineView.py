@@ -1,6 +1,7 @@
 from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
 from ApplicationFramework import RES
+from MindTreeApplicationFramework import MindTreeProject
 
 from utilities import *
 
@@ -228,36 +229,33 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
-      self._resources = { }
+      self._project = None
       self._specialSelections = { }
       
       self._buildGui( )
       self._updateToolbars( )
 
    # Slots
-   def addImageResource( self, resURL, filename ):
+   def addImageResourceToArticleWidget( self, name, url ):
       resType = QtGui.QTextDocument.ImageResource
-      self._resources[ resURL ] = ( resType, filename )
-      res = QtCore.QVariant(QtGui.QImage(filename))
-      self.document().addResource( resType, QtCore.QUrl(resURL), res )
-
-   def setResources( self, resDict ):
-      self._resources = resDict
+      resObj = QtCore.QVariant(QtGui.QImage(url))
+      self.document().addResource( resType, QtCore.QUrl(url), resObj )
+   
+   def addImageResourceToProject( self, name, url ):
+      self._project.res_add( name, MindTreeProject.IMAGE_RES, url )
+   
+   def setProject( self, project ):
+      self._project = project
    
    def clear( self, keepResources=True ):
       QtGui.QTextEdit.clear( self )
       
       # Reload the resources
-      if keepResources:
-         for resUrl, resInfo in self._resources.iteritems():
-            resType, resDetail = resInfo
-            
-            if resType == QtGui.QTextDocument.ImageResource:
-               res = QtCore.QVariant(QtGui.QImage(resDetail))
-               self.document().addResource( resType, QtCore.QUrl(resUrl), res )
-   
-   def getResources( self ):
-      return self._resources
+      if self._project and keepResources:
+         for resName in self._project.res_names():
+            resURL, resType, resLinkToString, resUsageCt = self._project.res_info()
+            if resType == MindTreeProject.IMAGE_RES:
+               self.addImageResourceToArticleWidget( resName, resURL )
    
    def getFixedMenus( self ):
       return [ self.menuArticle ]
@@ -363,14 +361,16 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       # Copy the image to the resource folder if needed
       imagePath = os.path.join( IMAGE_DIR, name + ext )
       if not os.path.exists( imagePath ):
-         if not os.path.exists( resDir ):
-            os.mkdir( resDir )
+         if not os.path.exists( IMAGE_DIR ):
+            os.mkdir( IMAGE_DIR )
          import shutil
          shutil.copy( filename, imagePath )
       
       resURL = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
       
-      self.addImageResource( resURL, imagePath )
+      self.addImageResourceToArticleWidget( resURL, imagePath )
+      self.addImageResourceToProject( resURL, imagePath )
+      
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
 
    def _updateToolbars( self ):
@@ -512,14 +512,16 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self._updateToolbars( )
 
 class OutlineView(QtGui.QSplitter):
-   '''Emits: QtCore.SIGNAL("modelChanged()")'''
+   '''Emits: QtCore.SIGNAL("modelChanged()")   -- the model has been modified.
+             QtCore.SIGNAL("newProject()")     -- a new project is being edited.
+   '''
    def __init__( self, parent ):
       QtGui.QSplitter.__init__( self, parent )
       
       self._outlineView            = None      # The TreeView widget
       self._articleView            = None      # The TextEdit widget
+      self._project                = None
       self._model                  = None      # The model for the data
-      self._resources              = { }
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
       self._buildGui( )
@@ -541,21 +543,19 @@ class OutlineView(QtGui.QSplitter):
    def articleWidget( self ):
       return self._articleView
 
-   def getResources( self ):
-      return self._resources
-   
    # Basic Operations
-   def setModel( self, project ):
+   def setProject( self, project ):
       project.validate( )
       
       try:
-         self._model, self._resources = project.data
+         self._project = project
+         self._model   = project.outline()
          self.swappingArticle = False
          
          self._articleView.clear( )
          
          self._outlineView.setModel( self._model )
-         self._articleView.setResources( self._resources )
+         self._articleView.setProject( self._project )
          
          QtCore.QObject.connect( self._outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
@@ -566,10 +566,11 @@ class OutlineView(QtGui.QSplitter):
       
       indexOfFirst = self._model.index( 0, 0, QtCore.QModelIndex() )
       self._outlineView.setCurrentIndex( indexOfFirst )
-      #self.selectionChanged( indexOfFirst )
+      
+      self.emit( QtCore.SIGNAL('newProject()') )
 
-   def getModel( self ):
-      return self._model, self._resources
+   def getProject( self ):
+      return self._project
 
    def commitChanges( self, index=None ):
       if index is None:

@@ -1,34 +1,79 @@
 from ApplicationFramework import *
-from OutlineView import *
+#from OutlineView import *
 from OutlineModel import *
 from utilities import *
+from PyQt4.QtCore import QObject
 
 
-class MindTreeProject( Project ):
+class MindTreeProject( Project, QObject ):
+   '''emit: resourceChange()'''
+   IMAGE_RES       = 'Image'
+   BOOKMARK_RES    = 'Bookmark'
+   LINK_RES        = 'Link'
+
    def __init__( self, data=None, workspace=None, filename=None, name=None ):
-      self.data = None
+      self._outline   = None
+      self._resources = None
+      
       Project.__init__( self, data, workspace, filename, name )
+      QObject.__init__( self )
+
+   def outline( self ):
+      return self._outline
+   
+   def resources( self ):
+      return self._resources
+
+   # Resource Manipulation
+   def res_add( self, name, resType, url ):
+      if resType in ( MindTreeProject.IMAGE_RES ):
+         linkString = '<IMG SRC="{0}">'.format( url )
+      else:
+         linkString = ( '<A HREF="{0}">'.format(url), '</A>' )
+      
+      self._resources[ name ] = [ url, resType, linkString, 0 ]
+                           # URL, type,    usage,      usageCount
+      
+      self._res_announceChange( name )
+   
+   def res_del( self, name ):
+      del self._resources[ name ]
+      self._res_announceChange( name )
+
+   def res_names( self ):
+      return list(self._resources.keys())
+
+   def res_info( self, name ):
+      return self._resources[ name ]
+   
+   def res_incrementUsageCount( self ):
+      self._resources[ name ][3] += 1
+      self._res_announceChange( name )
+   
+   def res_decrementUsageCount( self ):
+      self._resources[ name ][3] -= 1
+      self._res_announceChange( name )
+   
+   def _res_announceChange( self, name ):
+      self.emit( QtCore.SIGNAL( 'resourceChange(QString)' ), name )
 
    # Required Overrides
    def validate( self ):
       Project.validate( self )
-      
-      outlineModel,resources = self.data
-      outlineModel.validate( )
+      self._outline.validate( )
    
    def setDefaultData( self ):
       Project.setDefaultData( self )
       
-      outlineModel = OutlineModel( )
-      resources    = { }
-      self.data = outlineModel,resources
+      self._outline   = OutlineModel( )
+      self._resources = { }
 
-   def setPersistentData( self, data=None ):
+   def setPersistentData( self, data ):
       baseClassData, rootNode, resources = data
       Project.setPersistentData( self, baseClassData )
       
-      outlineModel = OutlineModel( rootNode )
-      self.data = outlineModel,resources
+      self._outline   = OutlineModel( rootNode )
+      self._resources = resources
       
       try:
          self.validate( )
@@ -37,11 +82,10 @@ class MindTreeProject( Project ):
 
    def getPersistentData( self ):
       self.validate( )
-      outlineModel,resources = self.data
-      rootNode = outlineModel.root()
+      rootNode = self._outline.root()
       
       baseClassData = Project.getPersistentData( self )
-      return ( baseClassData, rootNode, resources )
+      return ( baseClassData, rootNode, self._resources )
 
    def _defaultFileExtension( self ):
       return RES.get('Application','fileExtension')
