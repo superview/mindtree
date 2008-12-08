@@ -1,7 +1,9 @@
 from PyQt4 import QtCore, QtGui
-from ApplicationFramework import RES
 from uuid import uuid4
 import os.path
+
+
+from ApplicationFramework import RES
 
 
 class InvalidIndexError( Exception ):
@@ -136,7 +138,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
    
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
-      self._rootNode    = None
       
       if rootNode is None:
          rootNode = TreeNode( 'Untitled' )
@@ -145,8 +146,8 @@ class OutlineModel(QtCore.QAbstractItemModel):
       self._rootNode       = rootNode
       
       global EmptyArticleIcon, FullArticleIcon
-      OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineView', 'emptyArticleIcon' ))
-      OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineView', 'fullArticleIcon'  ))
+      OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'emptyArticleIcon' ))
+      OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'fullArticleIcon'  ))
 
    def root( self ):
       return self._rootNode
