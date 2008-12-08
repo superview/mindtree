@@ -1,6 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from ApplicationFramework import RES
-from uuid import *
+from uuid import uuid4
 import os.path
 
 
@@ -21,7 +21,7 @@ class TreeNode( object ):
       assert isinstance( article, (str,unicode) ) or (article is None)
       
       # Contents
-      self._id         = uuid4()
+      self._id         = uuid4().hex
       self._data       = [ title ]
       self._article    = article if article is not None else ''
       
@@ -74,8 +74,13 @@ class TreeNode( object ):
          return False
       
       # Validate _id
-      if not isinstance(self._id,UUID):
+      if not isinstance(self._id,(str,unicode)):
          return False
+      if len(self._id) != 32:
+         return False
+      for ch in self._id:
+         if ch not in '0123456789abcdefABCDEF':
+            return False
       
       # Validate _data
       if self._data is not None:

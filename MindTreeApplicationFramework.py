@@ -1,15 +1,41 @@
 from ApplicationFramework import *
-#from OutlineView import *
 from OutlineModel import *
-from utilities import *
 from PyQt4.QtCore import QObject
+from uuid import uuid4
+
+
+class Resource( object ):
+   def __init__( self, name, resType, resVal, resId=None ):
+      self.name      = name    # User Defined Name
+      self.resType   = resType # Type of the resource
+      self.resVal    = resVal  # String or URL of the resource
+
+
+class ResourceManager( object ):
+   def __init__( self ):
+      self._res      = { }     # map id to Resource instance
+      self._names    = { }     # map name to id
+   
+   def define( self, name, resType, resVal ):
+      self._res[ name ] = Resource( name, resType, resVal )
+   
+   def undefine( self, name ):
+      del self._res[ name ]
+
+   def resource( self, name ):
+      return self._res[ name ]
 
 
 class MindTreeProject( Project, QObject ):
-   '''emit: resourceChange()'''
+   '''emit: resourceChange(int,QString)'''
    IMAGE_RES       = 'Image'
    BOOKMARK_RES    = 'Bookmark'
    LINK_RES        = 'Link'
+   STRING_RES      = 'String'
+   
+   ADD_ACTION      = 0
+   REM_ACTION      = 1
+   MOD_ACTION      = 2
 
    def __init__( self, data=None, workspace=None, filename=None, name=None ):
       self._outline   = None
@@ -25,20 +51,15 @@ class MindTreeProject( Project, QObject ):
       return self._resources
 
    # Resource Manipulation
-   def res_add( self, name, resType, url ):
-      if resType in ( MindTreeProject.IMAGE_RES ):
-         linkString = '<IMG SRC="{0}">'.format( url )
-      else:
-         linkString = ( '<A HREF="{0}">'.format(url), '</A>' )
+   def res_add( self, name, resType, value ):
+      self._resources[ name ] = [ resType, value ]
+                                # type,   resource (url, string, etc.)
       
-      self._resources[ name ] = [ url, resType, linkString, 0 ]
-                           # URL, type,    usage,      usageCount
-      
-      self._res_announceChange( name )
+      self._res_announceChange( )
    
    def res_del( self, name ):
       del self._resources[ name ]
-      self._res_announceChange( name )
+      self._res_announceChange( )
 
    def res_names( self ):
       return list(self._resources.keys())
@@ -46,16 +67,8 @@ class MindTreeProject( Project, QObject ):
    def res_info( self, name ):
       return self._resources[ name ]
    
-   def res_incrementUsageCount( self ):
-      self._resources[ name ][3] += 1
-      self._res_announceChange( name )
-   
-   def res_decrementUsageCount( self ):
-      self._resources[ name ][3] -= 1
-      self._res_announceChange( name )
-   
-   def _res_announceChange( self, name ):
-      self.emit( QtCore.SIGNAL( 'resourceChange(QString)' ), name )
+   def _res_announceChange( self ):
+      self.emit( QtCore.SIGNAL( 'resourceChange()' ) )
 
    # Required Overrides
    def validate( self ):

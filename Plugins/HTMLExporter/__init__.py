@@ -281,8 +281,8 @@ class HtmlExporter( ExporterPlugin ):
                result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Last Node
-               result += self.buildTreeElementStr( self.lineNodeLast, node.id().hex )
-               result += self.buildTreeElementStr( self.iconNodeClosed, node.id().hex )
+               result += self.buildTreeElementStr( self.lineNodeLast, node.id() )
+               result += self.buildTreeElementStr( self.iconNodeClosed, node.id() )
          else:
             if len(node.childList()) == 0:
                # Doc Node
@@ -290,8 +290,8 @@ class HtmlExporter( ExporterPlugin ):
                result += self.buildTreeElementStr( self.iconLeaf )
             else:
                # Folder Node
-               result += self.buildTreeElementStr( self.lineNode, node.id().hex )
-               result += self.buildTreeElementStr( self.iconNodeClosed, node.id().hex )
+               result += self.buildTreeElementStr( self.lineNode, node.id() )
+               result += self.buildTreeElementStr( self.iconNodeClosed, node.id() )
       
       return result
 
@@ -306,7 +306,7 @@ class HtmlExporter( ExporterPlugin ):
       title   = node.title()
       article = node.article()
       if article and (len(article) > 0):
-         text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, node.id().hex, title )
+         text = u'<a href="{0}#{1}" target="baseframe">{2}</a>'.format(notesName, node.id(), title )
          self.writeTree( text )
       
       else:
@@ -314,7 +314,7 @@ class HtmlExporter( ExporterPlugin ):
       
       # subtrees
       if len(node.childList()) > 0:
-         self.writeTree( '<div id="folder{0}">\n'.format(node.id().hex) )
+         self.writeTree( '<div id="folder{0}">\n'.format(node.id()) )
          self._nestingStack.append( isLastSubNode )
          lastSubNode = node.childList()[-1]
          for subNode in node.childList():
@@ -339,7 +339,7 @@ class HtmlExporter( ExporterPlugin ):
       title   = node.title()
       article = node.article()
       if article and (len(article) > 0):
-         self.writeArticle( '<A NAME="{0}">'.format(node.id().hex) )
+         self.writeArticle( '<A NAME="{0}">'.format(node.id()) )
          self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
          self.writeArticle( article )
       else:
