@@ -18,14 +18,22 @@ class Resources( SafeConfigParser ):
    def __init__( self ):
       SafeConfigParser.__init__( self )
       self._actions = { }
+      
+      # Validate the initialization
+      assert isinstance( self._actions, dict )
    
    # Actions
    def defAction( self, name, **resources ):
+      assert isinstance( name, (str,unicode) )
+      
       self.add_section( name )
       for resName, resValue in resources.iteritems():
          self.set( name, resName, resValue )
 
    def installAction( self, name, parent, handlerObj=None, handlerFn=None ):
+      assert isinstance( name, (str,unicode) )
+      assert isinstance( parent, QtCore.QObject )
+      
       if self.has_section( name ):
          actionName = name
       elif self.has_section( 'action.' + name ):
@@ -44,10 +52,17 @@ class Resources( SafeConfigParser ):
       return theAction
 
    def getAction( name ):
+      assert isinstance( name, (str,unicode) )
+      
       return self._actions[ name ]
 
    # Resource Values
    def get( self, section, option, translate=False, default=None ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      assert isinstance( translate, bool          )
+      assert isinstance( default,   (str,unicode) ) or (default is None)
+      
       try:
          resValue = SafeConfigParser.get( self, section, option )
       except:
@@ -58,9 +73,15 @@ class Resources( SafeConfigParser ):
       return resValue
 
    def getPath( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       return os.path.normpath( self.get(section,option) )
 
    def getFont( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       elements = self.getMultipartResource(section,option)
       numElements = len(elements)
       
@@ -92,12 +113,21 @@ class Resources( SafeConfigParser ):
       return QtGui.QFont( fontFamily, fontSize, fontWeight, fontSlant )
    
    def getIcon( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       return QtGui.QIcon( self.get(section,option) )
    
    def getPixmap( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       return QtGui.QPixmap( self.get(section,option) )
    
    def getCursor( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
       hotspotX = int(hotspotX)
       hotspotY = int(hotspotY)
@@ -106,6 +136,9 @@ class Resources( SafeConfigParser ):
       return cur
 
    def getDragCursor( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       filename, hotspotX, hotspotY = self.getMultipartResource(section, option)
       hotspotX = int(hotspotX)
       hotspotY = int(hotspotY)
@@ -114,6 +147,9 @@ class Resources( SafeConfigParser ):
       return pixmap, hotspot
 
    def getColor( self, section, option ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      
       parts = self.getMultipartResource( section, option )
       if len(parts) == 3:
          red,green,blue = parts
@@ -127,12 +163,20 @@ class Resources( SafeConfigParser ):
          raise
 
    def getMultipartResource( self, section, option, translate=False, sep=':' ):
+      assert isinstance( section,   (str,unicode) )
+      assert isinstance( option,    (str,unicode) )
+      assert isinstance( translate, bool          )
+      assert isinstance( sep,       (str,unicode) )
+      
       parts = self.get(section,option).split(':')
       if translate:
          parts = [ QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) for resValue in parts ]
       return parts
 
    def makeActionObj( self, name, actionName, parent, handlerObj=None, handlerFn=None, **resources ):
+      assert isinstance( name,       (str,unicode) )
+      assert isinstance( actionName, (str,unicode) )
+      
       if handlerFn is None:
          if handlerObj is None:
             handlerObj = parent
@@ -182,6 +226,8 @@ class Resources( SafeConfigParser ):
 
    @staticmethod
    def fontStringToFont( val ):
+      assert isinstance( val, (str,unicode) )
+      
       elements = val.split( ':' )
       numElements = len(elements)
       
@@ -222,6 +268,11 @@ RES = Resources( )
 
 class Archiver( object ):
    def __init__( self, parentWidget, fileTypes, defaultExtension, initialDir=None ):
+      assert isinstance( parentWidget,     QtGui.QWidget )
+      assert isinstance( fileTypes,        (str,unicode) )
+      assert isinstance( defaultExtension, (str,unicode) )
+      assert isinstance( initialDir,       (str,unicode) ) or (initialDir is None)
+      
       self._parentWidget     = parentWidget
       self._extension        = defaultExtension
       self._fileTypes        = fileTypes
@@ -232,12 +283,16 @@ class Archiver( object ):
          self._initialDir = os.getcwd()
    
    def setup( self, initialDir ):
+      assert isinstance( initialDir, (str,unicode) )
+      
       self._initialDir       = initialDir
    
    def defaultExtension( self ):
       return self._defaultExtension
 
    def askdir( self, title ):
+      assert isinstance( title, (str,unicode) )
+      
       dlg = QtGui.QFileDialog( self._parentWidget, title, self._initialDir )
       dlg.setFileMode( QtGui.QFileDialog.DirectoryOnly )
       dlg.setModal(True)
@@ -331,6 +386,8 @@ class Archiver( object ):
       save the document under another name, but aFilename should be the
       default name.
       """
+      assert isinstance( filename, (str,unicode) ) or (filename is None)
+      
       if not filename:
          filename = self.asksaveasfilename( )
       
@@ -358,6 +415,8 @@ class Archiver( object ):
       """Read the file and return a project object.  If an error occurs,
       raise an exception.
       """
+      assert isinstance( aFilename, (str,unicode) )
+      
       import pickle
       return pickle.load( open( aFilename, 'rb' ) )
 
@@ -365,6 +424,8 @@ class Archiver( object ):
       """Write the persistent data in the project.  If an error occurs,
       raise an exception.
       """
+      assert isinstance( filename, (str,unicode) )
+      
       import pickle
       f = open( filename, 'wb' )
       pickle.dump( data, f, pickle.HIGHEST_PROTOCOL )
@@ -379,6 +440,10 @@ class Project( object ):
       archiver           init from file
       data               init from data
       '''
+      assert isinstance( workspace, (str,unicode) ) or (workspace is None)
+      assert isinstance( filename,  (str,unicode) ) or (filename is None)
+      assert isinstance( name,      (str,unicode) ) or (name is None)
+      
       self._name       = name
       self._workspace  = workspace
       self._filename   = filename
@@ -407,15 +472,21 @@ class Project( object ):
       return self._name
 
    def setName( self, newTitle ):
+      assert isinstance( newTitle, (str,unicode) )
+      
       self._name = newTitle
 
    def filename( self, fullName=False ):
+      assert isinstance( fullName, bool )
+      
       if fullName:
          return os.path.join( self._workspace, self._filename )
       else:
          return self._filename
 
    def setFilename( self, filename ):
+      assert isinstance( filename, (str,unicode) )
+      
       backupDir = RES.get( 'Project', 'backupDir' )
       
       disk,path,name,extension = splitFilePath( filename )

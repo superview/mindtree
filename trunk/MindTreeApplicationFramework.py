@@ -1,42 +1,11 @@
 from ApplicationFramework import *
 from OutlineModel import *
+from ArticleResourceModel import *
 from PyQt4.QtCore import QObject
 from uuid import uuid4
 
 
-class Resource( object ):
-   def __init__( self, name, resType, resVal, resId=None ):
-      self.name      = name    # User Defined Name
-      self.resType   = resType # Type of the resource
-      self.resVal    = resVal  # String or URL of the resource
-
-
-class ResourceManager( object ):
-   def __init__( self ):
-      self._res      = { }     # map id to Resource instance
-      self._names    = { }     # map name to id
-   
-   def define( self, name, resType, resVal ):
-      self._res[ name ] = Resource( name, resType, resVal )
-   
-   def undefine( self, name ):
-      del self._res[ name ]
-
-   def resource( self, name ):
-      return self._res[ name ]
-
-
 class MindTreeProject( Project, QObject ):
-   '''emit: resourceChange(int,QString)'''
-   IMAGE_RES       = 'Image'
-   BOOKMARK_RES    = 'Bookmark'
-   LINK_RES        = 'Link'
-   STRING_RES      = 'String'
-   
-   ADD_ACTION      = 0
-   REM_ACTION      = 1
-   MOD_ACTION      = 2
-
    def __init__( self, data=None, workspace=None, filename=None, name=None ):
       self._outline   = None
       self._resources = None
@@ -50,43 +19,27 @@ class MindTreeProject( Project, QObject ):
    def resources( self ):
       return self._resources
 
-   # Resource Manipulation
-   def res_add( self, name, resType, value ):
-      self._resources[ name ] = [ resType, value ]
-                                # type,   resource (url, string, etc.)
-      
-      self._res_announceChange( )
-   
-   def res_del( self, name ):
-      del self._resources[ name ]
-      self._res_announceChange( )
-
-   def res_names( self ):
-      return list(self._resources.keys())
-
-   def res_info( self, name ):
-      return self._resources[ name ]
-   
-   def _res_announceChange( self ):
-      self.emit( QtCore.SIGNAL( 'resourceChange()' ) )
-
    # Required Overrides
    def validate( self ):
       Project.validate( self )
       self._outline.validate( )
+      self._resources.validate( )
    
    def setDefaultData( self ):
       Project.setDefaultData( self )
       
       self._outline   = OutlineModel( )
-      self._resources = { }
+      self._resources = ArticleResourcesModel( )
 
    def setPersistentData( self, data ):
       baseClassData, rootNode, resources = data
       Project.setPersistentData( self, baseClassData )
       
+      assert isinstance( rootNode, TreeNode )
+      assert isinstance( resources, ArticleResources )
+      
       self._outline   = OutlineModel( rootNode )
-      self._resources = resources
+      self._resources = ArticleResourcesModel( resources )
       
       try:
          self.validate( )
@@ -96,9 +49,10 @@ class MindTreeProject( Project, QObject ):
    def getPersistentData( self ):
       self.validate( )
       rootNode = self._outline.root()
+      resources = self._resources.rawResourceObject()
       
       baseClassData = Project.getPersistentData( self )
-      return ( baseClassData, rootNode, self._resources )
+      return ( baseClassData, rootNode, resources )
 
    def _defaultFileExtension( self ):
       return RES.get('Application','fileExtension')

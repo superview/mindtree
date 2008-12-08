@@ -1,12 +1,13 @@
 from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
+from ArticleResourceModel import *
 from ApplicationFramework import RES
 from MindTreeApplicationFramework import MindTreeProject
 
 from utilities import *
 
 
-class OutlineView_Delegate( QtGui.QItemDelegate ):
+class TreeView_Delegate( QtGui.QItemDelegate ):
    def __init__( self, parent ):
       QtGui.QItemDelegate.__init__( self, parent )
    
@@ -22,12 +23,12 @@ class OutlineView_Delegate( QtGui.QItemDelegate ):
       model.setData( index, editor.text(), QtCore.Qt.DisplayRole )
    
 
-class OutlineViewWidget( QtGui.QTreeView ):
+class TreeView( QtGui.QTreeView ):
    '''Emits: entryRightClicked(QPoint,QModelIndex)'''
    def __init__( self, parent ):
       QtGui.QTreeView.__init__( self, parent )
       
-      alternatingRowColors = RES.getboolean('OutlineView','alternatingRowColors')
+      alternatingRowColors = RES.getboolean('OutlineEdit','alternatingRowColors')
       
       # Drag and Drop
       self.setDragEnabled( True )
@@ -36,7 +37,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self.setDragDropMode( QtGui.QAbstractItemView.InternalMove )
       
       # Entry Editing
-      self.setItemDelegate( OutlineView_Delegate(self) )
+      self.setItemDelegate( TreeView_Delegate(self) )
       self.setEditTriggers( QtGui.QAbstractItemView.SelectedClicked |
                             QtGui.QAbstractItemView.CurrentChanged )
       
@@ -51,9 +52,9 @@ class OutlineViewWidget( QtGui.QTreeView ):
       self.setTabKeyNavigation(False)
       
       # Drag and Drop Cursors
-      self.insertBefore_cursor  = RES.getDragCursor('OutlineView','DnD_insertBeforeCursor')
-      self.insertAfter_cursor   = RES.getDragCursor('OutlineView','DnD_insertAfterCursor')
-      self.insertChild_cursor   = RES.getDragCursor('OutlineView','DnD_insertChildCursor')
+      self.insertBefore_cursor  = RES.getDragCursor('OutlineEdit','DnD_insertBeforeCursor')
+      self.insertAfter_cursor   = RES.getDragCursor('OutlineEdit','DnD_insertAfterCursor')
+      self.insertChild_cursor   = RES.getDragCursor('OutlineEdit','DnD_insertChildCursor')
 
    def eventFilter( self, obj, event ):
       if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
@@ -201,7 +202,7 @@ class OutlineViewWidget( QtGui.QTreeView ):
          return ( indexOfentryUnderMouse, 'before' )
       else:
          # After (may be sibling or child)
-         if mousePos.x() >= rectOfEntryUnderMouse.x() + RES.getint('OutlineView','DnD_siblingChildBound'):
+         if mousePos.x() >= rectOfEntryUnderMouse.x() + RES.getint('OutlineEdit','DnD_siblingChildBound'):
             return ( indexOfentryUnderMouse, 'child' )
          else:
             return ( indexOfentryUnderMouse, 'after' )
@@ -224,12 +225,12 @@ class OutlineViewWidget( QtGui.QTreeView ):
       #QtGui.QApplication.setOverrideCursor( cursor )
 
 
-class ArticleViewWidget( QtGui.QTextEdit ):
+class ArticleView( QtGui.QTextEdit ):
    ImageFormats = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff);;All Files (*.*)'
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
-      self._project = None
+      self._project = MindTreeProject( )
       self._specialSelections = { }
       
       self._buildGui( )
@@ -242,7 +243,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self.document().addResource( resType, QtCore.QUrl(url), resObj )
    
    def addImageResourceToProject( self, name, url ):
-      self._project.res_add( name, MindTreeProject.IMAGE_RES, url )
+      self._project.resources().define( name, ArticleResources.IMAGE_RES, url )
    
    def setProject( self, project ):
       self._project = project
@@ -251,11 +252,12 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       QtGui.QTextEdit.clear( self )
       
       # Reload the resources
+      resources = self._project.resources()
       if self._project and keepResources:
-         for resName in self._project.res_names():
-            resUsageCt, resType, resURL = self._project.res_info(resName)
-            if resType == MindTreeProject.IMAGE_RES:
-               self.addImageResourceToArticleWidget( resName, resURL )
+         for resName in resources:
+            resType, resVal = resources.info(resName)
+            if resType == ArticleResources.IMAGE_RES:
+               self.addImageResourceToArticleWidget( resName, resVal )
    
    def getFixedMenus( self ):
       return [ self.menuArticle ]
@@ -344,7 +346,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def textInsertImage( self ):
       IMAGE_DIR = RES.get('ArticleResource','imageDir')
       
-      dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleViewWidget.ImageFormats )
+      dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleView.ImageFormats )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
       dlg.setModal(True)
       if not dlg.exec_():
@@ -512,20 +514,22 @@ class ArticleViewWidget( QtGui.QTextEdit ):
    def _cursorPositionChanged( self ):
       self._updateToolbars( )
 
-class OutlineView(QtGui.QSplitter):
+class OutlineEdit(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")   -- the model has been modified.
              QtCore.SIGNAL("newProject()")     -- a new project is being edited.
    '''
    def __init__( self, parent ):
       QtGui.QSplitter.__init__( self, parent )
       
-      self._outlineView            = None      # The TreeView widget
+      self._treeView               = None      # The TreeView widget
       self._articleView            = None      # The TextEdit widget
       self._project                = None
       self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
       self._buildGui( )
+      
+      self.setProject( MindTreeProject( ) )
 
    def getFixedMenus( self ):
       menus = [ self.menuTree ]
@@ -539,7 +543,7 @@ class OutlineView(QtGui.QSplitter):
 
    # Subwidget Access (mainly used by pluggable tools
    def outlineWidget( self ):
-      return self._outlineView
+      return self._treeView
 
    def articleWidget( self ):
       return self._articleView
@@ -555,10 +559,10 @@ class OutlineView(QtGui.QSplitter):
          
          self._articleView.clear( )
          
-         self._outlineView.setModel( self._model )
+         self._treeView.setModel( self._model )
          self._articleView.setProject( self._project )
          
-         QtCore.QObject.connect( self._outlineView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
+         QtCore.QObject.connect( self._treeView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
          QtCore.QObject.connect( self._articleView, QtCore.SIGNAL( 'textChanged()' ), self.onArticleChanged )
       
@@ -566,7 +570,7 @@ class OutlineView(QtGui.QSplitter):
          exceptionPopup( )
       
       indexOfFirst = self._model.index( 0, 0, QtCore.QModelIndex() )
-      self._outlineView.setCurrentIndex( indexOfFirst )
+      self._treeView.setCurrentIndex( indexOfFirst )
       
       self.emit( QtCore.SIGNAL('newProject()') )
 
@@ -575,7 +579,7 @@ class OutlineView(QtGui.QSplitter):
 
    def commitChanges( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex( )
+         index = self._treeView.currentIndex( )
       
       if self._currentArticleModified:
          theDocument = self._articleView.document()
@@ -590,17 +594,17 @@ class OutlineView(QtGui.QSplitter):
    def insertNode( self, newParentIndex, newRow, newNode=None ):
       try:
          self._model.insertNode( newParentIndex, newRow, newNode )
-         self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
+         self._treeView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
       except:
          exceptionPopup( )
    
    def deleteNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
-         if not self._outlineView.model().removeNode( index ):
+         if not self._treeView.model().removeNode( index ):
             return
          
          self.onModelChanged()
@@ -610,38 +614,38 @@ class OutlineView(QtGui.QSplitter):
    def moveNode( self, index, newParentIndex, newRow ):
       try:
          self._model.moveNode( index, newParentIndex, newRow )
-         self._outlineView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
+         self._treeView.setCurrentIndex( self._model.index(newRow, 0, newParentIndex) )
          self.onModelChanged()
       except:
          exceptionPopup()
 
    def expandAll( self ):
       try:
-         self._outlineView.expandAll( )
+         self._treeView.expandAll( )
       except:
          exceptionPopup()
 
    def expandNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
-         self._outlineView.expand( self._outlineView.currentIndex() )
+         self._treeView.expand( self._treeView.currentIndex() )
       except:
          exceptionPopup()
 
    def collapseAll( self ):
       try:
-         self._outlineView.collapseAll( )
+         self._treeView.collapseAll( )
       except:
          exceptionPopup()
 
    def collapseNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
-         self._outlineView.collapse( self._outlineView.currentIndex() )
+         self._treeView.collapse( self._treeView.currentIndex() )
       except:
          exceptionPopup()
 
@@ -690,7 +694,7 @@ class OutlineView(QtGui.QSplitter):
 
    def insertNodeBefore( self, index=None, node=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          self.insertNode( index.parent(), index.row(), node )
@@ -699,7 +703,7 @@ class OutlineView(QtGui.QSplitter):
 
    def insertNodeAfter( self, index=None, node=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          self.insertNode( index.parent(), index.row() + 1, node )
@@ -708,7 +712,7 @@ class OutlineView(QtGui.QSplitter):
 
    def insertNodeAsChild( self, index=None, node=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          self.insertNode( index, 0, node )
@@ -717,7 +721,7 @@ class OutlineView(QtGui.QSplitter):
 
    def indentNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          theNodeRow = index.row()
@@ -732,7 +736,7 @@ class OutlineView(QtGui.QSplitter):
 
    def dedentNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          if len(index.parent().internalPointer()._childNodes) != 1:
@@ -746,7 +750,7 @@ class OutlineView(QtGui.QSplitter):
 
    def moveNodeUp( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          theRow = index.row()
@@ -759,7 +763,7 @@ class OutlineView(QtGui.QSplitter):
 
    def moveNodeDown( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          theRow = index.row()
@@ -772,7 +776,7 @@ class OutlineView(QtGui.QSplitter):
 
    def cutNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          mimeObject = self._model.mimifyNode( index )
@@ -788,7 +792,7 @@ class OutlineView(QtGui.QSplitter):
 
    def copyNode( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          mimeObject = self._model.mimifyNode( index )
@@ -800,7 +804,7 @@ class OutlineView(QtGui.QSplitter):
    
    def pasteNodeBefore( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -814,7 +818,7 @@ class OutlineView(QtGui.QSplitter):
 
    def pasteNodeAfter( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -828,7 +832,7 @@ class OutlineView(QtGui.QSplitter):
    
    def pasteNodeAsChild( self, index=None ):
       if index is None:
-         index = self._outlineView.currentIndex()
+         index = self._treeView.currentIndex()
       
       try:
          mimeObject = QtGui.QApplication.clipboard().mimeData()
@@ -850,7 +854,7 @@ class OutlineView(QtGui.QSplitter):
       self.emit( QtCore.SIGNAL('modelChanged()') )
 
    def entryRightClicked( self, point, index ):
-      self._outlineView.setCurrentIndex( index )
+      self._treeView.setCurrentIndex( index )
       self.menuTree.popup(point)
 
    # GUI Construction
@@ -863,19 +867,19 @@ class OutlineView(QtGui.QSplitter):
       self._buildToolbars( )
 
    def _buildWidgets( self ):
-      outlineFont = RES.getFont( 'OutlineView', 'Font' )
+      outlineFont = RES.getFont( 'OutlineEdit', 'Font' )
       
-      self._outlineView = OutlineViewWidget(self)
-      self._outlineView.setObjectName("outlineView")
+      self._treeView = TreeView(self)
+      self._treeView.setObjectName("outlineView")
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )
-      self._outlineView.setSizePolicy(sizePolicy)
-      self._outlineView.setMinimumSize(QtCore.QSize(100, 100))
-      self._outlineView.setSizeIncrement(QtCore.QSize(1, 1))
-      self._outlineView.setFont( outlineFont )
+      self._treeView.setSizePolicy(sizePolicy)
+      self._treeView.setMinimumSize(QtCore.QSize(100, 100))
+      self._treeView.setSizeIncrement(QtCore.QSize(1, 1))
+      self._treeView.setFont( outlineFont )
       
-      self._articleView = ArticleViewWidget(self)
+      self._articleView = ArticleView(self)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 1 )
@@ -883,7 +887,7 @@ class OutlineView(QtGui.QSplitter):
       self._articleView.setMinimumSize(QtCore.QSize(100, 100))
       self._articleView.setObjectName("articleView")
       
-      QtCore.QObject.connect( self._outlineView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
+      QtCore.QObject.connect( self._treeView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
 
    def _defineActions( self ):
       self.cutNodeAction             = RES.installAction( 'cutNode',           self )

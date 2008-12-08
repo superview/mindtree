@@ -1,6 +1,8 @@
 from PyQt4 import QtCore, QtGui, Qt
-from OutlineView import ArticleViewWidget
-from MindTreeApplicationFramework import *
+
+from OutlineEdit import ArticleView
+from ArticleResourceModel import *
+from MindTreeApplicationFramework import MindTreePluggableTool
 
 
 class ResDialog( QtGui.QDialog ):
@@ -104,7 +106,7 @@ class ResDialog( QtGui.QDialog ):
    def locateImageResource( self ):
       IMAGE_DIR = RES.get('ArticleResource','imageDir')
       
-      dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleViewWidget.ImageFormats )
+      dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleView.ImageFormats )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
       dlg.setModal(True)
       if not dlg.exec_():
@@ -115,85 +117,9 @@ class ResDialog( QtGui.QDialog ):
       if len(filenames) != 1:
          return   # The operation was canceled
       
-      filename = unicode(filenames[0])
-      disk,path,name,ext = splitFilePath( filename )
-      
-      # Copy the image to the resource folder if needed
-      imagePath = os.path.join( IMAGE_DIR, name + ext )
-      if not os.path.exists( imagePath ):
-         if not os.path.exists( IMAGE_DIR ):
-            os.mkdir( IMAGE_DIR )
-         import shutil
-         shutil.copy( filename, imagePath )
-      
-      self.nameText  = unicode(self._nameEdit.text())
-      self.typeText  = unicode(self._typeEdit.currentText()).upper()
-      self.valueText = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
-      
-      if self.nameText == '':
-         self.nameText = '{0}{1}'.format( name, ext )
-      
-      return self.valueText
+      return filenames[0]
 
 
-class ResourcesEditorModel( QtCore.QAbstractItemModel ):
-   def __init__( self, proj=None, parent=None ):
-      QtCore.QAbstractItemModel.__init__(self, parent)
-      
-      self._project     = proj
-      self._resNameList = [ ]
-      
-      if self._project:
-         self._resNameList = list(self._project.res_names())
-         self._resNameList.sort( )
-   
-   def columnCount( self, parent ):
-      return 3    # [ name, type, value ]
-   
-   def data( self, index, role ):
-      if not index.isValid( ):
-         return QtCore.QVariant( )
-      
-      if role != QtCore.Qt.DisplayRole:
-         return QtCore.QVariant( )
-      
-      row = index.row()
-      resName = self._resNameList[ row ]
-      
-      if index.column() == 0:
-         val = resName
-      else:
-         val = self._project.res_info(resName)[ index.column() - 1 ]
-      
-      return QtCore.QVariant(val)
-   
-   def flags( self, index ):
-      if not index.isValid( ):
-         return QtCore.Qt.ItemIsEnabled
-      
-      return QtCore.Qt.ItemIsEditable | QtCore.QAbstractItemModel.flags( self, index )
-   
-   def headerData(self, section, orientation, role):
-      header = [ 'Name', 'Type', 'Value', 'Uses' ]
-      
-      if (orientation == QtCore.Qt.Horizontal) and (role == QtCore.Qt.DisplayRole):
-         return QtCore.QVariant( header[section] )
-      
-      return QtCore.QVariant()
-
-   def index(self, row, column, parentIndex):
-      if row < 0 or column < 0 or row >= self.rowCount(parentIndex) or column >= self.columnCount(parentIndex):
-         return QtCore.QModelIndex()
-      
-      return self.createIndex(row, column, None)
-
-   def parent( self, index ):
-      return self.createIndex(0, 0, None)
-   
-   def rowCount(self, parent):
-      return len(self._resNameList)
-
-   
 class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
    theApp = None
 
@@ -217,7 +143,7 @@ class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
       Resources.theApp = app
       self._outlineView = outlineView
       self._project     = outlineView.getProject( )
-      self._resModel    = ResourcesEditorModel( self._project )
+      self._resModel    = self._project.resources( )
       
       QtCore.QObject.connect( outlineView, QtCore.SIGNAL('newProject()'), self.newProject )
       
@@ -264,7 +190,7 @@ class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
       
       self._insertBtn = QtGui.QPushButton( self )
       self._insertBtn.setText( RES.get('Resources','insertBtnLabel',translate=True) )
-      QtCore.QObject.connect( self._addBtn, QtCore.SIGNAL('clicked()'), self.insertResource )
+      QtCore.QObject.connect( self._insertBtn, QtCore.SIGNAL('clicked()'), self.insertResource )
       gridLayout.addWidget( self._insertBtn, row, 2, 1, 1 )
 
    def addResource( self ):
@@ -277,43 +203,49 @@ class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
       resValue   = dlg.valueText
       
       if resTypeStr == 'IMAGE':
-         resType  = MindTreeProject.IMAGE_RES
+         self._resModel.installImageResource( resValue )
          
          resObj = QtCore.QVariant(QtGui.QImage(resValue))
          self._outlineView.articleWidget().document().addResource( QtGui.QTextDocument.ImageResource, QtCore.QUrl(resValue), resObj )
       
       elif resTypeStr == 'STRING':
          resType = MindTreeProject.STRING_RES
+         self._resModel.define( name, resType, resValue )
       
       elif resTypeStr == 'BOOKMARK':
          resType = MindTreeProject.BOOKMARK_RES
+         self._resModel.define( name, resType, resValue )
       
       elif resType == 'LINK':
          resType = MindTreeProject.LINK_RES
+         self._resModel.define( name, resType, resValue )
       
       else:
          raise Exception
-      
-      self._project.res_add( resName, resType, resValue )
-      
-      self.refresh( )
 
    def delResource( self ):
       pass
    
    def insertResource( self ):
       textCursor = self._outlineView.articleWidget().textCursor()
-      textCursor.insertHtml( '<img src="{0}"/>'.format(resURL) )
+      
+      resName = unicode(self._resList.currentIndex( ).data( ).toString( ))
+      resType, resVal = self._resModel.info( resName )
+      
+      if resType == ArticleResources.IMAGE_RES:
+         textCursor.insertHtml( '<img src="{0}"/>'.format(resVal) )
 
    def newProject( self ):
-      self._project = self._outlineView.getProject( )
-      QtCore.QObject.connect( self._project, QtCore.SIGNAL('resourceChange()'), self.refresh )
+      self._project  = self._outlineView.getProject( )
+      self._resModel = self._project.resources( )
+      
+      QtCore.QObject.connect( self._resModel, QtCore.SIGNAL('resourceChange()'), self.refresh )
       self.refresh( )
    
    def refresh( self ):
-      self._project     = self._outlineView.getProject( )
-      self._resModel    = ResourcesEditorModel( self._project )
+      self._resList.setModel( None )
       self._resList.setModel( self._resModel )
+      self._resList.resizeColumnToContents( 0 )
       self._resList.resizeColumnToContents( 1 )
 
  

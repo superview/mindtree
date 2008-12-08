@@ -4,7 +4,7 @@ import sys
 sys.py3kwarning = True
 
 from PyQt4 import QtCore, QtGui
-from OutlineView import OutlineView
+from OutlineEdit import OutlineEdit
 from MindTreeApplicationFramework import *
 
 
@@ -186,8 +186,8 @@ class MindTree( Application ):
       self.splitter.setObjectName("splitter_2")
       self.splitter.setOpaqueResize( True )
       
-      # OutlineView Widget
-      self._outlineView = OutlineView( self.splitter )
+      # OutlineEdit Widget
+      self._outlineView = OutlineEdit( self.splitter )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
       sizePolicy.setHorizontalStretch( 0 )

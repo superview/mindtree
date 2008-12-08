@@ -1,9 +1,10 @@
 # Read and Convert a MindTree v1.0 Project file
 
-from OutlineModel import OutlineModel, TreeNode
 from PyQt4 import QtCore, QtGui
 
 from ApplicationFramework import ImporterPlugin, RES, Project
+from OutlineModel import OutlineModel, TreeNode
+from ArticleResourceModel import ArticleResources
 
 class MT1ImportingArchiver( ImporterPlugin ):
    NAME              = 'MindTree1.x'
@@ -16,7 +17,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
                       }
 
    def __init__( self, parentWidget ):
-      workingDir     = RES.get('Project',    'workspace', '' )
+      workingDir     = RES.get('Project',    'workspace', default='' )
       fileTypes      = RES.get('MindTree1.x','fileTypes')
       fileExtensions = RES.get('MindTree1.x','fileExtension')
       
@@ -33,7 +34,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       
       theConvertedProject = self.convertProject( data._tree, documentName )
       theRootNode     = theConvertedProject
-      theResources = { }
+      theResources = ArticleResources( )
       
       return documentName, theRootNode, theResources
 
