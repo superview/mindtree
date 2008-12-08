@@ -253,7 +253,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       # Reload the resources
       if self._project and keepResources:
          for resName in self._project.res_names():
-            resURL, resType, resLinkToString, resUsageCt = self._project.res_info()
+            resUsageCt, resType, resURL = self._project.res_info(resName)
             if resType == MindTreeProject.IMAGE_RES:
                self.addImageResourceToArticleWidget( resName, resURL )
    
@@ -342,7 +342,7 @@ class ArticleViewWidget( QtGui.QTextEdit ):
       self._updateToolbars()
 
    def textInsertImage( self ):
-      IMAGE_DIR = RES.get('Project','imageDir')
+      IMAGE_DIR = RES.get('ArticleResource','imageDir')
       
       dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleViewWidget.ImageFormats )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
@@ -366,10 +366,11 @@ class ArticleViewWidget( QtGui.QTextEdit ):
          import shutil
          shutil.copy( filename, imagePath )
       
-      resURL = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
+      resName = '{0}{1}'.format( name, ext )
+      resURL  = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
       
       self.addImageResourceToArticleWidget( resURL, imagePath )
-      self.addImageResourceToProject( resURL, imagePath )
+      self.addImageResourceToProject( resName, resURL )
       
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
 

@@ -201,6 +201,7 @@ class MindTree( Application ):
       
       # Tools
       self.toolSplitter = QtGui.QSplitter( self.splitter )
+      self.toolSplitter.setChildrenCollapsible(False)
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
       sizePolicy.setVerticalStretch( 2 )
       sizePolicy.setHorizontalStretch( 1 )
@@ -208,7 +209,16 @@ class MindTree( Application ):
       self.toolSplitter.setMinimumHeight( 200 )
       
       self.leftToolTabs  = QtGui.QTabWidget( self.toolSplitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 1 )
+      self.leftToolTabs.setSizePolicy( sizePolicy )
+      
       self.rightToolTabs = QtGui.QTabWidget( self.toolSplitter )
+      sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.MinimumExpanding, QtGui.QSizePolicy.MinimumExpanding)
+      sizePolicy.setVerticalStretch( 1 )
+      sizePolicy.setHorizontalStretch( 2 )
+      self.rightToolTabs.setSizePolicy( sizePolicy )
       
       self.setCentralWidget(self.splitter)
 
