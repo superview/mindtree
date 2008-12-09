@@ -38,7 +38,6 @@
       * Cut & Paste across views
       * Drag & Drop across views
       * Changes reflected across views
-      * Make Content Views/Editors into plugins
       * Tabbed User Preferences (plugins may add their own tabs)
    * Outline View
       * Full Undo/Redo (tree editing and across editing of different articles)
