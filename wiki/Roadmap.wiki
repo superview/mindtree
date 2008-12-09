@@ -40,6 +40,9 @@
    * Article Resources
       * Internal links (implement as resources)
       * External links (implement as resources)
+      * Pluggable Article Editors
+         * Direct HTML editing (dual view)
+         * Restructured text   (dual view)
    * Distribution
       * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
@@ -62,9 +65,6 @@
          * Lists
          * Tables
       * Print Preview
-      * Pluggable Editors
-         * Direct HTML editing (dual view)
-         * Restructured text   (dual view)
    * Plugins
       * Allow plugin settings to be stored in projects (e.g. keyboard)
       * Make the Keyboard Plugin GUI-Editable
