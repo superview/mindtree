@@ -2,13 +2,10 @@
 
 *1.5* RELEASED (internal)
    * Outline Viewer App
-      * DONE: Create a Qt app for viewing MindTree outlines
 
 *1.6* RELEASED (internal)
    * Article Editing
-      * DONE: Menu Items
-      * DONE: Toolbars - implement toolbars for text styling
-      * DONE: Shortcuts
+      * DONE: Menus, Toolbars, shortcuts
       * DONE: Cut & Paste - cut & paste text in an article
       * DONE: Undo/Redo
       * DONE: Images - support inserting images into articles
@@ -16,9 +13,7 @@
 
 *1.7* RELEASED (internal)
    * Outline Editing
-      * DONE: Menu Items
-      * DONE: Toolbars
-      * DONE: Shortcuts
+      * DONE: Menus, Toolbars, shortcuts
       * DONE: Cut & Paste
       * DONE: Drag & Drop - Drop always does an insert before.
 
