@@ -5,6 +5,42 @@ from PyQt4.QtCore import QObject
 from uuid import uuid4
 
 
+class TreeEntryIconSelector( object ):
+   EmptyArticleIcon = None
+   FullArticleIcon  = None
+   FlagRedIcon      = None
+   FlagGreenIcon    = None
+   FlagBlueIcon     = None
+   FlagYellowIcon   = None
+   FlagBlackIcon    = None
+   FlagWhiteIcon    = None
+
+   def __init__( self ):
+      TreeEntryIconSelector.EmptyArticleIcon = QtCore.QVariant(RES.getIcon('OutlineEdit','emptyArticleIcon'  ))
+      TreeEntryIconSelector.FullArticleIcon  = QtCore.QVariant(RES.getIcon('OutlineEdit','fullArticleIcon'   ))
+      TreeEntryIconSelector.FlagRedIcon      = QtCore.QVariant(RES.getIcon('OutlineEdit','redBookmarkIcon'   ))
+      TreeEntryIconSelector.FlagGreenIcon    = QtCore.QVariant(RES.getIcon('OutlineEdit','greenBookmarkIcon' ))
+      TreeEntryIconSelector.FlagBlueIcon     = QtCore.QVariant(RES.getIcon('OutlineEdit','blueBookmarkIcon'  ))
+      TreeEntryIconSelector.FlagYellowIcon   = QtCore.QVariant(RES.getIcon('OutlineEdit','yellowBookmarkIcon'))
+      TreeEntryIconSelector.FlagBlackIcon    = QtCore.QVariant(RES.getIcon('OutlineEdit','blackBookmarkIcon' ))
+      TreeEntryIconSelector.FlagWhiteIcon    = QtCore.QVariant(RES.getIcon('OutlineEdit','whiteBookmarkIcon' ))
+      
+      self._outlineResManager = None
+
+   def setResourceManager( self, resMgr ):
+      self._outlineResManager = res
+
+   def iconForIndex( self, index ):
+      item = index.internalPointer()
+      
+      if item.id() in self._bookmarkedIds:
+         return TreeEntryIconSelector.FlagBlueIcon
+      elif item.article() == '':
+         return TreeEntryIconSelector.EmptyArticleIcon
+      else:
+         return TreeEntryIconSelector.FullArticleIcon
+
+
 class MindTreeProject( Project, QObject ):
    def __init__( self, data=None, workspace=None, filename=None, name=None ):
       self._outline   = None

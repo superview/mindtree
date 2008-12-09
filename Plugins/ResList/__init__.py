@@ -229,9 +229,15 @@ class Resources( QtGui.QTabWidget, MindTreePluggableTool ):
    def insertResource( self ):
       textCursor = self._outlineView.articleWidget().textCursor()
       
-      resName = unicode(self._resList.currentIndex( ).data( ).toString( ))
+      # Get an index to the column zero element in the selected row
+      index = self._resList.currentIndex()
+      index = index.sibling( index.row(), 0 )
+      
+      # Get the resource information
+      resName = unicode(index.data( ).toString( ))
       resType, resVal = self._resModel.info( resName )
       
+      # Insert the resource
       if resType == ArticleResources.IMAGE_RES:
          textCursor.insertHtml( '<img src="{0}"/>'.format(resVal) )
 

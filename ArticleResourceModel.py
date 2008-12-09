@@ -13,15 +13,22 @@ class ArticleResources( object ):
    STRING_RES      = 'String'
 
    def __init__( self, resDict=None ):
-      self._res      = { }     # map id to Resource instance
+      self._res       = { }     # map id to Resource instance
+      self._bookmarks = set( )
       
       if resDict is not None:
          self._res = resDict
    
    def define( self, name, resType, resVal ):
       self._res[ name ] = [ resType, resVal ]
+      if resType == ArticleResources.BOOKMARK_RES:
+         self._bookmarks.add( resVal )
    
    def undefine( self, name ):
+      resType, resVal = self._res[ name ]
+      if resType == ArticleResources.BOOKMARK_RES:
+         self._bookmarks.remove( resVal )
+      
       del self._res[ name ]
 
    def names( self ):
@@ -32,6 +39,9 @@ class ArticleResources( object ):
    
    def __iter__( self ):
       return iter(self._res)
+
+   def isBookmarkedId( self, anId ):
+      return anId in self._bookmarks
 
    def validate( self ):
       if not isinstance( self._res, dict ):
@@ -115,6 +125,9 @@ class ArticleResourcesModel(QtCore.QAbstractItemModel):
       return len(self._resNameList)
 
    # Other Methods
+   def isBookmarkedId( self, anId ):
+      return self._res.isBookmarkedId( anId )
+
    def validate( self ):
       if not isinstance( self._resNameList, list ):
          return False
