@@ -14,7 +14,7 @@
 
 *2.0* (Final) Estimated Feb 2009
 
-*2.1* (Tentative) -- Focus on Minor Feature aggrivations
+*2.1* (Tentative) -- Focus on inconveniences
    * Outline Editor
       * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
