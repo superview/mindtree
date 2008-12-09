@@ -1,11 +1,12 @@
 #summary This document lists future versions and features.
 
 *1.9* (public beta) Jan 2009
+   * Application Framework
+      * Make content viewer plugins
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
    * Plugins
       * Project resources plugin (images, bookmarks, links)
-      * Make content viewer plugins
    * Article Resources
       * Internal links (implement as resources)
       * External links (implement as resources)
@@ -18,6 +19,21 @@
 
 *2.0* (Final) Estimated Feb 2009
 
+*3.0*
+   * Application Framework
+   * Outline Editor
+      * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
+   * Plugins
+      * Allow plugin settings to be stored in projects (e.g. keyboard)
+      * Article Editing
+         * New Objects
+            * Lists
+      * Make a Project plugin with info
+         * Project Name
+         * Number of Nodes
+            * Tables
+      * Spelling: Implement remaining contexts
+
 *Future Versions*
    * Application
       * MDI - Multiple views of a single outline
@@ -25,22 +41,13 @@
       * Drag & Drop across views
       * Changes reflected across views
       * Make Content Views/Editors into plugins
-      * User Preferences
+      * Tabbed User Preferences (plugins may add their own tabs)
    * Outline View
-      * Drag & Drop - Find some way to indicate to user a drop of before,after or as a child of so that full D&D can be implemented.
       * Full Undo/Redo (tree editing and across editing of different articles)
    * Article View
-      * New Objects
-         * Lists
-         * Tables
       * Print Preview
    * Plugins
-      * Allow plugin settings to be stored in projects (e.g. keyboard)
       * Make the Keyboard Plugin GUI-Editable
-      * Make a Project plugin with info
-         * Project Name
-         * Number of Nodes
       * Customizable HTML exporting
-      * Implement remaining contexts for Spell Checker
    * Distribution
       * Consider shareware versions
