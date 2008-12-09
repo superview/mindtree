@@ -495,7 +495,8 @@ class Project( object ):
       self._filename   = name + extension
 
    def activateProjectDir( self ):
-      os.chdir( self._workspace )
+      if self._workspace != '':
+         os.chdir( self._workspace )
    
    def genDefaultName( self ):
       Project.NAME_COUNTER += 1
@@ -520,6 +521,9 @@ class Project( object ):
          
          backupFilename = os.path.join( self._backupDirectory, name )
          shutil.copyfile( self._filename, backupFilename )
+
+   def workspace( self ):
+      return self._workspace
 
    # Contract
    def validate( self ):
@@ -589,9 +593,8 @@ class Application( QtGui.QMainWindow ):
       try:
          self._closeCurrentProject( )
          
-         self._project = self._makeProject( )
-         
-         self._setupModelInView( )
+         project = self._makeProject( )
+         self._setActiveProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -603,16 +606,12 @@ class Application( QtGui.QMainWindow ):
          self._closeCurrentProject( )
          
          filename, data = self._archiver.read( )
-         self._project = self._makeProject( filename, data )
+         project = self._makeProject( filename, data )
          
-         if self._project is None:
+         if project is None:
             return False
          
-         # Setup the project directory
-         self._project.activateProjectDir( )
-         
-         # Install the Model
-         self._setupModelInView( )
+         self._setActiveProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -660,16 +659,12 @@ class Application( QtGui.QMainWindow ):
          self._closeCurrentProject( )
          
          filename, data = anArchiver.read( )
-         self._project = self._makeProject( filename, data )
+         project = self._makeProject( filename, data )
          
-         if self._project is None:
+         if project is None:
             return False
          
-         # Setup the project directory
-         self._project.activateProjectDir( )
-         
-         # Install the Model
-         self._setupModelInView( )
+         self._setActiveProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -711,10 +706,17 @@ class Application( QtGui.QMainWindow ):
          exceptionPopup( )
    
    # Helper Methods
+   def _setActiveProject( self, aProject ):
+      self._project = aProject
+      self._project.modified = False
+      self._project.activateProjectDir( )
+      #self._setupModelInView( )
+
    def _closeCurrentProject( self ):
       if self._project:
          if self._project.modified:
-            if self._project.projectDir():
+            workspace = self._project.workspace()
+            if workspace and (workspace != ''):
                self.backup()
             
             self.askSaveChanges( )
@@ -763,7 +765,7 @@ class Application( QtGui.QMainWindow ):
    def _setupModelInView( self ):
       '''Overriding method should perform its operations and call this base
       class method last.'''
-      self._project.modified = False
+      pass
    
    def _updateWindowTitle( self, title ):
       pass

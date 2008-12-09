@@ -151,6 +151,10 @@ class MindTree( Application ):
       '''Return an empty OutlineModel and empty resource dictionary.'''
       return MindTreeProject( data=data, filename=filename )
    
+   def _setActiveProject( self, aProject ):
+      Application._setActiveProject( self, aProject )
+      self._outlineView.setProject( aProject )
+   
    def _setupModelInView( self ):
       self._outlineView.setProject( self._project )
       Application._setupModelInView( self )
