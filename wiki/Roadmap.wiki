@@ -35,11 +35,11 @@
 *1.9* (public beta) Dec 2008
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
-   * Outline
-      * Internal links (implement as resources)
-      * External links (implement as resources)
    * Plugins
       * Project resources plugin (images, bookmarks, links)
+   * Article Resources
+      * Internal links (implement as resources)
+      * External links (implement as resources)
    * Distribution
       * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
