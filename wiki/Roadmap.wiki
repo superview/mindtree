@@ -28,17 +28,25 @@
       * Turn Content Editors into plugins
    * Plugins
       * Content Editing
-         * WYSIWYG:
+         * WYSIWYG Editor:
             * Lists
             * Tables
             * Print Preview
-         * HTML (dual view)
-         * Restructured text (dual view)
+         * HTML Editor (dual view)
+         * Restructured Text Editor (dual view)
 
 *2.3* (Tentative) -- Focus on Preferences
    * Application Framework
       * Tabbed User Preferences (plugins may add their own tabs)
       * Allow plugin settings to be stored in projects (e.g. keyboard)
+
+*2.4* (Tentative) -- Focus on Outline Editing
+   * Outline Editing
+      * Full Undo/Redo (tree editing and across editing of different articles)
+
+*2.5* (Tentative) -- Focus on HTML Exporting
+   * Plugins
+      * Customizable HTML exporting
 
 *Future Versions*
    * Application
@@ -46,9 +54,3 @@
       * Cut & Paste across views
       * Drag & Drop across views
       * Changes reflected across views
-   * Outline View
-      * Full Undo/Redo (tree editing and across editing of different articles)
-   * Plugins
-      * Customizable HTML exporting
-   * Distribution
-      * Consider shareware versions
