@@ -15,14 +15,17 @@
 *2.0* (Final) Estimated Feb 2009
 
 *2.1* (Tentative) -- Focus on Minor Feature aggrivations
+   * Outline Editor
+      * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
       * Spelling: Implement remaining contexts
+      * Make a Project plugin with info
+         * Project Name
+         * Number of Nodes
 
 *2.2* (Tentative) -- Focus on updating Content Editing
    * Application Framework
       * Turn Content Editors into plugins
-   * Outline Editor
-      * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
       * Content Editing
          * WYSIWYG:
@@ -31,12 +34,10 @@
             * Print Preview
          * HTML (dual view)
          * Restructured text (dual view)
-      * Make a Project plugin with info
-         * Project Name
-         * Number of Nodes
 
-*2.4* (Tentative) -- Focus on Preferences
+*2.3* (Tentative) -- Focus on Preferences
    * Application Framework
+      * Tabbed User Preferences (plugins may add their own tabs)
       * Allow plugin settings to be stored in projects (e.g. keyboard)
 
 *Future Versions*
@@ -45,11 +46,9 @@
       * Cut & Paste across views
       * Drag & Drop across views
       * Changes reflected across views
-      * Tabbed User Preferences (plugins may add their own tabs)
    * Outline View
       * Full Undo/Redo (tree editing and across editing of different articles)
    * Plugins
-      * Make the Keyboard Plugin GUI-Editable
       * Customizable HTML exporting
    * Distribution
       * Consider shareware versions
