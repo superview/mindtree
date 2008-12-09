@@ -14,10 +14,13 @@
 
 *2.0* (Final) Estimated Feb 2009
 
-*3.0* (Tentative)
+*2.1* (Tentative) -- Focus on Minor Feature aggrivations
+   * Plugins
+      * Spelling: Implement remaining contexts
+
+*2.2* (Tentative) -- Focus on updating Content Editing
    * Application Framework
-      * Pluggable Content Editors
-      * Allow plugin settings to be stored in projects (e.g. keyboard)
+      * Turn Content Editors into plugins
    * Outline Editor
       * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
@@ -25,12 +28,16 @@
          * WYSIWYG:
             * Lists
             * Tables
+            * Print Preview
          * HTML (dual view)
          * Restructured text (dual view)
       * Make a Project plugin with info
          * Project Name
          * Number of Nodes
-      * Spelling: Implement remaining contexts
+
+*2.4* (Tentative) -- Focus on Preferences
+   * Application Framework
+      * Allow plugin settings to be stored in projects (e.g. keyboard)
 
 *Future Versions*
    * Application
@@ -41,8 +48,6 @@
       * Tabbed User Preferences (plugins may add their own tabs)
    * Outline View
       * Full Undo/Redo (tree editing and across editing of different articles)
-   * Article View
-      * Print Preview
    * Plugins
       * Make the Keyboard Plugin GUI-Editable
       * Customizable HTML exporting
