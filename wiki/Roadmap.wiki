@@ -14,13 +14,13 @@
 
 *2.0* (Final) Estimated Feb 2009
 
-*3.0*
+*3.0* (Tentative)
    * Application Framework
       * Pluggable Content Editors
+      * Allow plugin settings to be stored in projects (e.g. keyboard)
    * Outline Editor
       * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
-      * Allow plugin settings to be stored in projects (e.g. keyboard)
       * Content Editing
          * WYSIWYG:
             * Lists
