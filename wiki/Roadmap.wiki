@@ -5,6 +5,7 @@
       * DONE: Revamp Icons, Images, Cursors, etc.
    * Plugins
       * Project resources plugin (images, bookmarks, links)
+      * Make content viewer plugins
    * Article Resources
       * Internal links (implement as resources)
       * External links (implement as resources)
