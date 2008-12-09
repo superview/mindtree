@@ -551,11 +551,11 @@ class OutlineEdit(QtGui.QSplitter):
    # Basic Operations
    def setProject( self, project ):
       project.validate( )
+      self.swappingArticle = True
       
       try:
          self._project = project
          self._model   = project.outline()
-         self.swappingArticle = False
          
          self._articleView.clear( )
          
@@ -573,6 +573,7 @@ class OutlineEdit(QtGui.QSplitter):
       self._treeView.setCurrentIndex( indexOfFirst )
       
       self.emit( QtCore.SIGNAL('newProject()') )
+      self.swappingArticle = False
 
    def getProject( self ):
       return self._project

@@ -594,7 +594,7 @@ class Application( QtGui.QMainWindow ):
          self._closeCurrentProject( )
          
          project = self._makeProject( )
-         self._setActiveProject( project )
+         self._setProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -611,7 +611,7 @@ class Application( QtGui.QMainWindow ):
          if project is None:
             return False
          
-         self._setActiveProject( project )
+         self._setProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -620,7 +620,7 @@ class Application( QtGui.QMainWindow ):
    
    def saveFile( self ):
       try:
-         #if self._project.modified:
+         #if self._project._modified:
             #self._project.backup()
          
          self._commitDocument( )
@@ -630,7 +630,7 @@ class Application( QtGui.QMainWindow ):
          filename = self._project.filename( fullName=True )
          self._archiver.write( data, filename )
          
-         self._project.modified = False
+         self._project._modified = False
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -639,7 +639,7 @@ class Application( QtGui.QMainWindow ):
    
    def saveFileAs( self ):
       try:
-         #if self._project.modified:
+         #if self._project._modified:
             #self._project.backup( )
          
          self._commitDocument( )
@@ -664,7 +664,7 @@ class Application( QtGui.QMainWindow ):
          if project is None:
             return False
          
-         self._setActiveProject( project )
+         self._setProject( project )
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -674,7 +674,7 @@ class Application( QtGui.QMainWindow ):
    
    def exportFile( self, anArchiver ):
       try:
-         #if self._project.modified:
+         #if self._project._modified:
             #self._project.backup( )
          
          self._commitDocument( )
@@ -706,15 +706,14 @@ class Application( QtGui.QMainWindow ):
          exceptionPopup( )
    
    # Helper Methods
-   def _setActiveProject( self, aProject ):
+   def _setProject( self, aProject ):
       self._project = aProject
-      self._project.modified = False
+      self._project._modified = False
       self._project.activateProjectDir( )
-      #self._setupModelInView( )
 
    def _closeCurrentProject( self ):
       if self._project:
-         if self._project.modified:
+         if self._project._modified:
             workspace = self._project.workspace()
             if workspace and (workspace != ''):
                self.backup()
@@ -729,7 +728,7 @@ class Application( QtGui.QMainWindow ):
       """
       self._commitDocument( )
       
-      if self._project.modified:
+      if self._project._modified:
          msgBox = QtGui.QMessageBox( )
          msgBox.setWindowTitle( 'Warning' )
          msgBox.setText( 'Do you want to save the changes to {0}'.format(self._project._filename) )
@@ -744,7 +743,7 @@ class Application( QtGui.QMainWindow ):
             raise OperationCanceled()
 
    def onModelChanged( self ):
-      self._project.modified = True
+      self._project._modified = True
       self.updateWindowTitle( )
    
    def updateWindowTitle( self ):
@@ -753,18 +752,13 @@ class Application( QtGui.QMainWindow ):
       
       theTitle = '{0} - [{1}]'.format(appName, filename)
       
-      if self._project.modified:
+      if self._project._modified:
          theTitle += ' *'
       
       self._updateWindowTitle( theTitle ) 
 
    # Contract
    def _makeProject( self, filename=None, data=None ):
-      pass
-   
-   def _setupModelInView( self ):
-      '''Overriding method should perform its operations and call this base
-      class method last.'''
       pass
    
    def _updateWindowTitle( self, title ):
