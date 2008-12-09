@@ -4,14 +4,14 @@
    * Outline Viewer App
 
 *1.6* RELEASED (internal)
-   * DONE: Article Editing
+   * DONE: Basic Article Editing: 
       * Menus, Toolbars, shortcuts, Cut & Paste
       * Undo/Redo
       * Images
       * Printing
 
 *1.7* RELEASED (internal)
-   * DONE: Outline Editing
+   * DONE: Basic Outline Editing
       * Menus, Toolbars, shortcuts, Cut & Paste
       * Drag & Drop - Drop always does an insert before.
 
