@@ -4,27 +4,21 @@
    * Outline Viewer App
 
 *1.6* RELEASED (internal)
-   * Article Editing
-      * DONE: Menus, Toolbars, shortcuts
-      * DONE: Cut & Paste - cut & paste text in an article
-      * DONE: Undo/Redo
-      * DONE: Images - support inserting images into articles
-      * DONE: Printing
+   * DONE: Article Editing
+      * Menus, Toolbars, shortcuts, Cut & Paste
+      * Undo/Redo
+      * Images
+      * Printing
 
 *1.7* RELEASED (internal)
-   * Outline Editing
-      * DONE: Menus, Toolbars, shortcuts
-      * DONE: Cut & Paste
-      * DONE: Drag & Drop - Drop always does an insert before.
+   * DONE: Outline Editing
+      * Menus, Toolbars, shortcuts, Cut & Paste
+      * Drag & Drop - Drop always does an insert before.
 
 *1.8* RELEASED (public alpha)
-   * Plugins
-      * DONE: Tool box - create the tabbed tool box
-      * DONE: Keyboard Plugin
-      * DONE: Find/Replace Plugin
-      * DONE: Spell Checking Plugin
-      * DONE: MindTree 1 Importer
-      * DONE: HTML Exporter Plugin
+   * DONE: Plugins
+      * Tools: Keyboard, Find/Replace, Spelling
+      * Archivers: MindTree 1 Importer, HTML Exporter Plugin
    * DONE: Help File
 
 *1.9* (public beta) Dec 2008
