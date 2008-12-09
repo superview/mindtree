@@ -1,6 +1,6 @@
 #summary This document lists future versions and features.
 
-*1.9* (public beta) Dec 2008
+*1.9* (public beta) Jan 2009
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
    * Plugins
