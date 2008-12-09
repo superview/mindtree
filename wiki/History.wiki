@@ -1,1 +1,22 @@
 #summary Completed Tags
+
+*1.8* RELEASED (public alpha)
+   * DONE: Plugins
+      * Tools: Keyboard, Find/Replace, Spelling
+      * Archivers: MindTree 1 Importer, HTML Exporter Plugin
+   * DONE: Help File
+
+*1.7* RELEASED (internal)
+   * DONE: Basic Outline Editing
+      * Menus, Toolbars, shortcuts, Cut & Paste
+      * Drag & Drop - Drop always does an insert before.
+
+*1.6* RELEASED (internal)
+   * DONE: Basic Article Editing: 
+      * Menus, Toolbars, shortcuts, Cut & Paste
+      * Undo/Redo
+      * Images
+      * Printing
+
+*1.5* RELEASED (internal)
+   * Outline Viewer App
