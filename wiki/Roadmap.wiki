@@ -10,9 +10,6 @@
    * Article Resources
       * Internal links (implement as resources)
       * External links (implement as resources)
-      * Pluggable Article Editors
-         * Direct HTML editing (dual view)
-         * Restructured text   (dual view)
    * Distribution
       * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
@@ -21,17 +18,20 @@
 
 *3.0*
    * Application Framework
+      * Pluggable Content Editors
    * Outline Editor
       * Drag & Drop - Find some way to indicate to user a drop of before,after or as a    child of so that full D&D can be implemented.
    * Plugins
       * Allow plugin settings to be stored in projects (e.g. keyboard)
-      * Article Editing
-         * New Objects
+      * Content Editing
+         * WYSIWYG:
             * Lists
+            * Tables
+         * HTML (dual view)
+         * Restructured text (dual view)
       * Make a Project plugin with info
          * Project Name
          * Number of Nodes
-            * Tables
       * Spelling: Implement remaining contexts
 
 *Future Versions*
