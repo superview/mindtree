@@ -51,6 +51,9 @@ class TreeNode( object ):
    def title( self ):
       return self._data[0]
 
+   def bookmark( self ):
+      return self._data[1]
+
    def article( self ):
       return self._article
 
@@ -70,6 +73,9 @@ class TreeNode( object ):
       assert isinstance( aTitle, (str,unicode) )
       
       self._data = [ aTitle ]
+
+   def setBookmarkName( self, aName='' ):
+      self._data[1] = aName
 
    def setArticle( self, article ):
       assert isinstance( article, (str,unicode) )

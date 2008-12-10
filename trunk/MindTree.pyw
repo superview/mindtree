@@ -155,7 +155,7 @@ class MindTree( Application ):
       assert isinstance( aProject, MindTreeProject )
       
       Application._setProject( self, aProject )
-      self._outlineView.setModel( aProject.outline() )
+      self._outlineView.setProject( aProject )
    
    def _updateWindowTitle( self, title ):
       self.setWindowTitle( title )

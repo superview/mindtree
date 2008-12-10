@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
-from OutlineModel import OutlineModel, TreeNode
 from PyQt4 import QtCore, QtGui
-from ApplicationFramework import ExporterPlugin, RES
+
+from MindTreeApplicationFramework import *
 
 class HtmlExporter( ExporterPlugin ):
    NAME              = 'HTML'
@@ -239,7 +239,7 @@ class HtmlExporter( ExporterPlugin ):
    def write( self, aDocument, aFilename=None, promptFilename=False ):
       rootDir = self.askdir( 'Target Location...' )
       
-      name, rootNode, resources = aDocument
+      name, rootNode = aDocument
       
       import os
       if not os.path.exists( rootDir ):
@@ -340,6 +340,8 @@ class HtmlExporter( ExporterPlugin ):
       article = node.article()
       if article and (len(article) > 0):
          self.writeArticle( '<A NAME="{0}">'.format(node.id()) )
+         if node.bookmark() != '':
+            self.writeArticle( '<A NAME="{0}">'.format(node.bookmark()) )
          self.writeArticle( u'<HR><HR><H2>{0}</H2>\n'.format(title) )
          self.writeArticle( article )
       else:

@@ -620,8 +620,8 @@ class Application( QtGui.QMainWindow ):
    
    def saveFile( self ):
       try:
-         #if self._project._modified:
-            #self._project.backup()
+         if self._project._modified:
+            self._project.backup()
          
          self._commitDocument( )
          
@@ -639,8 +639,8 @@ class Application( QtGui.QMainWindow ):
    
    def saveFileAs( self ):
       try:
-         #if self._project._modified:
-            #self._project.backup( )
+         if self._project._modified:
+            self._project.backup( )
          
          self._commitDocument( )
          
@@ -674,9 +674,6 @@ class Application( QtGui.QMainWindow ):
    
    def exportFile( self, anArchiver ):
       try:
-         #if self._project._modified:
-            #self._project.backup( )
-         
          self._commitDocument( )
          
          self._project.validate( )

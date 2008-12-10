@@ -1,9 +1,6 @@
 from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
-from ApplicationFramework import RES
-from MindTreeApplicationFramework import MindTreeProject
-
-from utilities import *
+from MindTreeApplicationFramework import *
 
 
 class TreeView_Delegate( QtGui.QItemDelegate ):
@@ -56,8 +53,8 @@ class TreeView( QtGui.QTreeView ):
       self.insertChild_cursor   = RES.getDragCursor('OutlineEdit','DnD_insertChildCursor')
 
    def invalidate( self, index ):
-      rect = self.visualRect( index )
-      self.setDirtyRegion( rect )
+      region = QtGui.QRegion( self.visualRect( index ) )
+      self.setDirtyRegion( region )
 
    def eventFilter( self, obj, event ):
       if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
@@ -233,6 +230,7 @@ class ArticleView( QtGui.QTextEdit ):
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
+      self._project     = None
       self._outlineNode = None
       self._specialSelections = { }
       
@@ -249,6 +247,9 @@ class ArticleView( QtGui.QTextEdit ):
       self.document().addResource( resType, QtCore.QUrl(url), resObj )
       
       return url
+
+   def setProject( self, aProject ):
+      self._project = aProject
 
    def setOutlineNode( self, anOutlineNode ):
       self._outlineNode = anOutlineNode
@@ -377,6 +378,23 @@ class ArticleView( QtGui.QTextEdit ):
       
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(url) )
 
+   def textInsertLink( self ):
+      cursor = self.textCursor( )
+      selectedText = cursor.selectedText( )
+      if selectedText == '':
+         return
+      
+      title = RES.get('ArticleView','createLinkDlgTitle',translate=True)
+      prompt = RES.get('ArticleView','createLinkDlgPrompt',translate=True)
+      
+      result,pressedOK = QtGui.QInputDialog.getText( self, title, prompt )
+      if not pressedOK:
+         return
+      
+      url = unicode(result)
+      
+      cursor.insertHtml( '<A HREF="{0}">{1}</A>'.format(url, selectedText) )
+   
    def _updateToolbars( self ):
       # Font Combo
       fontFamily = unicode(self.currentFont().family())
@@ -461,7 +479,7 @@ class ArticleView( QtGui.QTextEdit ):
          self.textAlignLeftAction.setChecked( True )
       
       self.textInsertImageAction   = RES.installAction( 'textInsertImage', self )
-
+      self.textInsertLinkAction    = RES.installAction( 'textInsertLink',  self )
    
    def _buildMenus( self ):
       self.menuArticle = QtGui.QMenu(self)
@@ -511,6 +529,7 @@ class ArticleView( QtGui.QTextEdit ):
       self._objectToolbar = QtGui.QToolBar( 'objectToolbar', self )
       self._objectToolbar.addSeparator( )
       self._objectToolbar.addAction( self.textInsertImageAction )
+      self._objectToolbar.addAction( self.textInsertLinkAction  )
 
    def _cursorPositionChanged( self ):
       self._updateToolbars( )
@@ -522,14 +541,15 @@ class OutlineEdit(QtGui.QSplitter):
    def __init__( self, parent ):
       QtGui.QSplitter.__init__( self, parent )
       
+      self._project                = None
+      self._model                  = None      # The model for the data
       self._treeView               = None      # The TreeView widget
       self._articleView            = None      # The TextEdit widget
-      self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
       self._buildGui( )
       
-      self.setModel( OutlineModel( ) )
+      self.setProject( MindTreeProject( ) )
 
    def getFixedMenus( self ):
       menus = [ self.menuTree ]
@@ -549,19 +569,24 @@ class OutlineEdit(QtGui.QSplitter):
       return self._articleView
 
    # Basic Operations
-   def invalidate( self, index ):
+   def invalidate( self, index=None ):
       '''Force the outline tree redraw the entry.'''
+      if index is None:
+         index = self._treeView.currentIndex()
+      
       self._treeView.invalidate( index )
    
-   def setModel( self, anOutline ):
+   def setProject( self, aProject ):
       self.swappingArticle = True
       
       try:
-         self._model   = anOutline
+         self._project = aProject
+         self._model   = aProject.outline()
          
          self._articleView.clear( )
          
          self._treeView.setModel( self._model )
+         self._articleView.setProject( aProject )
          
          QtCore.QObject.connect( self._treeView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
@@ -844,6 +869,23 @@ class OutlineEdit(QtGui.QSplitter):
          self.insertNodeAsChild( index, node )
       except:
          exceptionPopup( )
+
+   def bookmarkCurrentIndex( self, name ):
+      node = self._treeView.currentIndex().internalPointer()
+      node.setBookmarkName( name )
+      self._project.bookmarks()[ name ] = node.id()
+
+   def nodeBookmark( self ):
+      title = RES.get('OutlineEdit','createBookmarkDlgTitle',translate=True)
+      prompt = RES.get('OutlineEdit','createBookmarkDlgPrompt',translate=True)
+      
+      result,pressedOK = QtGui.QInputDialog.getText( self, title, prompt )
+      if not pressedOK:
+         return
+      
+      result = unicode(result)
+      self.bookmarkCurrentIndex( result )
+      self.invalidate( )
    
    # Slots
    def onArticleChanged( self ):
@@ -908,6 +950,7 @@ class OutlineEdit(QtGui.QSplitter):
       self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',   self )
       self.insertNewChildAction      = RES.installAction( 'insertNodeAsChild', self )
       self.deleteNodeAction          = RES.installAction( 'deleteNode',        self )
+      self.bookmarkEntryAction       = RES.installAction( 'nodeBookmark',      self )
 
    def _buildMenus( self ):
       self.menuTree = QtGui.QMenu(self)
@@ -939,3 +982,4 @@ class OutlineEdit(QtGui.QSplitter):
       self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
       self._treetoolbar.addAction( self.expandAllAction )
       self._treetoolbar.addAction( self.collapseAllAction )
+      self._treetoolbar.addAction( self.bookmarkEntryAction )
