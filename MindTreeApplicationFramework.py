@@ -1,12 +1,14 @@
-from ApplicationFramework import *
-from OutlineModel import *
 from PyQt4.QtCore import QObject
 from uuid import uuid4
+
+from ApplicationFramework import *
+from OutlineModel import *
 
 
 class MindTreeProject( Project, QObject ):
    def __init__( self, data=None, workspace=None, filename=None, name=None ):
       self._outline   = None
+      self._bookmarks = { }    # map name to node id
       
       Project.__init__( self, data, workspace, filename, name )
       QObject.__init__( self )
@@ -14,6 +16,9 @@ class MindTreeProject( Project, QObject ):
    def outline( self ):
       return self._outline
    
+   def bookmarks( self ):
+      return self._bookmarks
+
    # Required Overrides
    def validate( self ):
       Project.validate( self )

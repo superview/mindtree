@@ -1,9 +1,6 @@
-# Read and Convert a MindTree v1.0 Project file
-
 from PyQt4 import QtCore, QtGui
 
-from ApplicationFramework import ImporterPlugin, RES, Project
-from OutlineModel import OutlineModel, TreeNode
+from MindTreeApplicationFramework import *
 
 class MT1ImportingArchiver( ImporterPlugin ):
    NAME              = 'MindTree1.x'

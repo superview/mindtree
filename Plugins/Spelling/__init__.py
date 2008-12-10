@@ -1,5 +1,6 @@
-from MindTreeApplicationFramework import *
 from PyQt4 import QtCore, QtGui
+
+from MindTreeApplicationFramework import *
 
 try:
    import enchant.checker

@@ -1,8 +1,7 @@
-from MindTreeApplicationFramework import *
-from OutlineModel import OutlineModelIterator, ArticleSubstringIterator
 from PyQt4 import QtCore, QtGui
-
 import re
+
+from MindTreeApplicationFramework import *
 
 
 class FindSubstringIterator( ArticleSubstringIterator ):

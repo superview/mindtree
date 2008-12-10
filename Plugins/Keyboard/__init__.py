@@ -1,4 +1,5 @@
 from PyQt4 import QtCore, QtGui, Qt
+
 from MindTreeApplicationFramework import *
 
 
