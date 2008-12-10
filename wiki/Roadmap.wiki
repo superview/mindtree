@@ -1,6 +1,5 @@
 #summary This document lists future versions and features.
 
-
 *1.9* (public beta) Jan 2009
    * Note:  Given major complications that resources require of the structure of MindTree software (e.g. number of interdependancies, etc.) The concept of resources has been dropped in favor of a much simpler method of achieving the same thing.
    * Application
