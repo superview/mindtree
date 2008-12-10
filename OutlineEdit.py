@@ -586,6 +586,7 @@ class OutlineEdit(QtGui.QSplitter):
          self._articleView.clear( )
          
          self._treeView.setModel( self._model )
+         self._treeView.resizeColumnToContents( 0 )
          self._articleView.setProject( aProject )
          
          QtCore.QObject.connect( self._treeView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
@@ -870,12 +871,8 @@ class OutlineEdit(QtGui.QSplitter):
       except:
          exceptionPopup( )
 
-   def bookmarkCurrentIndex( self, name ):
-      node = self._treeView.currentIndex().internalPointer()
-      node.setBookmarkName( name )
-      self._project.bookmarks()[ name ] = node.id()
-
    def nodeBookmark( self ):
+      # get bookmark name and node and bookmarkDictionary
       title = RES.get('OutlineEdit','createBookmarkDlgTitle',translate=True)
       prompt = RES.get('OutlineEdit','createBookmarkDlgPrompt',translate=True)
       
@@ -883,8 +880,20 @@ class OutlineEdit(QtGui.QSplitter):
       if not pressedOK:
          return
       
-      result = unicode(result)
-      self.bookmarkCurrentIndex( result )
+      name = unicode(result)
+      node = self._treeView.currentIndex().internalPointer()
+      bookmarkDict = self._project.bookmarks()
+      
+      # Verify that the node isn't already bookmarked
+      if (name in bookmarkDict) and (node.id() != bookmarkDict[name]):
+         QtGui.QMessageBox.critical( self, 'Error', 'Bookmark name \'{0}\' is already in use.' )
+         return
+      
+      # Register the bookmark
+      node.setBookmarkName( name )
+      bookmarkDict[ name ] = node.id()
+      
+      # Update the tree's drawing of the current entry
       self.invalidate( )
    
    # Slots
