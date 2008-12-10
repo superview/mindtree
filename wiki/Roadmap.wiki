@@ -1,10 +1,12 @@
 #summary This document lists future versions and features.
 
+Given major complications that resources require of the structure of MindTree software (e.g. number of interdependancies, etc.) The concept of resources has been dropped in favor of a much simpler method of achieving the same thing.
+
 *1.9* (public beta) Jan 2009
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
    * Plugins
-      * Project resources plugin (images, bookmarks, links)
+      * Bookmarks plugin
    * Article Resources
       * Internal links (implement as resources)
       * External links (implement as resources)
