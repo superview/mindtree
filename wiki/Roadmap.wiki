@@ -7,9 +7,7 @@ Given major complications that resources require of the structure of MindTree so
       * DONE: Revamp Icons, Images, Cursors, etc.
    * Plugins
       * Bookmarks plugin
-   * Article Resources
-      * Internal links (implement as resources)
-      * External links (implement as resources)
+   * DONE: Links
    * Distribution
       * DONE: distutils script - write an initial script for distutils
       * py2exe - Get an independent build/executable working.
