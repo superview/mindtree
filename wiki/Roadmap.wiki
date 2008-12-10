@@ -5,8 +5,6 @@ Given major complications that resources require of the structure of MindTree so
 *1.9* (public beta) Jan 2009
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
-   * Plugins
-      * Bookmarks plugin
    * DONE: Links
    * Distribution
       * DONE: distutils script - write an initial script for distutils
@@ -20,6 +18,7 @@ Given major complications that resources require of the structure of MindTree so
    * Plugins
       * Spelling: Implement remaining contexts
       * Find: Get replace working
+      * Bookmarks plugin
       * Make a Project plugin with info
          * Project Name
          * Number of Nodes
