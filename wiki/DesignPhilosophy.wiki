@@ -1,11 +1,13 @@
 #summary The principals underlying the design decisions.
 #labels Developer,out-of-date
 
-MindTree is a 100% Pure Python Object Oriented solution.  This software has a highly modular, multi-tier architecture starting with a generic Application Framework organized similarly to MVC, on top of this is a plugin framework, all views, outline saving/retrieving, importing and exporting, and tools are all written as plugins.  The purpose of “everything’s a plugin” is to increase modularity and reduce coupling.  Ultimately, this makes it easier to add new features.
+   * Occam's Razor (AKA KISS or Keep It Simple Stupid)
+
+MindTree is a 100% Pure Python Object Oriented solution.  This software has a highly modular, multi-tier architecture starting with a generic Application Framework which includes a plugin subsystem, all views, archivers, and tools are all written as plugins.  The purpose of “everything’s a plugin” is to increase modularity and reduce coupling.  Ultimately, this makes it easier to add new components.
 
 I've generated a sample webpage from this software viewable here http://members.cox.net/ronpro/welcome.html.  This was a test of the HTML exporter plugin and its ability to generate an interactive tree for a large outline (about 2000 entries).
 
-The application is 100% Python.  The gui is written using Tkinter and Tix (I'm open to other libraries for the GUI, improving the Framework should make it possible to have a pluggable main window which would simplify development for a different or alternative GUIs).  The app supports unicode in the outlines.  There's a spell-checker plugin (which requires pyenchant).  The rest of the application, frameworks and plugins have been written by me.  For screen shots of the app so far see: http://members.cox.net/ronpro/scrnCap1.JPG and http://members.cox.net/ronpro/scrnCap2.JPG
+The app supports unicode in the outlines.  There's a spell-checker plugin (which requires pyenchant).  The rest of the application, frameworks and plugins have been written by me.  For screen shots of the app so far see: http://members.cox.net/ronpro/scrnCap1.JPG and http://members.cox.net/ronpro/scrnCap2.JPG
 
 I have UML diagrams which would be included in the developer distribution.  Other developer documentation is in the source code.
 
