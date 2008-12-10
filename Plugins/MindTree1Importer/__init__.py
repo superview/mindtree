@@ -4,7 +4,6 @@ from PyQt4 import QtCore, QtGui
 
 from ApplicationFramework import ImporterPlugin, RES, Project
 from OutlineModel import OutlineModel, TreeNode
-from ArticleResourceModel import ArticleResources
 
 class MT1ImportingArchiver( ImporterPlugin ):
    NAME              = 'MindTree1.x'
@@ -34,9 +33,8 @@ class MT1ImportingArchiver( ImporterPlugin ):
       
       theConvertedProject = self.convertProject( data._tree, documentName )
       theRootNode     = theConvertedProject
-      theResources = ArticleResources( )
       
-      return documentName, theRootNode, theResources
+      return documentName, theRootNode
 
    def convertProject( self, model, title ):
       newModelOutline = self._convertProject( model )
@@ -72,7 +70,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
          htmlArticle = ''
       
       # Construct a new model node
-      newModelTreeNode = TreeNode( title, newModelParentNode, htmlArticle )
+      newModelTreeNode = TreeNode( title, parent=newModelParentNode, article=htmlArticle )
       
       # Iterate over the children nodes converting them
       for oldChildNode in oldModelTreeNode.children( ):

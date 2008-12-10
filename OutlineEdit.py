@@ -1,6 +1,5 @@
 from PyQt4 import QtCore, QtGui
 from OutlineModel import OutlineModel, TreeNode
-from ArticleResourceModel import *
 from ApplicationFramework import RES
 from MindTreeApplicationFramework import MindTreeProject
 
@@ -55,6 +54,10 @@ class TreeView( QtGui.QTreeView ):
       self.insertBefore_cursor  = RES.getDragCursor('OutlineEdit','DnD_insertBeforeCursor')
       self.insertAfter_cursor   = RES.getDragCursor('OutlineEdit','DnD_insertAfterCursor')
       self.insertChild_cursor   = RES.getDragCursor('OutlineEdit','DnD_insertChildCursor')
+
+   def invalidate( self, index ):
+      rect = self.visualRect( index )
+      self.setDirtyRegion( rect )
 
    def eventFilter( self, obj, event ):
       if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
@@ -230,34 +233,33 @@ class ArticleView( QtGui.QTextEdit ):
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
-      self._project = MindTreeProject( )
+      self._outlineNode = None
       self._specialSelections = { }
       
       self._buildGui( )
       self._updateToolbars( )
 
    # Slots
-   def addImageResourceToArticleWidget( self, name, url ):
+   def addImageResourceToArticleWidget( self, resName ):
+      IMAGE_DIR = RES.get('Project','imageDir')
+      url = '{0}/{1}'.format( IMAGE_DIR, resName )
+      
       resType = QtGui.QTextDocument.ImageResource
       resObj = QtCore.QVariant(QtGui.QImage(url))
       self.document().addResource( resType, QtCore.QUrl(url), resObj )
-   
-   def addImageResourceToProject( self, name, url ):
-      self._project.resources().define( name, ArticleResources.IMAGE_RES, url )
-   
-   def setProject( self, project ):
-      self._project = project
-   
-   def clear( self, keepResources=True ):
-      QtGui.QTextEdit.clear( self )
       
-      # Reload the resources
-      resources = self._project.resources()
-      if self._project and keepResources:
-         for resName in resources:
-            resType, resVal = resources.info(resName)
-            if resType == ArticleResources.IMAGE_RES:
-               self.addImageResourceToArticleWidget( resName, resVal )
+      return url
+
+   def setOutlineNode( self, anOutlineNode ):
+      self._outlineNode = anOutlineNode
+      
+      # Install the image resources
+      for name in anOutlineNode.imageList():
+         self.addImageResourceToArticleWidget( name )
+      
+      # Install the article text
+      self.setHtml( anOutlineNode.article() )
+      self.setDocumentTitle( anOutlineNode.data(0) )
    
    def getFixedMenus( self ):
       return [ self.menuArticle ]
@@ -344,7 +346,7 @@ class ArticleView( QtGui.QTextEdit ):
       self._updateToolbars()
 
    def textInsertImage( self ):
-      IMAGE_DIR = RES.get('ArticleResource','imageDir')
+      IMAGE_DIR = RES.get( 'Project','imageDir' )
       
       dlg = QtGui.QFileDialog( self, 'Insert image...', '', ArticleView.ImageFormats )
       dlg.setFileMode( QtGui.QFileDialog.ExistingFile )
@@ -368,13 +370,12 @@ class ArticleView( QtGui.QTextEdit ):
          import shutil
          shutil.copy( filename, imagePath )
       
-      resName = '{0}{1}'.format( name, ext )
-      resURL  = '{0}/{1}{2}'.format( IMAGE_DIR, name, ext )
+      resName = name + ext
       
-      self.addImageResourceToArticleWidget( resURL, imagePath )
-      self.addImageResourceToProject( resName, resURL )
+      self._outlineNode.imageList().append( resName )
+      url = self.addImageResourceToArticleWidget( resName )
       
-      self.textCursor().insertHtml( '<img src="{0}"/>'.format(resURL) )
+      self.textCursor().insertHtml( '<img src="{0}"/>'.format(url) )
 
    def _updateToolbars( self ):
       # Font Combo
@@ -523,13 +524,12 @@ class OutlineEdit(QtGui.QSplitter):
       
       self._treeView               = None      # The TreeView widget
       self._articleView            = None      # The TextEdit widget
-      self._project                = None
       self._model                  = None      # The model for the data
       self._currentArticleModified = False     # Has the article currently being edited been modified?
       
       self._buildGui( )
       
-      self.setProject( MindTreeProject( ) )
+      self.setModel( OutlineModel( ) )
 
    def getFixedMenus( self ):
       menus = [ self.menuTree ]
@@ -549,18 +549,19 @@ class OutlineEdit(QtGui.QSplitter):
       return self._articleView
 
    # Basic Operations
-   def setProject( self, project ):
-      project.validate( )
+   def invalidate( self, index ):
+      '''Force the outline tree redraw the entry.'''
+      self._treeView.invalidate( index )
+   
+   def setModel( self, anOutline ):
       self.swappingArticle = True
       
       try:
-         self._project = project
-         self._model   = project.outline()
+         self._model   = anOutline
          
          self._articleView.clear( )
          
          self._treeView.setModel( self._model )
-         self._articleView.setProject( self._project )
          
          QtCore.QObject.connect( self._treeView.selectionModel(), QtCore.SIGNAL('selectionChanged(QItemSelection,QItemSelection)'), self.selectionChanged )
          QtCore.QObject.connect( self._model, QtCore.SIGNAL( 'dataChanged(QModelIndex,QModelIndex)' ), self.onModelChanged )
@@ -574,9 +575,6 @@ class OutlineEdit(QtGui.QSplitter):
       
       self.emit( QtCore.SIGNAL('newProject()') )
       self.swappingArticle = False
-
-   def getProject( self ):
-      return self._project
 
    def commitChanges( self, index=None ):
       if index is None:
@@ -688,8 +686,10 @@ class OutlineEdit(QtGui.QSplitter):
             outlineNode = index.internalPointer( )
             
             if outlineNode is not None:
-               self._articleView.setHtml( outlineNode.article() )
-               self._articleView.setDocumentTitle( outlineNode.data(0) )
+               self._articleView.setOutlineNode( outlineNode )
+               #self._articleView.setImageList( outlineNode.imageList() )
+               #self._articleView.setHtml( outlineNode.article() )
+               #self._articleView.setDocumentTitle( outlineNode.data(0) )
       
       self.swappingArticle = False
 
