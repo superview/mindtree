@@ -20,6 +20,9 @@ class DualHtmlEditor( QtGui.QSplitter ):
    def setText( self, text ):
       self._sourceView.setText( text )
 
+   def getText( self ):
+      return self._sourceView.toPlainText( )
+
    # Slots
    def onTextChanged( self ):
       text = self._sourceView.toPlainText( )

@@ -202,7 +202,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       # Get the node to be inserted
       if newNode is None:
-         newNode = TreeNode( '', theParentNode )
+         newNode = TreeNode( '', parent=theParentNode )
       else:
          newNode._parentNode = theParentNode
       

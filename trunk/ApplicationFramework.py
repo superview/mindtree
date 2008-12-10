@@ -448,6 +448,7 @@ class Project( object ):
       self._workspace  = workspace
       self._filename   = filename
       self._modified   = False
+      self._backupDir  = RES.get('Project','backupDir',default='backup')
       
       if data is not None:
          self.setPersistentData( data )
@@ -487,12 +488,10 @@ class Project( object ):
    def setFilename( self, filename ):
       assert isinstance( filename, (str,unicode) )
       
-      backupDir = RES.get( 'Project', 'backupDir' )
-      
       disk,path,name,extension = splitFilePath( filename )
-      self._projectDir = os.path.join( disk, path )
-      self._backupDir  = os.path.join( self._projectDir, backupDir )
-      self._filename   = name + extension
+      self._workspace = os.path.join( disk, path )
+      self._backuDir  = os.path.join( self._projectDir, self._backupDir )
+      self._filename  = name + extension
 
    def activateProjectDir( self ):
       if self._workspace != '':
@@ -505,7 +504,6 @@ class Project( object ):
    def backup( self ):
       import datetime
       import shutil
-      from filesystemTools import splitFilePath
       
       if not os.path.exists( self._filename ):
          return
@@ -519,7 +517,7 @@ class Project( object ):
          theDateTimeString = theDate.strftime( '-%y%m%d-%H%M%S' )
          name = name + theDateTimeString + extension
          
-         backupFilename = os.path.join( self._backupDirectory, name )
+         backupFilename = os.path.join( self._backupDir, name )
          shutil.copyfile( self._filename, backupFilename )
 
    def workspace( self ):
@@ -595,6 +593,7 @@ class Application( QtGui.QMainWindow ):
          
          project = self._makeProject( )
          self._setProject( project )
+         
          self.updateWindowTitle( )
       except OperationCanceled:
          pass
@@ -660,6 +659,13 @@ class Application( QtGui.QMainWindow ):
          
          filename, data = anArchiver.read( )
          project = self._makeProject( filename, data )
+         
+         # Convert the filename
+         disk,path,name,ext = splitFilePath( filename )
+         self._project._filename = name + os.extsep + self._archiver.defaultExtension()
+         
+         # Since this file doesn't exist on disk, mark it dirty
+         project._modified = True
          
          if project is None:
             return False
