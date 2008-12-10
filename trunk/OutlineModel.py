@@ -17,15 +17,18 @@ class InvalidRowError( Exception ):
 
 
 class TreeNode( object ):
-   def __init__(self, title, parent=None, article=None):
-      assert isinstance( title,   (str,unicode) )
-      assert isinstance( parent,  TreeNode) or (parent is None)
-      assert isinstance( article, (str,unicode) ) or (article is None)
+   def __init__(self, title, bookmarkName='', parent=None, article='', imageList=[]):
+      assert isinstance( title,        (str,unicode) )
+      assert isinstance( bookmarkName, (str,unicode) )
+      assert isinstance( parent,       TreeNode) or (parent is None)
+      assert isinstance( article,      (str,unicode) )
+      assert isinstance( imageList,    list )
       
       # Contents
       self._id         = uuid4().hex
-      self._data       = [ title ]
-      self._article    = article if article is not None else ''
+      self._data       = [ title, bookmarkName ]
+      self._article    = article
+      self._imageList  = imageList
       
       # Structure
       self._parentNode = parent
@@ -51,6 +54,12 @@ class TreeNode( object ):
    def article( self ):
       return self._article
 
+   def imageList( self ):
+      return self._imageList
+   
+   def setImageList( self, imageList ):
+      self._imageList = imageList
+   
    def row(self):
       if self._parentNode:
          return self._parentNode._childNodes.index(self)
@@ -85,18 +94,27 @@ class TreeNode( object ):
             return False
       
       # Validate _data
-      if self._data is not None:
-         if isinstance( self._data, list ):
-            for element in self._data:
-               if not isinstance( element, (str,unicode) ):
-                  return False
-         
-         elif not isinstance( self._data, (str,unicode) ):
+      if not isinstance( self._data, list ):
+         return False
+      
+      if len(self._data) != 2:
+         return False
+      
+      for element in self._data:
+         if not isinstance( element, (str,unicode) ):
             return False
       
       # Validate _article
       if self._article is not None:
          if not isinstance( self._article, (str,unicode) ):
+            return False
+      
+      # Validate _imageList
+      if not isinstance( self._imageList, list ):
+         return False
+      
+      for element in self._imageList:
+         if not isinstance( element, (str,unicode) ):
             return False
       
       # validate _parentNode
@@ -136,12 +154,14 @@ class OutlineModel(QtCore.QAbstractItemModel):
    EmptyArticleIcon = None
    FullArticleIcon  = None
    
+   COLUMN_NAMES     = [ 'Title', 'Bookmark' ]
+   
    def __init__(self, rootNode=None, parent=None):
       QtCore.QAbstractItemModel.__init__(self, parent)
       
       if rootNode is None:
          rootNode = TreeNode( 'Untitled' )
-         rootNode.appendChild( TreeNode( '', rootNode, '' ) )
+         rootNode.appendChild( TreeNode( '', parent=rootNode ) )
       
       self._rootNode       = rootNode
       
@@ -303,7 +323,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       return len(parentItem._childNodes)
 
    def columnCount(self, parent):
-      return 1
+      return len(OutlineModel.COLUMN_NAMES)
 
    def data(self, index, role):
       if not index.isValid():
@@ -313,7 +333,7 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       if role == QtCore.Qt.DisplayRole:
          return QtCore.QVariant(item.data(index.column()))
-      elif role == QtCore.Qt.DecorationRole:
+      elif (role == QtCore.Qt.DecorationRole) and (index.column() == 0):
          article = item.article()
          
          if article == '':
@@ -349,12 +369,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
       
       return QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.QAbstractItemModel.flags( self, index )
 
-   def headerData(self, section, orientation, role):
+   def headerData(self, row, orientation, role):
       if (orientation == QtCore.Qt.Horizontal) and (role == QtCore.Qt.DisplayRole):
-         data = self._rootNode.data(section)
-         if isinstance( data, (str,unicode) ):
-            data = QtCore.QVariant( data )
-         return data
+         return QtCore.QVariant( OutlineModel.COLUMN_NAMES[row] )
       
       return QtCore.QVariant()
 
