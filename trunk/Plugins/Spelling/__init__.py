@@ -137,8 +137,22 @@ class Spelling( MindTreePluggableTool, QtGui.QWidget ):
       format.setUnderlineStyle( QtGui.QTextCharFormat.SpellCheckUnderline )
       format.setUnderlineColor( QtGui.QColor( 'red' ) )
       self.defineTextSelector( format )
+      
+      self._stopBtn.setEnabled(False)
+      self._replaceBtn.setEnabled(False)
+      self._replaceAllBtn.setEnabled(False)
+      self._ignoreBtn.setEnabled(False)
+      self._ignoreAllBtn.setEnabled(False)
+      self._addBtn.setEnabled(False)
 
    def recheck( self ):
+      self._stopBtn.setEnabled(True)
+      self._replaceBtn.setEnabled(True)
+      self._replaceAllBtn.setEnabled(True)
+      self._ignoreBtn.setEnabled(True)
+      self._ignoreAllBtn.setEnabled(True)
+      self._addBtn.setEnabled(True)
+      
       self._sugList.clear( )
       textToCheck = unicode(self._outlineView.articleWidget( ).toPlainText( ))
       self._chkr.set_text( textToCheck )
@@ -147,6 +161,14 @@ class Spelling( MindTreePluggableTool, QtGui.QWidget ):
    def stop( self ):
       self._sugList.clear( )
       self._outlineView.articleWidget().setExtraSelections( [ ] )
+      self._suggestion.setText( '' )
+      
+      self._stopBtn.setEnabled(False)
+      self._replaceBtn.setEnabled(False)
+      self._replaceAllBtn.setEnabled(False)
+      self._ignoreBtn.setEnabled(False)
+      self._ignoreAllBtn.setEnabled(False)
+      self._addBtn.setEnabled(False)
 
    def selectSuggestion( self ):
       selectedItems = self._sugList.selectedItems( )

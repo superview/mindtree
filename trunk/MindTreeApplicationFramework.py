@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 from PyQt4.QtCore import QObject
 from uuid import uuid4
 
