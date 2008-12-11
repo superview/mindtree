@@ -174,6 +174,14 @@ class OutlineModel(QtCore.QAbstractItemModel):
       OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'emptyArticleIcon' ))
       OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'fullArticleIcon'  ))
 
+   def setModel( self, aModel ):
+      OutlineModel.EmptyArticleIcon = None
+      OutlineModel.FullArticleIcon  = None
+      
+      OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'emptyArticleIcon' ))
+      OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'fullArticleIcon'  ))
+      QtCore.QAbstractItemModel.setModel( self, aModel )
+
    def root( self ):
       return self._rootNode
 
