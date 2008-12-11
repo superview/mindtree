@@ -1,4 +1,6 @@
+from __future__ import print_function, unicode_literals
 from PyQt4 import QtCore, QtGui
+
 from OutlineModel import OutlineModel, TreeNode
 from MindTreeApplicationFramework import *
 
@@ -13,7 +15,8 @@ class TreeView_Delegate( QtGui.QItemDelegate ):
       return editor
    
    def setEditorData( self, editor, index ):
-      editor.setText( index.internalPointer().data(0) )
+      text = unicode( index.data().toString() )
+      editor.setText( text )
    
    def setModelData( self, editor, model, index ):
       model.setData( index, editor.text(), QtCore.Qt.DisplayRole )
@@ -27,9 +30,9 @@ class TreeView( QtGui.QTreeView ):
       alternatingRowColors = RES.getboolean('OutlineEdit','alternatingRowColors')
       
       # Drag and Drop
-      self.setDragEnabled( True )
-      self.setAcceptDrops( True )
-      self.setDropIndicatorShown( True )
+      self.setDragEnabled(True)
+      self.setAcceptDrops(True)
+      self.setDropIndicatorShown(True)
       self.setDragDropMode( QtGui.QAbstractItemView.InternalMove )
       
       # Entry Editing
@@ -46,6 +49,7 @@ class TreeView( QtGui.QTreeView ):
       self.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
       self.setSortingEnabled(False)
       self.setTabKeyNavigation(False)
+      self.setAllColumnsShowFocus(True)
       
       # Drag and Drop Cursors
       self.insertBefore_cursor  = RES.getDragCursor('OutlineEdit','DnD_insertBeforeCursor')
@@ -141,8 +145,12 @@ class TreeView( QtGui.QTreeView ):
       self.drag = QtGui.QDrag( self )
       self.drag.setMimeData( mimeData )
       
+      print( 'Dragging item: {0}'.format(dragStartIndex.internalPointer().title()) )
+      
       # Execute the drag (this is blocking)
-      dropAction = self.drag.exec_( QtCore.Qt.MoveAction )
+      savedDragIndex = QtCore.QPersistentModelIndex( dragStartIndex )  # Save the drag start index
+      dropAction = self.drag.exec_( QtCore.Qt.MoveAction )             # Perform the drag
+      dragStartIndex = QtCore.QModelIndex(savedDragIndex)              # Retrieve the drag start index
       
       # If the drag was successful, remove the node
       if dropAction == QtCore.Qt.MoveAction:
@@ -236,6 +244,12 @@ class ArticleView( QtGui.QTextEdit ):
       
       self._buildGui( )
       self._updateToolbars( )
+
+   def setModified( self, modified ):
+      self.document().setModified( modified )
+   
+   def isModified( self ):
+      return self.document().isModified()
 
    # Slots
    def addImageResourceToArticleWidget( self, resName ):
@@ -379,13 +393,15 @@ class ArticleView( QtGui.QTextEdit ):
       self.textCursor().insertHtml( '<img src="{0}"/>'.format(url) )
 
    def textInsertLink( self ):
+      title  = RES.get('ArticleView','createLinkDlgTitle',translate=True)
+      prompt = RES.get('ArticleView','createLinkDlgPrompt',translate=True)
+      error   = RES.get('ArticleView','createLink_warnNoSelect',translate=True)
+      
       cursor = self.textCursor( )
       selectedText = cursor.selectedText( )
       if selectedText == '':
+         QtGui.QMessageBox.information( self, title,error )
          return
-      
-      title = RES.get('ArticleView','createLinkDlgTitle',translate=True)
-      prompt = RES.get('ArticleView','createLinkDlgPrompt',translate=True)
       
       result,pressedOK = QtGui.QInputDialog.getText( self, title, prompt )
       if not pressedOK:
@@ -541,11 +557,10 @@ class OutlineEdit(QtGui.QSplitter):
    def __init__( self, parent ):
       QtGui.QSplitter.__init__( self, parent )
       
-      self._project                = None
-      self._model                  = None      # The model for the data
-      self._treeView               = None      # The TreeView widget
-      self._articleView            = None      # The TextEdit widget
-      self._currentArticleModified = False     # Has the article currently being edited been modified?
+      self._project     = None
+      self._model       = None      # The model for the data
+      self._treeView    = None      # The TreeView widget
+      self._articleView = None      # The TextEdit widget
       
       self._buildGui( )
       
@@ -606,7 +621,7 @@ class OutlineEdit(QtGui.QSplitter):
       if index is None:
          index = self._treeView.currentIndex( )
       
-      if self._currentArticleModified:
+      if self._articleView.isModified():
          theDocument = self._articleView.document()
          
          if theDocument.isEmpty():
@@ -676,46 +691,37 @@ class OutlineEdit(QtGui.QSplitter):
 
    # Advanced Operations (built on top of Basic Operations)
    def selectionChanged( self, newSelection, oldSelection=None ):
-      # Save the currently active article
       self.swappingArticle = True
       
-      # Commit active article content
+      # Commit active article
       if oldSelection:
-         if isinstance( oldSelection, QtCore.QModelIndex ):
-            index = oldSelection
+         # Get the index of the selection
+         indexes = oldSelection.indexes()
+         if indexes and (len(indexes) > 0):
+            index = indexes[0]
          else:
-            indexes = oldSelection.indexes()
-            if indexes and (len(indexes) > 0):
-               index = indexes[0]
-            else:
-               index = None
+            index = None
          
          if index:
             self.commitChanges( index )
+            
+            if index.column() == 1:
+               node = index.internalPointer()
+               bookmarkDict = self._project.bookmarks()
+               bookmarkDict[ node.bookmark() ] = node.id()
       
       # Reinitialize the article widget
       self._articleView.clear( )
       
       # Display the newly selected article
-      if newSelection:
-         self._currentArticleModified = False
-         if isinstance( newSelection, QtCore.QModelIndex ):
-            index = newSelection
-         else:
-            indexes = newSelection.indexes()
-            if indexes and (len(indexes) > 0):
-               index = indexes[0]
-            else:
-               index = None
+      newIndex = self._treeView.currentIndex()
+      self._articleView.setModified( False )
+      
+      if newIndex:
+         outlineNode = newIndex.internalPointer( )
          
-         if index:
-            outlineNode = index.internalPointer( )
-            
-            if outlineNode is not None:
-               self._articleView.setOutlineNode( outlineNode )
-               #self._articleView.setImageList( outlineNode.imageList() )
-               #self._articleView.setHtml( outlineNode.article() )
-               #self._articleView.setDocumentTitle( outlineNode.data(0) )
+         if outlineNode is not None:
+            self._articleView.setOutlineNode( outlineNode )
       
       self.swappingArticle = False
 
@@ -871,35 +877,34 @@ class OutlineEdit(QtGui.QSplitter):
       except:
          exceptionPopup( )
 
-   def nodeBookmark( self ):
-      # get bookmark name and node and bookmarkDictionary
-      title = RES.get('OutlineEdit','createBookmarkDlgTitle',translate=True)
-      prompt = RES.get('OutlineEdit','createBookmarkDlgPrompt',translate=True)
+   #def nodeBookmark( self ):
+      ## get bookmark name and node and bookmarkDictionary
+      #title = RES.get('OutlineEdit','createBookmarkDlgTitle',translate=True)
+      #prompt = RES.get('OutlineEdit','createBookmarkDlgPrompt',translate=True)
       
-      result,pressedOK = QtGui.QInputDialog.getText( self, title, prompt )
-      if not pressedOK:
-         return
+      #result,pressedOK = QtGui.QInputDialog.getText( self, title, prompt )
+      #if not pressedOK:
+         #return
       
-      name = unicode(result)
-      node = self._treeView.currentIndex().internalPointer()
-      bookmarkDict = self._project.bookmarks()
+      #name = unicode(result)
+      #node = self._treeView.currentIndex().internalPointer()
+      #bookmarkDict = self._project.bookmarks()
       
-      # Verify that the node isn't already bookmarked
-      if (name in bookmarkDict) and (node.id() != bookmarkDict[name]):
-         QtGui.QMessageBox.critical( self, 'Error', 'Bookmark name \'{0}\' is already in use.' )
-         return
+      ## Verify that the node isn't already bookmarked
+      #if (name in bookmarkDict) and (node.id() != bookmarkDict[name]):
+         #QtGui.QMessageBox.critical( self, 'Error', 'Bookmark name \'{0}\' is already in use.' )
+         #return
       
-      # Register the bookmark
-      node.setBookmarkName( name )
-      bookmarkDict[ name ] = node.id()
+      ## Register the bookmark
+      #node.setBookmarkName( name )
+      #bookmarkDict[ name ] = node.id()
       
-      # Update the tree's drawing of the current entry
-      self.invalidate( )
+      ## Update the tree's drawing of the current entry
+      #self.invalidate( )
    
    # Slots
    def onArticleChanged( self ):
       if not self.swappingArticle:
-         self._currentArticleModified = True
          self.onModelChanged( )
 
    def onModelChanged( self, index1=None, index2=None ):
@@ -959,7 +964,7 @@ class OutlineEdit(QtGui.QSplitter):
       self.insertNewNodeAfterAction  = RES.installAction( 'insertNodeAfter',   self )
       self.insertNewChildAction      = RES.installAction( 'insertNodeAsChild', self )
       self.deleteNodeAction          = RES.installAction( 'deleteNode',        self )
-      self.bookmarkEntryAction       = RES.installAction( 'nodeBookmark',      self )
+      #self.bookmarkEntryAction       = RES.installAction( 'nodeBookmark',      self )
 
    def _buildMenus( self ):
       self.menuTree = QtGui.QMenu(self)
@@ -991,4 +996,4 @@ class OutlineEdit(QtGui.QSplitter):
       self._treetoolbar = QtGui.QToolBar( 'treeToolbar', self )
       self._treetoolbar.addAction( self.expandAllAction )
       self._treetoolbar.addAction( self.collapseAllAction )
-      self._treetoolbar.addAction( self.bookmarkEntryAction )
+      #self._treetoolbar.addAction( self.bookmarkEntryAction )

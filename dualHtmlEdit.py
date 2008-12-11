@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 from PyQt4 import QtCore, QtGui, QtWebKit
 import sys
 

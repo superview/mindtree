@@ -1,3 +1,4 @@
+from __future__ import print_function, unicode_literals
 from PyQt4 import QtCore, QtGui
 from uuid import uuid4
 import os.path
@@ -48,6 +49,10 @@ class TreeNode( object ):
       
       return self._data[ column ]
 
+   def setData( self, column, value ):
+      assert isinstance( column, int )
+      self._data[ column ] = value
+   
    def title( self ):
       return self._data[0]
 
@@ -175,11 +180,6 @@ class OutlineModel(QtCore.QAbstractItemModel):
       OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'fullArticleIcon'  ))
 
    def setModel( self, aModel ):
-      OutlineModel.EmptyArticleIcon = None
-      OutlineModel.FullArticleIcon  = None
-      
-      OutlineModel.EmptyArticleIcon = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'emptyArticleIcon' ))
-      OutlineModel.FullArticleIcon  = QtCore.QVariant(RES.getIcon( 'OutlineEdit', 'fullArticleIcon'  ))
       QtCore.QAbstractItemModel.setModel( self, aModel )
 
    def root( self ):
@@ -297,6 +297,24 @@ class OutlineModel(QtCore.QAbstractItemModel):
       encodedData = mimeObject.data( RES.get('Mime','mindTreeOutline') )
       return self.deserialize( encodedData )
 
+   def indexOfTreeNode( self, node ):
+      '''Given a tree node, return an index for that node.'''
+      assert isinstance( node, TreeNode )
+      
+      parentNode = node.parent()
+      
+      if parentNode is None:
+         parentNodeIndex = QtCore.QModelIndex( )
+      else:
+         parentNodeIndex = self._calculateIndex( node.parent() )
+      
+      for row,childNode in enumerate(parentNode.childList( )):
+         if node is childNode:
+            nodeRow = row
+            break
+      
+      return self.index( nodeRow, 0, parentNodeIndex )
+
    # Basic Overrides
    def index(self, row, column, parentIndex):
       if row < 0 or column < 0 or row >= self.rowCount(parentIndex) or column >= self.columnCount(parentIndex):
@@ -371,8 +389,9 @@ class OutlineModel(QtCore.QAbstractItemModel):
             return True
          
          theTreeNode = index.internalPointer()
-         if theTreeNode.data( 0 ) != value:
-            theTreeNode.setTitle( value )
+         column      = index.column()
+         if theTreeNode.data( column ) != value:
+            theTreeNode.setData( column, value )
             self.emit( QtCore.SIGNAL('dataChanged(QModelIndex,QModelIndex)'), index, index )
       
       return True
