@@ -4,10 +4,7 @@ from __future__ import print_function, unicode_literals
 import copy
 
 class TagDefinition( object ):
-   def __init__( self, name, options=None ):
-      if options is None:
-         options = { }
-      
+   def __init__( self, name, **options ):
       assert isinstance( name,    (str,unicode) )
       assert isinstance( options, dict          )
       
@@ -53,7 +50,7 @@ class HTMLElement( object ):
       self._tags.add( tag )
 
    def removeTag( self, tag ):
-      self._tag.discard( tag )
+      self._tags.discard( tag )
 
    def setTags( self, tags=None ):
       if tags is None:
@@ -146,33 +143,35 @@ class HTMLDocument( object ):
 '''
 
    SINGULAR_TAGS = {
-      'ADDRESS':    (  1, TagDefinition( 'ADDRESS' )    ),
-      'B':          (  2, TagDefinition( 'B' )          ),
-      'BLINK':      (  3, TagDefinition( 'BLINK' )      ),
-      'BLOCKQUOTE': (  4, TagDefinition( 'BLOCKQUOTE' ) ),
-      'CENTER':     (  5, TagDefinition( 'CENTER' )     ),
-      'CITE':       (  6, TagDefinition( 'CITE' )       ),
-      'CODE':       (  7, TagDefinition( 'CODE' )       ),
-      'DEL':        (  8, TagDefinition( 'DEL' )        ),
-      'EM':         (  9, TagDefinition( 'EM' )         ),
-      'I':          ( 10, TagDefinition( 'I' )          ),
-      'INS':        ( 11, TagDefinition( 'INS' )        ),
-      'KBD':        ( 12, TagDefinition( 'KBD' )        ),
-      'PRE':        ( 13, TagDefinition( 'PRE' )        ),
-      'Q':          ( 14, TagDefinition( 'Q' )          ),
-      'S':          ( 15, TagDefinition( 'S' )          ),
-      'SAMP':       ( 16, TagDefinition( 'SAMP' )       ),
-      'STRIKE':     ( 17, TagDefinition( 'STRIKE' )     ),
-      'STRONG':     ( 18, TagDefinition( 'STRONG' )     ),
-      'SUB':        ( 19, TagDefinition( 'SUB' )        ),
-      'SUP':        ( 20, TagDefinition( 'SUP' )        ),
-      'U':          ( 21, TagDefinition( 'U' )          )
+      # Basic Styles
+      'B':          (  1, TagDefinition( 'B' )          ),
+      'I':          (  2, TagDefinition( 'I' )          ),
+      'U':          (  3, TagDefinition( 'U' )          ),
+      'STRIKE':     (  4, TagDefinition( 'STRIKE' )     ),
+      'SUB':        (  5, TagDefinition( 'SUB' )        ),
+      'SUP':        (  6, TagDefinition( 'SUP' )        ),
+      'BLINK':      (  7, TagDefinition( 'BLINK' )      ),
+      
+      # Abstract Styles
+      'ADDRESS':    ( 11, TagDefinition( 'ADDRESS' )    ),
+      'BLOCKQUOTE': ( 12, TagDefinition( 'BLOCKQUOTE' ) ),
+      'CENTER':     ( 13, TagDefinition( 'CENTER' )     ),
+      'CITE':       ( 14, TagDefinition( 'CITE' )       ),
+      'CODE':       ( 15, TagDefinition( 'CODE' )       ),
+      'DEL':        ( 16, TagDefinition( 'DEL' )        ),
+      'EM':         ( 17, TagDefinition( 'EM' )         ),
+      'INS':        ( 18, TagDefinition( 'INS' )        ),
+      'KBD':        ( 19, TagDefinition( 'KBD' )        ),
+      'PRE':        ( 20, TagDefinition( 'PRE' )        ),
+      'Q':          ( 21, TagDefinition( 'Q' )          ),
+      'S':          ( 22, TagDefinition( 'S' )          ),
+      'SAMP':       ( 23, TagDefinition( 'SAMP' )       ),
+      'STRONG':     ( 24, TagDefinition( 'STRONG' )     )
       }
    
-   TAG_ID_COUNT = 1000
+   TAG_ID_COUNT = 100
    
    def __init__( self ):
-      self._htmlHead    = None
       self._tagDefs     = None
       self._elements    = None
       
@@ -184,12 +183,22 @@ class HTMLDocument( object ):
       self._tagDefs  = { }   # map tag id to tag definition
       self._elements = [ HTMLSegment('') ]
       
-      for tagId,tagDef in HTMLDocument.SINGULAR_TAGS:
+      for tagName in HTMLDocument.SINGULAR_TAGS.keys():
+         tagId, tagDef = HTMLDocument.SINGULAR_TAGS[ tagName ]
          self._tagDefs[ tagId ] = tagDef
 
-   def setContent( self, html ):
+   def setHtml( self, html ):
       '''Parse html in a string and set the content of the document.'''
-      pass
+      self.clear( )
+      
+      parser = HTMLDocumentParser( self )
+      parser.feed( html )
+      parser.close( )
+   
+   def setText( self, text ):
+      self.clear( )
+      
+      self.insertText( 0, text )
 
    def __iter__( self ):
       return iter(self._elements)
@@ -253,7 +262,7 @@ class HTMLDocument( object ):
       return result
 
    # Content Manipulateion
-   def insertText( self, text, pos ):
+   def insertText( self, pos, text ):
       assert isinstance( text, (str,unicode) )
       assert isinstance( pos,  int           )
       
@@ -272,11 +281,13 @@ class HTMLDocument( object ):
       else:
          self._elements[elementNum].insertText( text, offset )
    
-   def insertObject( self, obj, pos ):
+   def insertImage( self, pos, url ):
       assert isinstance( obj, HTMLEntity )
       assert isinstance( pos, int        )
       
       elementNum,offset = self._elementAndOffset( pos )
+      
+      obj = HTMLEntity( 'IMG', { 'SRC':url } )
       
       if element is None:
          # We're just appending
@@ -297,29 +308,28 @@ class HTMLDocument( object ):
          self._elements.insert( objElementNum, obj )
 
    def delete( self, pos1, pos2=None ):
-      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
+      firstElementNum, lastElementNum = self._slice( pos1, pos2 )
       
       if lastElementNum is None:
          self._elements = self._elements[ : firstElementNum ]
       else:
          self._elements = self._elements[ firstElementNum : lastElementNum ]
+      
+      self._joinIfPossible( firstElementNum )
 
    # Tag Operations
-   def defineTag( self, name, options=None ):
+   def defineTag( self, name, **options ):
       name = name.upper()
       
       if name in HTMLDocument.SINGULAR_TAGS:
          return HTMLDocument.SINGULAR_TAGS[ name ][ 0 ]
-      
-      if options is None:
-         options = { }
       
       assert isinstance( name,    (str,unicode) )
       assert isinstance( options, dict          )
       
       assert isinstance( self._tagDefs, dict )
       
-      tagDef = TagDefinition( name, options )
+      tagDef = TagDefinition( name, **options )
       tagId  = HTMLDocument.TAG_ID_COUNT
       HTMLDocument.TAG_ID_COUNT += 1
       
@@ -330,23 +340,10 @@ class HTMLDocument( object ):
       
       return tagId
 
-   def applyTag( self, tagId, pos1=None, pos2=None ):
+   def applyTag( self, tagId, pos1, pos2=None ):
       '''Apply the tag indicated by tagId to the region indicated by pos1 & pos2.
-      If pos1 and pos2 are None, the tag is begun at the point that is currently
-      the end of the document.
       '''
-      if pos1 is None:
-         last = self._elements[ -1 ]
-         if (last is HTMLSegment) and (len(last) == 0):
-            last.addTag( tagId )
-         else:
-            last = HTMLSegment( '', copy.copy(last.tags()) )
-            last.addTag( tagId )
-            self._elements.append( last )
-         
-         return
-      
-      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
+      firstElementNum, lastElementNum = self._slice( pos1, pos2 )
       
       if lastElementNum is None:
          for element in self._elements[ firstElementNum : ]:
@@ -354,24 +351,15 @@ class HTMLDocument( object ):
       else:
          for element in self._elements[ firstElementNum : lastElementNum ]:
             element.addTag( tagId )
+      
+      self._compact( firstElementNum, lastElementNum )
    
    def removeTag( self, tagId, pos1=None, pos2=None ):
       '''Remove the tag indicated by tagId from the region indicated by pos1 & pos2.
       If pos1 and pos2 are None, the tag is terminated at the point that is currently
       the end of the document.
       '''
-      if pos1 is None:
-         last = self._elements[ -1 ]
-         if (last is HTMLSegment) and (len(last) == 0):
-            last.removeTag( tagId )
-         else:
-            last = HTMLSegment( '', copy.copy(last.tags()) )
-            last.removeTag( tagId )
-            self._elements.append( last )
-         
-         return
-      
-      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
+      firstElementNum, lastElementNum = self._slice( pos1, pos2 )
       
       if lastElementNum is None:
          for element in self._elements[ firstElementNum : ]:
@@ -379,22 +367,20 @@ class HTMLDocument( object ):
       else:
          for element in self._elements[ firstElementNum : lastElementNum ]:
             element.removeTag( tagId )
+      
+      self._compact( firstElementNum, lastElementNum )
 
    def tagsAt( self, pos, order=False ):
       '''For the position indicated by pos, this method returns a list of
       tuples of the form (tagId,tagDef).  Which lists all the tags active
       at pos.
       '''
-      element,offset = self._elementAndOffset( pos )
-      tagIds = element.tags( )
-      
-      result = [ ]
-      for tagId in tagIds:
-         result.append( (tagId, self._tagDefs[tagId]) )
+      elementNum,offset = self._elementAndOffset( pos )
+      result = copy.copy(self._elements[elementNum].tags( ))
       
       if order:
          orderedResult = [ ]
-         for eleNum in range( element, -1, -1 ):
+         for eleNum in range( elementNum, -1, -1 ):
             ele = self._elements[eleNum]
             for tagId in ele.tags():
                if tagId in result:
@@ -406,6 +392,11 @@ class HTMLDocument( object ):
 
    def tag( self, tagId ):
       return self._tagDefs[ tagId ]
+
+   def addTag( self, pos1, pos2=None, name=None, **options ):
+      tagId = self.defineTag( name, **options )
+      self.applyTag( tagId, pos1, pos2 )
+      return tagId
 
    # Implementation
    def _elementAndOffset( self, pos ):
@@ -494,7 +485,7 @@ class HTMLDocument( object ):
       return False
 
 
-   def slice( self, pos1, pos2=None ):
+   def _slice( self, pos1, pos2=None ):
       '''Return two element nums such that pos1 is the first position in
       the first element and pos2 is the first position after the second element.
       '''
@@ -520,6 +511,100 @@ class HTMLDocument( object ):
       
       return firstElementNum, lastElementNum
    
+   def _compact( self, first, last=None ):
+      '''Attempt to join adjacent elements within the range first,last inclusive.
+      If last is None, the last element in the document is assumed.
+      '''
+      if last is None:
+         last = len(self._elements) - 1
+      
+      if first >= last:
+         return
+      
+      if first < 1:
+         first = 1
+      
+      for idx in range( last, first-1, -1 ):
+         self._joinIfPossible( idx )
+
+   def debug( self ):
+      # Elements
+      for num,element in enumerate(iter(self)):
+         tagList = element.tags()
+         
+         if isinstance( element, HTMLSegment ):
+            elementType  = 'Txt'
+            elementValue = element.text()
+         elif isinstance( element, HTMLEntity ):
+            elementType  = 'Img'
+            elementValue = element.entity().makeBeginTag()
+         
+         print( '{0:>3}. {1}: {2}'.format( num, elementType, elementValue ) )
+      
+         for tagId in tagList:
+            tagDef = self.tag( tagId )
+            print( '     - ', self.tag(tagId).makeBeginTag() )
+
+
+import HTMLParser
+
+class HTMLDocumentParser( HTMLParser.HTMLParser ):
+   def __init__( self ):
+      HTMLParser.HTMLParser.__init__( self, htmlDoc )
+      
+      self._doc            = htmlDoc
+      
+      self._activeTags     = { }
+      self._textBufer      = ''
+      self._lastElementNum = 0
+
+   def handle_starttag( self, tag, attrs ):
+      pass
+   
+   def handle_startendtag( self, tag, attrs ):
+      pass
+   
+   def handle_endtag( self, tag ):
+      pass
+   
+   def handle_data( self, data ):
+      self._textBufer += unicode(data)
+   
+   def handle_charref( self, name ):
+      pass
+   
+   def handle_entityref( self, name ):
+      pass
+   
+   def handle_decl( self, decl ):
+      pass
+   
+   def handle_pi( self, pi ):
+      pass
+   
+
+doc = HTMLDocument( )
+doc.insertText( 0, 'Here\'s some sample text.' )
+boldTag   = doc.addTag(  7, 15, 'B' )
+italicTag = doc.addTag( 12, 20, 'I' )
+
+print( doc.toHTML(False) )
+
+print( )
+print( 'Examining tags at 14' )
+tagList = doc.tagsAt( 14, order=True )
+for tagId in tagList:
+   tagDef = doc.tag(tagId)
+   print( tagDef.name( ) )
+
+print( )
+print( 'Removing bold from 12-15' )
+doc.removeTag( boldTag, 12, 15 )
+
+print( )
+print( doc.toHTML(False) )
+doc.debug( )
+
 
 from PyQt4 import QtCore, QtGui
 
@@ -698,30 +783,3 @@ class HTMLEditor( object ):
 
 
 
-doc = HTMLDocument( )
-doc.insertText( 'Here\'s some sample text.', 0 )
-tagid = doc.defineTag( 'B' )
-doc.applyTag( tagid, 10, 15 )
-
-# HTML Contents
-print( doc.toHTML() )
-
-# Elements
-for num,element in enumerate(iter(doc)):
-   tagList = element.tags()
-   
-   if isinstance( element, HTMLSegment ):
-      elementType  = 'Text'
-      elementValue = element.text()
-   elif isinstance( element, HTMLEntity ):
-      elementType  = 'Entity'
-      elementValue = element.entity().makeBeginTag()
-   
-   print( '{0:>3}. {1}'.format( num, elementType ) )
-   print( '     value:' )
-   print( '        -', elementValue )
-   print( '     tags:' )
-
-   for tagId in tagList:
-      tagDef = doc.tag( tagId )
-      print( '        -', doc.tag(tagId).makeBeginTag() )
