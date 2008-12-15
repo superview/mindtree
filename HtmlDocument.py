@@ -1,4 +1,6 @@
-from uuid import uuid4, UUID
+from __future__ import print_function, unicode_literals
+
+
 import copy
 
 class TagDefinition( object ):
@@ -16,7 +18,7 @@ class TagDefinition( object ):
       assert isinstance( self._name,    (str,unicode) )
       assert isinstance( self._options, dict          )
       
-      htmlOpenTagString += '<{0}'.format(self._name)
+      htmlOpenTagString = '<{0}'.format(self._name)
       
       for optName in self._options:
          assert isinstance( optName, (str,unicode) )
@@ -31,6 +33,11 @@ class TagDefinition( object ):
    def makeEndTag( self ):
       return '</{0}>'.format( self._name )
 
+   def name( self ):
+      return self._name
+   
+   def options( self ):
+      return self._options
 
 class HTMLElement( object ):
    def __init__( self, tags=None ):
@@ -64,6 +71,9 @@ class HTMLEntity( HTMLElement ):
    
    def __len__( self ):
       return 1
+   
+   def entity( self ):
+      return self._entityDef
 
 class HTMLSegment( HTMLElement ):
    def __init__( self, text='', tags=None ):
@@ -135,16 +145,57 @@ class HTMLDocument( object ):
 </html>
 '''
 
+   SINGULAR_TAGS = {
+      'ADDRESS':    (  1, TagDefinition( 'ADDRESS' )    ),
+      'B':          (  2, TagDefinition( 'B' )          ),
+      'BLINK':      (  3, TagDefinition( 'BLINK' )      ),
+      'BLOCKQUOTE': (  4, TagDefinition( 'BLOCKQUOTE' ) ),
+      'CENTER':     (  5, TagDefinition( 'CENTER' )     ),
+      'CITE':       (  6, TagDefinition( 'CITE' )       ),
+      'CODE':       (  7, TagDefinition( 'CODE' )       ),
+      'DEL':        (  8, TagDefinition( 'DEL' )        ),
+      'EM':         (  9, TagDefinition( 'EM' )         ),
+      'I':          ( 10, TagDefinition( 'I' )          ),
+      'INS':        ( 11, TagDefinition( 'INS' )        ),
+      'KBD':        ( 12, TagDefinition( 'KBD' )        ),
+      'PRE':        ( 13, TagDefinition( 'PRE' )        ),
+      'Q':          ( 14, TagDefinition( 'Q' )          ),
+      'S':          ( 15, TagDefinition( 'S' )          ),
+      'SAMP':       ( 16, TagDefinition( 'SAMP' )       ),
+      'STRIKE':     ( 17, TagDefinition( 'STRIKE' )     ),
+      'STRONG':     ( 18, TagDefinition( 'STRONG' )     ),
+      'SUB':        ( 19, TagDefinition( 'SUB' )        ),
+      'SUP':        ( 20, TagDefinition( 'SUP' )        ),
+      'U':          ( 21, TagDefinition( 'U' )          )
+      }
+   
+   TAG_ID_COUNT = 1000
+   
    def __init__( self ):
-      self._htmlHead    = ''
+      self._htmlHead    = None
+      self._tagDefs     = None
+      self._elements    = None
       
-      self._tagDefs     = { }   # map tag id to tag definition
-      self._elements    = [ ]
+      self.clear( )
+
+   def clear( self ):
+      '''Initialize the document.'''
+      self._htmlHead = ''
+      self._tagDefs  = { }   # map tag id to tag definition
+      self._elements = [ HTMLSegment('') ]
+      
+      for tagId,tagDef in HTMLDocument.SINGULAR_TAGS:
+         self._tagDefs[ tagId ] = tagDef
 
    def setContent( self, html ):
+      '''Parse html in a string and set the content of the document.'''
       pass
 
-   def toHTML( self ):
+   def __iter__( self ):
+      return iter(self._elements)
+   
+   # Content Extraction
+   def toHTML( self, fullDocument=True ):
       body = ''
       
       activeTags = set( )
@@ -156,7 +207,13 @@ class HTMLDocument( object ):
          else:
             body += self._segmentHtml( element, activeTags )
       
-      return HTMLDocument.HTML_FORMAT.format( head=self._htmlHead, body=body )
+      for tagId in activeTags:
+         body += self._tag[ tagId ].makeEndTag()
+      
+      if fullDocument:
+         return HTMLDocument.HTML_FORMAT.format( head=self._htmlHead, body=body )
+      else:
+         return body
 
    def _segmentHtml( self, segment, activeTags ):
       assert isinstance( segment,    HTMLSegment )
@@ -168,10 +225,14 @@ class HTMLDocument( object ):
       assert isinstance( segmentTags, set )
       
       # Close tags not in this segment
+      closedTags = [ ]
       for tagId in activeTags:
          if tagId not in segmentTags:
             result += self._tagDefs[ tagId ].makeEndTag()
-            activeTags.remove( tagId )
+            closedTags.append( tagId )
+      
+      for tagId in closedTags:
+         activeTags.remove( tagId )
       
       # Open tags in this segment
       for tagId in segmentTags:
@@ -188,7 +249,10 @@ class HTMLDocument( object ):
       for segment in self._elements:
          if isinstance( segment, HTMLSegment ):
             result += segment.text()
+      
+      return result
 
+   # Content Manipulateion
    def insertText( self, text, pos ):
       assert isinstance( text, (str,unicode) )
       assert isinstance( pos,  int           )
@@ -196,18 +260,14 @@ class HTMLDocument( object ):
       elementNum,offset = self._elementAndOffset( pos )
       
       if elementNum is None:
-         if offset == 1:
-            # We're just appending text
-            lastEle = self._elements[ -1 ]
-            if isinstance( lastEle, HTMLSegment ):
-               insertText( text )
-            else:
-               tags = copy.copy( lastEle.tags() )
-               element = HTMLSegment( text, tags )
-               self._elements.append( segment )
-         
+         # We're just appending text
+         lastEle = self._elements[ -1 ]
+         if isinstance( lastEle, HTMLSegment ):
+            lastEle.insertText( text )
          else:
-            raise Exception
+            tags = copy.copy( lastEle.tags() )
+            element = HTMLSegment( text, tags )
+            self._elements.append( segment )
       
       else:
          self._elements[elementNum].insertText( text, offset )
@@ -219,15 +279,11 @@ class HTMLDocument( object ):
       elementNum,offset = self._elementAndOffset( pos )
       
       if element is None:
-         if offset == 1:
-            # We're just appending
-            lastEle = self._elements[ -1 ]
-            tags = copy.copy( lastEle.tags() )
-            obj.setTags( tags )
-            self._elements.append( obj )
-         
-         else:
-            raise Exception
+         # We're just appending
+         lastEle = self._elements[ -1 ]
+         tags = copy.copy( lastEle.tags() )
+         obj.setTags( tags )
+         self._elements.append( obj )
       
       else:
          element = self._elements[ elementNum ]
@@ -241,109 +297,21 @@ class HTMLDocument( object ):
          self._elements.insert( objElementNum, obj )
 
    def delete( self, pos1, pos2=None ):
-      if pos2 is None:
-         pos2 = pos1 + 1
+      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
       
-      assert isinstance( pos1, int )
-      assert isinstance( pos2, int )
-      
-      from_elementNum,from_offset = self._elementAndOffset( pos1 )
-      to_elementNum,to_offset     = self._elementAndOffset( pos2 )
-      
-      # delete all intermediate elements
-      numIntermediateElements = to_elementNum - (from_elementNum+1)
-      if numIntermediateElements >= 1:
-         for ct in range( 0, numIntermediateElements ):
-            del self._elements[ from_elementNum + 1 ]
-      
-      # Any text remaining to be deleted is in the adjacent
-      # elements from_elementNum and from_elementNum+1
-      to_elementNum = from_elementNum + 1
-      
-      # Delete the text from the second element
-      toElement = self._elements[to_elementNum]
-      toElement.deleteText( 0, to_offset )
-      
-      # Delete the text from the first element
-      fromElement = self._elements[from_elementNum]
-      fromElement.deleteText( from_offset, len(fromElement) )
-      
-      # Try to merge elements
-      self._joinIfPossible( from_elementNum, to_elementNum )
+      if lastElementNum is None:
+         self._elements = self._elements[ : firstElementNum ]
+      else:
+         self._elements = self._elements[ firstElementNum : lastElementNum ]
 
-   def applyTag( self, tag, pos1, pos2=None ):
-      if pos2 is None:
-         pos2 = pos1 + 1
-      
-      assert isinstance( pos1, int )
-      assert isinstance( pos2, int )
-      
-      from_elementNum,from_offset = self._elementAndOffset( pos1 )
-      to_elementNum,to_offset     = self._elementAndOffset( pos2 )
-      
-      # Apply the tag to all intermediate elements
-      numIntermediateElements = to_elementNum - (from_elementNum+1)
-      if numIntermediateElements >= 1:
-         for ct in range( 0, numIntermediateElements ):
-            self._elements[ from_elementNum + ct ].addTag( tag )
-      
-      # Apply to the last element (splitting if necessary)
-      if tag not in self._elements[ to_elementNum ].tags():
-         # Split the toElement and apply the tag to the first element
-         result = self._splitElement( to_elementNum, to_offset )
-         if result:
-            result[0].addTag( tag )
-      
-      # Apply to the first element (splitting if necessary)
-      if tag not in self._elements[ from_elementNum ].tags():
-         result = self._splitElement( from_elementNum, from_offset )
-         if result:
-            result[1].addTag( tag )
-      
-      # Of all the segments touched, see what can be joined.
-      for ct in range( 0, to_elementNum - from_elementNum ):
-         self._joinIfPossible( to_elementNum - ct )
-      
-      self._joinIfPossible( from_elementNum - 1 )
-
-   def removeTag( self, tag, pos1, pos2=None ):
-      if pos2 is None:
-         pos2 = pos1 + 1
-      
-      assert isinstance( pos1, int )
-      assert isinstance( pos2, int )
-      
-      from_elementNum,from_offset = self._elementAndOffset( pos1 )
-      to_elementNum,to_offset     = self._elementAndOffset( pos2 )
-      
-      # Remove the tag from all intermediate elements
-      numIntermediateElements = to_elementNum - (from_elementNum+1)
-      if numIntermediateElements >= 1:
-         for ct in range( 0, numIntermediateElements ):
-            self._elements[ from_elementNum + ct ].removeTag( tag )
-      
-      # Remove from the last element (splitting if necessary)
-      if tag in self._elements[ to_elementNum ].tags():
-         # Split the toElement and apply the tag to the first element
-         result = self._splitElement( to_elementNum, to_offset )
-         if result:
-            result[0].removeTag( tag )
-      
-      # Remove from the first element (splitting if necessary)
-      if tag in self._elements[ from_elementNum ].tags():
-         # Split the fromElement and apply the tag to the second element
-         result = self._splitElement( from_elementNum, from_offset )
-         if result:
-            result[1].removeTag( tag )
-      
-      # Of all the segments touched, see what can be joined.
-      for ct in range( 0, to_elementNum - from_elementNum ):
-         self._joinIfPossible( to_elementNum - ct )
-      
-      self._joinIfPossible( from_elementNum - 1 )
-
+   # Tag Operations
    def defineTag( self, name, options=None ):
-      if option is None:
+      name = name.upper()
+      
+      if name in HTMLDocument.SINGULAR_TAGS:
+         return HTMLDocument.SINGULAR_TAGS[ name ][ 0 ]
+      
+      if options is None:
          options = { }
       
       assert isinstance( name,    (str,unicode) )
@@ -352,22 +320,94 @@ class HTMLDocument( object ):
       assert isinstance( self._tagDefs, dict )
       
       tagDef = TagDefinition( name, options )
-      tagId  = uuid4( ).bytes
+      tagId  = HTMLDocument.TAG_ID_COUNT
+      HTMLDocument.TAG_ID_COUNT += 1
       
       assert isinstance( tagDef, TagDefinition )
-      assert isinstance( tagId,  bytes         )
+      assert isinstance( tagId,  int           )
       
       self._tagDefs[ tagId ] = tagDef
       
       return tagId
 
-   def undefTag( self, tagId ):
-      assert isinstance( tagId, bytes )
+   def applyTag( self, tagId, pos1=None, pos2=None ):
+      '''Apply the tag indicated by tagId to the region indicated by pos1 & pos2.
+      If pos1 and pos2 are None, the tag is begun at the point that is currently
+      the end of the document.
+      '''
+      if pos1 is None:
+         last = self._elements[ -1 ]
+         if (last is HTMLSegment) and (len(last) == 0):
+            last.addTag( tagId )
+         else:
+            last = HTMLSegment( '', copy.copy(last.tags()) )
+            last.addTag( tagId )
+            self._elements.append( last )
+         
+         return
       
-      assert isinstance( self._tagDefs, dict )
+      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
       
-      del self._tagDefs[ tagId ]
+      if lastElementNum is None:
+         for element in self._elements[ firstElementNum : ]:
+            element.addTag( tagId )
+      else:
+         for element in self._elements[ firstElementNum : lastElementNum ]:
+            element.addTag( tagId )
    
+   def removeTag( self, tagId, pos1=None, pos2=None ):
+      '''Remove the tag indicated by tagId from the region indicated by pos1 & pos2.
+      If pos1 and pos2 are None, the tag is terminated at the point that is currently
+      the end of the document.
+      '''
+      if pos1 is None:
+         last = self._elements[ -1 ]
+         if (last is HTMLSegment) and (len(last) == 0):
+            last.removeTag( tagId )
+         else:
+            last = HTMLSegment( '', copy.copy(last.tags()) )
+            last.removeTag( tagId )
+            self._elements.append( last )
+         
+         return
+      
+      firstElementNum, lastElementNum = self.slice( pos1, pos2 )
+      
+      if lastElementNum is None:
+         for element in self._elements[ firstElementNum : ]:
+            element.removeTag( tagId )
+      else:
+         for element in self._elements[ firstElementNum : lastElementNum ]:
+            element.removeTag( tagId )
+
+   def tagsAt( self, pos, order=False ):
+      '''For the position indicated by pos, this method returns a list of
+      tuples of the form (tagId,tagDef).  Which lists all the tags active
+      at pos.
+      '''
+      element,offset = self._elementAndOffset( pos )
+      tagIds = element.tags( )
+      
+      result = [ ]
+      for tagId in tagIds:
+         result.append( (tagId, self._tagDefs[tagId]) )
+      
+      if order:
+         orderedResult = [ ]
+         for eleNum in range( element, -1, -1 ):
+            ele = self._elements[eleNum]
+            for tagId in ele.tags():
+               if tagId in result:
+                  orderedResult.append( tagId )
+                  result.remove( tagId )
+         return orderedResult
+      else:
+         return result
+
+   def tag( self, tagId ):
+      return self._tagDefs[ tagId ]
+
+   # Implementation
    def _elementAndOffset( self, pos ):
       '''Return the tuple ( elementNum, offset ) indicating the index of the 
       element in self._elements and offset into that element of pos.
@@ -378,6 +418,7 @@ class HTMLDocument( object ):
       assert isinstance( pos,            int  )
       assert isinstance( self._elements, list )
       
+      # All other cases
       segPos = 0
       for elementNum, element in enumerate(self._elements):
          eleLen = len(element)
@@ -386,7 +427,7 @@ class HTMLDocument( object ):
          else:
             segPos += eleLen
       
-      return None, pos - segPos
+      return None, None
 
    def _splitElement( self, elementNum, offset ):
       '''Split this element at offset.  Insert the two new elements into the
@@ -416,8 +457,11 @@ class HTMLDocument( object ):
       If one or both of the elements is empty, the element will be deleted and
       the join will be considered successful.
       '''
-      first    = self._elements[elementNum]
-      second   = self._elements[elementNum+1]
+      try:
+         first    = self._elements[elementNum]
+         second   = self._elements[elementNum+1]
+      except:
+         return
       
       # If one of the elements is not a segment return False
       if not isinstance( first, HTMLSegment ):
@@ -450,3 +494,234 @@ class HTMLDocument( object ):
       return False
 
 
+   def slice( self, pos1, pos2=None ):
+      '''Return two element nums such that pos1 is the first position in
+      the first element and pos2 is the first position after the second element.
+      '''
+      if pos2 is None:
+         pos2 = pos1 + 1
+      
+      # Split at pos1
+      firstElementNum,firstElementOffset = self._elementAndOffset( pos1 )
+      
+      if firstElementNum is None:
+         raise Exception
+      
+      if firstElementOffset > 0:
+         self._splitElement( firstElementNum, firstElementOffset )
+         firstElementNum += 1
+      
+      # Split at pos2
+      lastElementNum, lastElementOffset  = self._elementAndOffset( pos2 )
+      if lastElementNum is not None:
+         if lastElementOffset > 0:
+            self._splitElement( lastElementNum, lastElementOffset )
+            lastElementNum += 1
+      
+      return firstElementNum, lastElementNum
+   
+
+from PyQt4 import QtCore, QtGui
+
+class HTMLEditor( object ):
+   def __init__( self, parent ):
+      self._editor = QtGui.QTextEdit( parent )
+      self._document = HTMLDocument( )
+      self._editor.installEventFilter( self )
+      self._specialSelection = { }
+
+   def setDocument( self, aDocument ):
+      assert isinstance( aDocument, HTMLDocument )
+      
+      self._document = aDocument
+      self.update( )
+
+   def document( self ):
+      return self._document
+
+   def eventFilter( self, obj, event ):
+      if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
+         keyEvent = event
+         key      = keyEvent.key()
+         text     = keyEvent.text()
+         if len(text) > 0:
+            self.insertText( text )
+         elif key == QtCore.Qt.Key_Tab:
+            self.insertText( '\t' )
+         elif key == QtCore.Qt.Key_Backspace:
+            self.delete( back=True )
+         elif key == QtCore.Qt.Key_Return:
+            self.insertText( '\n' )
+         elif key == QtCore.Qt.Key_Enter:
+            self.insertText( '\n' )
+         elif key == QtCore.Qt.Key_Delete:
+            self.delete( )
+         else:
+            return False
+      else:
+         return False
+
+   def textCursor( self ):
+      return self._editor.textCursor()
+
+   # Content Operations
+   def insertText( self, text, cursor=None ):
+      if cursor is None:
+         cursor = self._editor.textCursor()
+      
+      assert isinstance( text,   (str,unicode)     )
+      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      anchor   = cursor.anchor()
+      position = cursor.position()
+      
+      first = min(anchor,position)
+      last  = max(anchor,position)
+      
+      if first != last:
+         self._document.delete( first, last )
+      
+      self._document.insertText( text, first )
+      
+      self.update( )
+
+   def delete( self, cursor, back=False ):
+      if cursor is None:
+         cursor = self._editor.textCursor()
+      
+      assert isinstance( text,   (str,unicode)     )
+      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      anchor   = cursor.anchor()
+      position = cursor.position()
+      
+      first = min(anchor,position)
+      last  = max(anchor,position)
+      
+      if first != last:
+         self._document.delete( first, last )
+      
+      elif back:
+         self._document.delete( first - 1, first )
+      
+      self.update( )
+
+   # Tag Operations
+   def applyTag( self, tag, options=None, cursor=None ):
+      if cursor is None:
+         cursor = self._editor.textCursor()
+      
+      assert isinstance( text,   (str,unicode)     )
+      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      anchor   = cursor.anchor()
+      position = cursor.position()
+      
+      first = min(anchor,position)
+      last  = max(anchor,position)
+      
+      tagId = self._document.defineTag( tag, options )
+      
+      self._document.applyTag( tagId, first, last )
+      
+      self.update( )
+   
+   def removeTag( self, tagId, cursor=None ):
+      if cursor is None:
+         cursor = self._editor.textCursor()
+      
+      assert isinstance( text,   (str,unicode)     )
+      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      anchor   = cursor.anchor()
+      position = cursor.position()
+      
+      first = min(anchor,position)
+      last  = max(anchor,position)
+      
+      if first != last:
+         self._document.removeTag( tagId, first, last )
+      else:
+         self._document.removeTag( tagId, first )
+   
+   def tagsAt( self, cursor=None ):
+      '''Returns a list of the active tag definitions at the cursor position.
+      The anchor position is ignored.  The content returned is a list of tuples
+      of the form (tagId,tagDef).
+      
+      These are the actual tag definitions in use.  Modifying them will change
+      the underlying HTML document.
+      '''
+      if cursor is None:
+         cursor = self._editor.textCursor()
+      
+      assert isinstance( text,   (str,unicode)     )
+      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      position = cursor.position()
+      
+      return self._document.tagsAt( position )
+   
+   # Special Selections
+   def defineSpecialSelector( self, name, format ):
+      specialSelection = QtGui.QTextEdit.ExtraSelection( )
+      specialSelection.format = format
+      self._selectors[ name ] = specialSelection
+
+   def getSpecialSelector( self, name ):
+      return self._textSelectors[name]
+
+   def applySpecialSelector( self, name, cursor=None, moveUserCursor=True ):
+      # Mark the text
+      cursor = self._articleWidget.textCursor()
+      cursor.setPosition( beginPos )
+      cursor.setPosition( endPos, QtGui.QTextCursor.KeepAnchor )
+      self._textSelectors[ name ].cursor = cursor
+      self._articleWidget.setExtraSelections( [ self._textSelectors[name] ] )
+      
+      # Advance the cursor
+      if moveUserCursor:
+         cursor = self._articleWidget.textCursor()
+         cursor.setPosition( endPos )
+         self._articleWidget.setTextCursor( cursor )
+
+   def showSelection( self, name, index, cursor=None, moveUserCursor=True ):
+      self._outlineWidget.setCurrentIndex( index )
+      
+      if fromPos and toPos and name:
+         self.applyTextSelector( fromPos, toPos, moveUserCursor, name )
+   # Other Operations
+   def update( self ):
+      assert isinstance( self._editor, QtGui.QTextEdit )
+      
+      self._editor.setHtml( self._document.toHTML() )
+
+
+
+doc = HTMLDocument( )
+doc.insertText( 'Here\'s some sample text.', 0 )
+tagid = doc.defineTag( 'B' )
+doc.applyTag( tagid, 10, 15 )
+
+# HTML Contents
+print( doc.toHTML() )
+
+# Elements
+for num,element in enumerate(iter(doc)):
+   tagList = element.tags()
+   
+   if isinstance( element, HTMLSegment ):
+      elementType  = 'Text'
+      elementValue = element.text()
+   elif isinstance( element, HTMLEntity ):
+      elementType  = 'Entity'
+      elementValue = element.entity().makeBeginTag()
+   
+   print( '{0:>3}. {1}'.format( num, elementType ) )
+   print( '     value:' )
+   print( '        -', elementValue )
+   print( '     tags:' )
+
+   for tagId in tagList:
+      tagDef = doc.tag( tagId )
+      print( '        -', doc.tag(tagId).makeBeginTag() )

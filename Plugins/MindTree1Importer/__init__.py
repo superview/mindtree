@@ -34,9 +34,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       return documentName, theRootNode
 
    def convertProject( self, model, title ):
-      newModelOutline = self._convertProject( model )
-      newModelOutline.setTitle( title )
-      return newModelOutline
+      return self._convertProject( model )
 
    def _convertProject( self, oldModelTreeNode, newModelParentNode=None ):
       # Extract the article title from the old tree model node
