@@ -526,7 +526,7 @@ class Project( object ):
    # Contract
    def validate( self ):
       if not isinstance( self._name, (str,unicode) ):
-         raise
+         raise Exception
 
    def setDefaultData( self ):
       self._name      = self.genDefaultName( )

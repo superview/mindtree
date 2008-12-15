@@ -77,7 +77,7 @@ class TreeNode( object ):
    def setTitle( self, aTitle ):
       assert isinstance( aTitle, (str,unicode) )
       
-      self._data = [ aTitle ]
+      self._data[0] = aTitle
 
    def setBookmarkName( self, aName='' ):
       self._data[1] = aName
@@ -89,61 +89,57 @@ class TreeNode( object ):
    
    def validate( self, parent=None ):
       if (not isinstance(parent, TreeNode)) and (parent is not None):
-         return False
+         raise Exception
       
       members = self.__dict__.keys()
-      if len(members) != 5:
-         return False
+      if len(members) != 6:
+         raise Exception
       
       # Validate _id
       if not isinstance(self._id,(str,unicode)):
-         return False
+         raise Exception
       if len(self._id) != 32:
-         return False
+         raise Exception
       for ch in self._id:
          if ch not in '0123456789abcdefABCDEF':
-            return False
+            raise Exception
       
       # Validate _data
       if not isinstance( self._data, list ):
-         return False
+         raise Exception
       
       if len(self._data) != 2:
-         return False
+         raise Exception
       
       for element in self._data:
          if not isinstance( element, (str,unicode) ):
-            return False
+            raise Exception
       
       # Validate _article
-      if self._article is not None:
-         if not isinstance( self._article, (str,unicode) ):
-            return False
+      if not isinstance( self._article, (str,unicode) ):
+         raise Exception
       
       # Validate _imageList
       if not isinstance( self._imageList, list ):
-         return False
+         raise Exception
       
       for element in self._imageList:
          if not isinstance( element, (str,unicode) ):
-            return False
+            raise Exception
       
       # validate _parentNode
       if self._parentNode is not parent:
-         return False
+         raise Exception
       
       # Validate _childNodes
       if not isinstance( self._childNodes, list ):
-         return False
+         raise Exception
       
       for child in self._childNodes:
          if not isinstance( child, TreeNode ):
-            return False
+            raise Exception
          
-         if not child.validate( parent=self ):
-            return False
-      
-      return True
+         child.validate( parent=self )
 
    def hasChildren( self ):
       return len(self._childNodes) > 0
