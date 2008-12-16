@@ -281,13 +281,11 @@ class HTMLDocument( object ):
       else:
          self._elements[elementNum].insertText( text, offset )
    
-   def insertImage( self, pos, url ):
+   def insertObject( self, pos, obj ):
       assert isinstance( obj, HTMLEntity )
       assert isinstance( pos, int        )
       
       elementNum,offset = self._elementAndOffset( pos )
-      
-      obj = HTMLEntity( 'IMG', { 'SRC':url } )
       
       if element is None:
          # We're just appending
@@ -549,25 +547,148 @@ class HTMLDocument( object ):
 import HTMLParser
 
 class HTMLDocumentParser( HTMLParser.HTMLParser ):
-   def __init__( self ):
-      HTMLParser.HTMLParser.__init__( self, htmlDoc )
+   TAGS = {
+      # Tag Name:    ( Supported, Block, Nest  )
+      'A':           ( True,      True,  True ),
+      'ADDRESS':     ( True,      True,  True ),
+      'APPLET':      ( False,     True   ),
+      'AREA':        ( False,     True   ),
+      'B':           ( True,      True,  True ),
+      'BASE':        ( False,     False  ),
+      'BASEFONT':    ( False,     False  ),
+      'BGSOUND':     ( False,     False  ),
+      'BIG':         ( True,      True   ),
+      'BLINK':       ( False,     True   ),
+      'BLOCKQUOTE':  ( True,      True   ),
+      'BODY':        ( True,      True   ),
+      'BR':          ( True,      False  ),
+      'BUTTON':      ( False,     False  ),
+      'CAPTION':     ( False,     True   ),
+      'CENTER':      ( True,      True  ),
+      'CITE':        ( True,      True  ),
+      'CODE':        ( True,      True  ),
+      'COL':         ( False,     False ),
+      'COLGROUP':    ( False,     False ),
+      'DD':          ( True,      True , False ),
+      'DEL':         ( False     ),
+      'DFN':         ( True      ),
+      'DIV':         ( True      ),
+      'DL':          ( True      ),
+      'DT':          ( True      ),
+      'EM':          ( True      ),
+      'EMBED':       ( False     ),
+      'FIELDSET':    ( False     ),
+      'FONT':        ( True      ),
+      'FORM':        ( False     ),
+      'FRAME':       ( False     ),
+      'FRAMESET':    ( False     ),
+      'H1':          ( True      ),
+      'H2':          ( True      ),
+      'H3':          ( True      ),
+      'H4':          ( True      ),
+      'H5':          ( True      ),
+      'H6':          ( True      ),
+      'HEAD':        ( True      ),
+      'HR':          ( True      ),
+      'HTML':        ( True      ),
+      'I':           ( True      ),
+      'IFRAME':      ( False     ),
+      'IMG':         ( True      ),
+      'INPUT':       ( False     ),
+      'INS':         ( False     ),
+      'KBD':         ( True      ),
+      'LABEL':       ( False     ),
+      'LAYER':       ( False     ),
+      'LEGEND':      ( False     ),
+      'LI':          ( True      ),
+      'LINK':        ( False     ),
+      'MAP':         ( False     ),
+      'MARQUEE':     ( False     ),
+      'META':        ( True      ),
+      'NOBR':        ( True      ),
+      'NOFRAMES':    ( False     ),
+      'NOSCRIPT':    ( False     ),
+      'OBJECT':      ( False     ),
+      'OL':          ( True      ),
+      'OPTGROUP':    ( False     ),
+      'P':           ( True      ),
+      'PRE':         ( True      ),
+      'Q':           ( False     ),
+      'S':           ( True      ),
+      'SAMP':        ( True      ),
+      'SCRIPT':      ( False     ),
+      'SELECT':      ( False     ),
+      'SMALL':       ( True      ),
+      'SPAN':        ( True      ),
+      'STRIKE':      ( False     ),
+      'STRONG':      ( True      ),
+      'STYLE':       ( False     ),
+      'SUB':         ( True      ),
+      'SUP':         ( True      ),
+      'TABLE':       ( True      ),
+      'TBODY':       ( True      ),
+      'TD':          ( True      ),
+      'TH':          ( True      ),
+      'TEXTAREA':    ( False     ),
+      'TFOOT':       ( True      ),
+      'THEAD':       ( True      ),
+      'TITLE':       ( True      ),
+      'TR':          ( True      ),
+      'TT':          ( True      ),
+      'U':           ( True      ),
+      'UL':          ( True      ),
+      'WBR':         ( False     ),
+      'VAR':         ( True      )
+      }
+   
+   def __init__( self, htmlDoc ):
+      HTMLParser.HTMLParser.__init__( self )
       
       self._doc            = htmlDoc
       
-      self._activeTags     = { }
+      self._activeTags     = [ ]
       self._textBufer      = ''
-      self._lastElementNum = 0
+      
+      self._doc._elements  = [ ]
+      self._elements       = self._doc._elements
 
+   def close( self ):
+      HTMLParser.HTMLParser.close( self )
+      self.flushTextBuffer( )
+      
+      if len(self._activeTags) > 0:
+         print( 'Not all tags closed.' )
+   
    def handle_starttag( self, tag, attrs ):
-      pass
+      print( 'Parsing begin tag:', tag )
+      
+      self.flushTextBuffer( )
+      tagId = self._doc.defineTag( tag, **dict(attrs) )
+      self._activeTags.append( tagId )
    
    def handle_startendtag( self, tag, attrs ):
-      pass
+      print( 'Parsing begin/end tag:', tag )
+      
+      self.flushTextBuffer( )
+      
+      self._elements.append( HTMLEntity( tag, dict(attrs), self._activeTags ) )
    
    def handle_endtag( self, tag ):
-      pass
-   
+      print( 'Parsing end tag:', tag )
+      
+      self.flushTextBuffer( )
+      
+      for idx in range( len(self._activeTags)-1, -1, -1 ):
+         tagId = self._activeTags[ idx ]
+         tagDef = self._doc.tag( tagId )
+         if tagDef.name() == tag.upper():
+            del self._activeTags[ idx ]
+            break
+      else:
+         raise Exception( 'Unmatched end tag \'{0}\'.'.format(tag) )
+
    def handle_data( self, data ):
+      print( 'Parsing data:', data )
       self._textBufer += unicode(data)
    
    def handle_charref( self, name ):
@@ -576,6 +697,13 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
    def handle_entityref( self, name ):
       pass
    
+   def flushTextBuffer( self ):
+      print( 'Flushing:', self._textBufer )
+      
+      if self._textBufer != '':
+         self._elements.append( HTMLSegment( self._textBufer, self._activeTags ) )
+         self._textBufer = ''
+
    def handle_decl( self, decl ):
       pass
    
@@ -584,26 +712,30 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
    
 
 doc = HTMLDocument( )
-doc.insertText( 0, 'Here\'s some sample text.' )
-boldTag   = doc.addTag(  7, 15, 'B' )
-italicTag = doc.addTag( 12, 20, 'I' )
-
-print( doc.toHTML(False) )
-
-print( )
-print( 'Examining tags at 14' )
-tagList = doc.tagsAt( 14, order=True )
-for tagId in tagList:
-   tagDef = doc.tag(tagId)
-   print( tagDef.name( ) )
-
-print( )
-print( 'Removing bold from 12-15' )
-doc.removeTag( boldTag, 12, 15 )
-
-print( )
-print( doc.toHTML(False) )
+doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
 doc.debug( )
+
+#doc = HTMLDocument( )
+#doc.insertText( 0, 'Here\'s some sample text.' )
+#boldTag   = doc.addTag(  7, 15, 'B' )
+#italicTag = doc.addTag( 12, 20, 'I' )
+
+#print( doc.toHTML(False) )
+
+#print( )
+#print( 'Examining tags at 14' )
+#tagList = doc.tagsAt( 14, order=True )
+#for tagId in tagList:
+   #tagDef = doc.tag(tagId)
+   #print( tagDef.name( ) )
+
+#print( )
+#print( 'Removing bold from 12-15' )
+#doc.removeTag( boldTag, 12, 15 )
+
+#print( )
+#print( doc.toHTML(False) )
+#doc.debug( )
 
 
 from PyQt4 import QtCore, QtGui
