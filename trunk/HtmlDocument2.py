@@ -132,6 +132,7 @@ class HTMLSegment( HTMLElement ):
       return self, HTMLSegment( newNodeText, newNodeTags )
 
 class HTMLDocument( object ):
+   END = None
    HTML_FORMAT = '''
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -297,7 +298,7 @@ class HTMLDocument( object ):
       else:
          self._elements[elementNum].insertText( text, offset )
    
-   def insertObject( self, pos, obj ):
+   def insertObject( self, pos, obj, setTagsFromContext=True ):
       '''Insert an HTMLElement at the position indicated by pos.  If pos
       is None, the element is appended to the document.
       '''
@@ -313,16 +314,18 @@ class HTMLDocument( object ):
          else:
             previousElement = self._elements[ elementNum - 1 ]
          
-         obj.setTags( copy.copy(previousElement.tags()) )
+         if setTagsFromContext:
+            obj.setTags( copy.copy(previousElement.tags()) )
+         
          if elementNum is None:
             self._elements.append( obj )
          else:
             self._elements.insert( elementNum, obj )
       
       else:
-         element = self._elements[ elementNum ]
-         
-         obj.setTags( copy.copy(element.tags()) )
+         if setTagsFromContext:
+            element = self._elements[ elementNum ]
+            obj.setTags( copy.copy(element.tags()) )
          
          self._splitElement( elementNum, offset )
          
@@ -332,16 +335,16 @@ class HTMLDocument( object ):
       # Compact the elements
       if elementNum is None:
          startCompact = len(self._elements) - 2
+         stopCompact  = None
       else:
          startCompact = elementNum - 1
+         stopCompact  = elementNum + 1
+         
+         if stopCompact >= len(self._elements):
+            stopCompact = None
       
       if startCompact < 0:
          startCompact = 0
-      
-      stopCompact = elementNum + 1
-      
-      if stopCompact >= len(self._elements):
-         stopCompact = None
       
       self._compact( startCompact, stopCompact )
 
@@ -412,12 +415,21 @@ class HTMLDocument( object ):
       '''For the position indicated by pos, this method returns a list of
       tuples of the form (tagId,tagDef).  Which lists all the tags active
       at pos.
+      
+      If ordered is True, the list is returned such that tags at the beginning
+      of the list are openned closer to pos than those later in the list.
       '''
       elementNum,offset = self._elementAndOffset( pos )
-      result = copy.copy(self._elements[elementNum].tags( ))
+      
+      if elementNum is None:
+         result = list(self._elements[-1].tags())
+      else:
+         result = list(self._elements[elementNum].tags( ))
       
       if ordered:
          orderedResult = [ ]
+         if len(self._elements) == 1:
+            return result
          for eleNum in range( elementNum, -1, -1 ):
             ele = self._elements[eleNum]
             for tagId in ele.tags():
@@ -524,7 +536,6 @@ class HTMLDocument( object ):
       
       return False
 
-
    def _slice( self, pos1, pos2=None ):
       '''Return two element nums such that pos1 is the first position in
       the first element and pos2 is the first position after the second element.
@@ -561,8 +572,8 @@ class HTMLDocument( object ):
       if first >= last:
          return
       
-      if first < 1:
-         first = 1
+      if first < 0:
+         first = 0
       
       for idx in range( last, first-1, -1 ):
          self._joinIfPossible( idx )
@@ -589,7 +600,7 @@ class HTMLDocument( object ):
 class HTMLDocumentCursor( object ):
    def __init__( self, document, pos ):
       assert isinstance( document, HTMLDocument )
-      assert isinstance( pos,      int          )
+      assert isinstance( pos,      int          ) or ( pos is None )
       
       self._doc           = document
       
@@ -632,8 +643,8 @@ class HTMLDocumentCursor( object ):
       '''
       tagId = self._doc.defineTag( tagName, **options )
       
-      if tagId not in self.activeTags:
-         self._activeTags.append( tagId )
+      if tagId not in self._activeTags:
+         self._activeTags.insert( 0, tagId )
       
       return tagId
    
@@ -649,22 +660,61 @@ class HTMLDocumentCursor( object ):
       the active tags.  If there is a selection (anchor != pos), the
       selected text is first deleted.
       '''
-      obj = HTMLSegment( text, copy.copy(self.activeTags) )
-      self.insertObject( obj )
+      obj = HTMLSegment( text, self._activeTags )
+      self.insertObject( obj, setTagsFromContext=False )
    
-   def insertObject( self, obj ):
+   def insertParagraph( self, closePreviousTags=True ):
+      if closePreviousTags:
+         self.closeAllTags( )
+      
+      obj = HTMLEntity( 'P' )
+      self.insertObject( obj, setTagsFromContext=False )
+
+   def insertObject( self, obj, setTagsFromContext=True ):
       if self._anchor != self._pos:
          self.delete( )
       
-      self._doc.insertObject( self._pos, obj )
-      self._pos += len(obj)
+      self._doc.insertObject( self._pos, obj, setTagsFromContext )
+      
+      if isinstance( self._pos, int ):
+         self._pos += len(obj)
    
    def backspace( self ):
-      pass
+      if self._anchor != self._pos:
+         self._deleteSection( )
+      elif self._pos is None:
+         lastPos = len(self._doc) - 1
+         self._doc.delete( lastPos )
+      elif self._pos == 0:
+         return
+      else:
+         self._pos -= 1
+         self._doc.delete( self._pos )
+         self._anchor = self._pos
    
    def delete( self ):
-      pass
-   
+      if self._anchor != self._pos:
+         self._deleteSection( )
+      elif self._pos is None:
+         return
+      else:
+         self._doc.delete( self._pos )
+
+   def _deleteSection( self ):
+      if self._anchor is None:
+         fromPos = self._pos
+         toPos   = None
+      elif self._pos is None:
+         fromPos = self._anchor
+         toPos   = None
+      else:
+         fromPos = min( self._anchor, self._pos )
+         toPos   = max( self._anchor, self._pos )
+      
+      self._doc.delete( fromPos, toPos )
+      
+      self.moveTo( fromPos )
+
    def activeTags( self ):
       '''Return the active tags ordered by locality of activation.
       (i.e. tags openned closest to the cursor are listed first)
@@ -773,51 +823,36 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
       HTMLParser.HTMLParser.__init__( self )
       
       self._doc            = htmlDoc
-      
-      self._activeTags     = [ ]
-      self._textBufer      = ''
-      
-      self._doc._elements  = [ ]
-      self._elements       = self._doc._elements
+      self._cursor         = HTMLDocumentCursor( htmlDoc, None )
 
    def close( self ):
       HTMLParser.HTMLParser.close( self )
-      self.flushTextBuffer( )
-      
-      if len(self._activeTags) > 0:
-         print( 'Not all tags closed.' )
-   
+      self._doc._compact( 0 )
+
    def handle_starttag( self, tag, attrs ):
       print( 'Parsing begin tag:', tag )
-      
-      self.flushTextBuffer( )
-      tagId = self._doc.defineTag( tag, **dict(attrs) )
-      self._activeTags.append( tagId )
+      self._cursor.openNewTag( tag, **dict(attrs) )
    
    def handle_startendtag( self, tag, attrs ):
       print( 'Parsing begin/end tag:', tag )
-      
-      self.flushTextBuffer( )
-      
-      self._elements.append( HTMLEntity( tag, dict(attrs), self._activeTags ) )
+      self._cursor.insertObject( HTMLEntity( tag, dict(attrs) ) )
    
    def handle_endtag( self, tag ):
       print( 'Parsing end tag:', tag )
       
-      self.flushTextBuffer( )
-      
-      for idx in range( len(self._activeTags)-1, -1, -1 ):
-         tagId = self._activeTags[ idx ]
+      activeTags = self._cursor.activeTags()
+      for idx in range( len(activeTags)-1, -1, -1 ):
+         tagId = activeTags[ idx ]
          tagDef = self._doc.tag( tagId )
          if tagDef.name() == tag.upper():
-            del self._activeTags[ idx ]
+            self._cursor.closeTag( tagId )
             break
       else:
          raise Exception( 'Unmatched end tag \'{0}\'.'.format(tag) )
 
    def handle_data( self, data ):
       print( 'Parsing data:', data )
-      self._textBufer += unicode(data)
+      self._cursor.insertText( unicode(data) )
    
    def handle_charref( self, name ):
       pass
@@ -825,13 +860,6 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
    def handle_entityref( self, name ):
       pass
    
-   def flushTextBuffer( self ):
-      print( 'Flushing:', self._textBufer )
-      
-      if self._textBufer != '':
-         self._elements.append( HTMLSegment( self._textBufer, self._activeTags ) )
-         self._textBufer = ''
-
    def handle_decl( self, decl ):
       pass
    
@@ -839,32 +867,32 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
       pass
    
 
+doc = HTMLDocument( )
+doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
+doc.debug( )
+
 #doc = HTMLDocument( )
-#doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
+#doc.insertText( None, 'Here\'s some sample text.' )
+#boldTag   = doc.addTag(  7, 15, 'B' )
+#italicTag = doc.addTag( 12, 20, 'I' )
+
+#print( doc.toHTML(False) )
 #doc.debug( )
 
-doc = HTMLDocument( )
-doc.insertText( None, 'Here\'s some sample text.' )
-boldTag   = doc.addTag(  7, 15, 'B' )
-italicTag = doc.addTag( 12, 20, 'I' )
+#print( )
+#print( 'Examining tags at 14' )
+#tagList = doc.tagsAt( 14, ordered=True )
+#for tagId in tagList:
+   #tagDef = doc.tag(tagId)
+   #print( tagDef.name( ) )
 
-print( doc.toHTML(False) )
-doc.debug( )
+#print( )
+#print( 'Removing bold from 12-15' )
+#doc.removeTag( boldTag, 12, 15 )
 
-print( )
-print( 'Examining tags at 14' )
-tagList = doc.tagsAt( 14, ordered=True )
-for tagId in tagList:
-   tagDef = doc.tag(tagId)
-   print( tagDef.name( ) )
-
-print( )
-print( 'Removing bold from 12-15' )
-doc.removeTag( boldTag, 12, 15 )
-
-print( )
-print( doc.toHTML(False) )
-doc.debug( )
+#print( )
+#print( doc.toHTML(False) )
+#doc.debug( )
 
 
 from PyQt4 import QtCore, QtGui
@@ -898,8 +926,10 @@ class HTMLEditor( object ):
             self.delete( back=True )
          elif key == QtCore.Qt.Key_Return:
             self.insertText( '\n' )
+            insertParagraph( )
          elif key == QtCore.Qt.Key_Enter:
             self.insertText( '\n' )
+            insertParagraph( )
          elif key == QtCore.Qt.Key_Delete:
             self.delete( )
          else:
