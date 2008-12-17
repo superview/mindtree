@@ -3,6 +3,109 @@ from __future__ import print_function, unicode_literals
 
 import copy
 
+# Kind of tag
+BLOCK  = 1
+ENTITY = 2
+
+# What to do on new start tag
+NEST       = 1
+CLOSE_OLD  = 2
+
+TAGS = {
+   # Tag Name:    ( Supported, requires, accepts
+   #              (            close,    attribs   )
+   'A':           ( True,      True,     True      ),
+   'ADDRESS':     ( True,      True,     False     ),
+   'APPLET':      ( False,     True  ),
+   'AREA':        ( False,     True  ),
+   'B':           ( True,      True,     False     ),
+   'BASE':        ( False,     False ),
+   'BASEFONT':    ( False,     False ),
+   'BGSOUND':     ( False,     False ),
+   'BIG':         ( True,      True,     False     ),
+   'BLINK':       ( False,     True   ),
+   'BLOCKQUOTE':  ( True,      True   ),
+   'BODY':        ( True,      True   ),
+   'BR':          ( True,      False  ),
+   'BUTTON':      ( False,     True   ),
+   'CAPTION':     ( False,     True   ),
+   'CENTER':      ( True,      True   ),
+   'CITE':        ( True,      True   ),
+   'CODE':        ( True,      True   ),
+   'COL':         ( False,     False  ),
+   'COLGROUP':    ( False,     False  ),
+   'DD':          ( True,      False  ),
+   'DEL':         ( False,     True,  ),
+   'DFN':         ( True,      True,  ),
+   'DIV':         ( True,      True,  ),
+   'DL':          ( True,      True,  ),
+   'DT':          ( True,      False  ),
+   'EM':          ( True,      True   ),
+   'EMBED':       ( False,     False  ),
+   'FIELDSET':    ( False,     True   ),
+   'FONT':        ( True,      False  ),
+   'FORM':        ( False,     True   ),
+   'FRAME':       ( False,     False  ),
+   'FRAMESET':    ( False,     True   ),
+   'H1':          ( True,      True  ),
+   'H2':          ( True,      True  ),
+   'H3':          ( True,      True  ),
+   'H4':          ( True,      True  ),
+   'H5':          ( True,      True  ),
+   'H6':          ( True,      True  ),
+   'HEAD':        ( True,      True  ),
+   'HR':          ( True,      False ),
+   'HTML':        ( True,      True  ),
+   'I':           ( True,      True  ),
+   'IFRAME':      ( False,     True  ),
+   'IMG':         ( True,      False ),
+   'INPUT':       ( False     ),
+   'INS':         ( False     ),
+   'KBD':         ( True      ),
+   'LABEL':       ( False     ),
+   'LAYER':       ( False     ),
+   'LEGEND':      ( False     ),
+   'LI':          ( True      ),
+   'LINK':        ( False     ),
+   'MAP':         ( False     ),
+   'MARQUEE':     ( False     ),
+   'META':        ( True      ),
+   'NOBR':        ( True      ),
+   'NOFRAMES':    ( False     ),
+   'NOSCRIPT':    ( False     ),
+   'OBJECT':      ( False     ),
+   'OL':          ( True      ),
+   'OPTGROUP':    ( False     ),
+   'P':           ( True,      False ),
+   'PRE':         ( True,      True  ),
+   'Q':           ( False     ),
+   'S':           ( True      ),
+   'SAMP':        ( True      ),
+   'SCRIPT':      ( False     ),
+   'SELECT':      ( False     ),
+   'SMALL':       ( True,      True  ),
+   'SPAN':        ( True,      True  ),
+   'STRIKE':      ( False,     True  ),
+   'STRONG':      ( True,      True  ),
+   'STYLE':       ( False     ),
+   'SUB':         ( True,      True  ),
+   'SUP':         ( True,      True  ),
+   'TABLE':       ( True      ),
+   'TBODY':       ( True      ),
+   'TD':          ( True      ),
+   'TH':          ( True      ),
+   'TEXTAREA':    ( False     ),
+   'TFOOT':       ( True      ),
+   'THEAD':       ( True      ),
+   'TITLE':       ( True,      True ),
+   'TR':          ( True      ),
+   'TT':          ( True      ),
+   'U':           ( True,      True  ),
+   'UL':          ( True      ),
+   'WBR':         ( False,     False ),
+   'VAR':         ( True      )
+   }
+   
 class TagDefinition( object ):
    def __init__( self, name, **options ):
       assert isinstance( name,    (str,unicode) )
@@ -46,11 +149,11 @@ class HTMLElement( object ):
    def __len__( self ):
       return 0
 
-   def addTag( self, tag ):
-      self._tags.add( tag )
+   def addTag( self, tagId ):
+      self._tags.add( tagId )
 
-   def removeTag( self, tag ):
-      self._tags.discard( tag )
+   def removeTag( self, tagId ):
+      self._tags.discard( tagId )
 
    def setTags( self, tags=None ):
       if tags is None:
@@ -148,29 +251,52 @@ class HTMLDocument( object ):
 
    SINGULAR_TAGS = {
       # Basic Styles
-      'B':          (  1, TagDefinition( 'B' )          ),
-      'I':          (  2, TagDefinition( 'I' )          ),
-      'U':          (  3, TagDefinition( 'U' )          ),
-      'STRIKE':     (  4, TagDefinition( 'STRIKE' )     ),
-      'SUB':        (  5, TagDefinition( 'SUB' )        ),
-      'SUP':        (  6, TagDefinition( 'SUP' )        ),
-      'BLINK':      (  7, TagDefinition( 'BLINK' )      ),
+      'B':          (   1, TagDefinition( 'B' )          ),
+      'I':          (   2, TagDefinition( 'I' )          ),
+      'U':          (   3, TagDefinition( 'U' )          ),
+      'STRIKE':     (   4, TagDefinition( 'STRIKE' )     ),
+      'SUB':        (   5, TagDefinition( 'SUB' )        ),
+      'SUP':        (   6, TagDefinition( 'SUP' )        ),
+      'BLINK':      (   7, TagDefinition( 'BLINK' )      ),
       
       # Abstract Styles
-      'ADDRESS':    ( 11, TagDefinition( 'ADDRESS' )    ),
-      'BLOCKQUOTE': ( 12, TagDefinition( 'BLOCKQUOTE' ) ),
-      'CENTER':     ( 13, TagDefinition( 'CENTER' )     ),
-      'CITE':       ( 14, TagDefinition( 'CITE' )       ),
-      'CODE':       ( 15, TagDefinition( 'CODE' )       ),
-      'DEL':        ( 16, TagDefinition( 'DEL' )        ),
-      'EM':         ( 17, TagDefinition( 'EM' )         ),
-      'INS':        ( 18, TagDefinition( 'INS' )        ),
-      'KBD':        ( 19, TagDefinition( 'KBD' )        ),
-      'PRE':        ( 20, TagDefinition( 'PRE' )        ),
-      'Q':          ( 21, TagDefinition( 'Q' )          ),
-      'S':          ( 22, TagDefinition( 'S' )          ),
-      'SAMP':       ( 23, TagDefinition( 'SAMP' )       ),
-      'STRONG':     ( 24, TagDefinition( 'STRONG' )     )
+      'ADDRESS':    (  11, TagDefinition( 'ADDRESS' )    ),
+      'BLOCKQUOTE': (  12, TagDefinition( 'BLOCKQUOTE' ) ),
+      'CENTER':     (  13, TagDefinition( 'CENTER' )     ),
+      'CITE':       (  14, TagDefinition( 'CITE' )       ),
+      'CODE':       (  15, TagDefinition( 'CODE' )       ),
+      'DEL':        (  16, TagDefinition( 'DEL' )        ),
+      'EM':         (  17, TagDefinition( 'EM' )         ),
+      'INS':        (  18, TagDefinition( 'INS' )        ),
+      'KBD':        (  19, TagDefinition( 'KBD' )        ),
+      'PRE':        (  20, TagDefinition( 'PRE' )        ),
+      'Q':          (  21, TagDefinition( 'Q' )          ),
+      'S':          (  22, TagDefinition( 'S' )          ),
+      'SAMP':       (  23, TagDefinition( 'SAMP' )       ),
+      'STRONG':     (  24, TagDefinition( 'STRONG' )     ),
+      'TT':         (  25, TagDefinition( 'TT' )         ),
+      
+      # Other Tags
+      'BIG':        (  30, TagDefinition( 'BIG' )        ),
+      'SMALL':      (  31, TagDefinition( 'SMALL' )      ),
+      
+      # Objects
+      'WBR':        (  40, TagDefinition( 'WBR' )        ),
+      
+      # Header Tags
+      'TITLE':      ( 115, TagDefinition( 'TITLE' )      ),
+      
+      # Structured Tags
+      'DD':         ( 101, TagDefinition( 'DD' )         ),
+      'DL':         ( 102, TagDefinition( 'DL' )         ),
+      'DT':         ( 103, TagDefinition( 'DT' )         ),
+      'NOBR':       ( 105, TagDefinition( 'NOBR' )       ),
+      'NOSCRIPT':   ( 106, TagDefinition( 'NOSCRIPT' )   ),
+      
+      'FIELDSET':   ( 111, TagDefinition( 'FIELDSET' )   ),
+      'HEAD':       ( 112, TagDefinition( 'HEAD' )       ),
+      'HTML':       ( 113, TagDefinition( 'HTML' )       ),
+      'NOFRAMES':   ( 114, TagDefinition( 'NOFRAMES' )   ),
       }
    
    TAG_ID_COUNT = 100
@@ -185,7 +311,10 @@ class HTMLDocument( object ):
       '''Initialize the document.'''
       self._htmlHead = ''
       self._tagDefs  = { }   # map tag id to tag definition
-      self._elements = [ HTMLSegment('') ]
+      
+      firstParagraphTagId = self.defineTag( 'P' )
+      firstParagraph = HTMLSegment('',[firstParagraphTagId])
+      self._elements = [ firstParagraph ]
       
       for tagName in HTMLDocument.SINGULAR_TAGS.keys():
          tagId, tagDef = HTMLDocument.SINGULAR_TAGS[ tagName ]
@@ -221,7 +350,7 @@ class HTMLDocument( object ):
             body += self._segmentHtml( element, activeTags )
       
       for tagId in activeTags:
-         body += self._tag[ tagId ].makeEndTag()
+         body += self._tagDefs[ tagId ].makeEndTag()
       
       if fullDocument:
          return HTMLDocument.HTML_FORMAT.format( head=self._htmlHead, body=body )
@@ -725,100 +854,6 @@ class HTMLDocumentCursor( object ):
 import HTMLParser
 
 class HTMLDocumentParser( HTMLParser.HTMLParser ):
-   TAGS = {
-      # Tag Name:    ( Supported, Block, Nest  )
-      'A':           ( True,      True,  True ),
-      'ADDRESS':     ( True,      True,  True ),
-      'APPLET':      ( False,     True   ),
-      'AREA':        ( False,     True   ),
-      'B':           ( True,      True,  True ),
-      'BASE':        ( False,     False  ),
-      'BASEFONT':    ( False,     False  ),
-      'BGSOUND':     ( False,     False  ),
-      'BIG':         ( True,      True   ),
-      'BLINK':       ( False,     True   ),
-      'BLOCKQUOTE':  ( True,      True   ),
-      'BODY':        ( True,      True   ),
-      'BR':          ( True,      False  ),
-      'BUTTON':      ( False,     False  ),
-      'CAPTION':     ( False,     True   ),
-      'CENTER':      ( True,      True  ),
-      'CITE':        ( True,      True  ),
-      'CODE':        ( True,      True  ),
-      'COL':         ( False,     False ),
-      'COLGROUP':    ( False,     False ),
-      'DD':          ( True,      True , False ),
-      'DEL':         ( False     ),
-      'DFN':         ( True      ),
-      'DIV':         ( True      ),
-      'DL':          ( True      ),
-      'DT':          ( True      ),
-      'EM':          ( True      ),
-      'EMBED':       ( False     ),
-      'FIELDSET':    ( False     ),
-      'FONT':        ( True      ),
-      'FORM':        ( False     ),
-      'FRAME':       ( False     ),
-      'FRAMESET':    ( False     ),
-      'H1':          ( True      ),
-      'H2':          ( True      ),
-      'H3':          ( True      ),
-      'H4':          ( True      ),
-      'H5':          ( True      ),
-      'H6':          ( True      ),
-      'HEAD':        ( True      ),
-      'HR':          ( True      ),
-      'HTML':        ( True      ),
-      'I':           ( True      ),
-      'IFRAME':      ( False     ),
-      'IMG':         ( True      ),
-      'INPUT':       ( False     ),
-      'INS':         ( False     ),
-      'KBD':         ( True      ),
-      'LABEL':       ( False     ),
-      'LAYER':       ( False     ),
-      'LEGEND':      ( False     ),
-      'LI':          ( True      ),
-      'LINK':        ( False     ),
-      'MAP':         ( False     ),
-      'MARQUEE':     ( False     ),
-      'META':        ( True      ),
-      'NOBR':        ( True      ),
-      'NOFRAMES':    ( False     ),
-      'NOSCRIPT':    ( False     ),
-      'OBJECT':      ( False     ),
-      'OL':          ( True      ),
-      'OPTGROUP':    ( False     ),
-      'P':           ( True      ),
-      'PRE':         ( True      ),
-      'Q':           ( False     ),
-      'S':           ( True      ),
-      'SAMP':        ( True      ),
-      'SCRIPT':      ( False     ),
-      'SELECT':      ( False     ),
-      'SMALL':       ( True      ),
-      'SPAN':        ( True      ),
-      'STRIKE':      ( False     ),
-      'STRONG':      ( True      ),
-      'STYLE':       ( False     ),
-      'SUB':         ( True      ),
-      'SUP':         ( True      ),
-      'TABLE':       ( True      ),
-      'TBODY':       ( True      ),
-      'TD':          ( True      ),
-      'TH':          ( True      ),
-      'TEXTAREA':    ( False     ),
-      'TFOOT':       ( True      ),
-      'THEAD':       ( True      ),
-      'TITLE':       ( True      ),
-      'TR':          ( True      ),
-      'TT':          ( True      ),
-      'U':           ( True      ),
-      'UL':          ( True      ),
-      'WBR':         ( False     ),
-      'VAR':         ( True      )
-      }
-   
    def __init__( self, htmlDoc ):
       HTMLParser.HTMLParser.__init__( self )
       
@@ -831,11 +866,21 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
 
    def handle_starttag( self, tag, attrs ):
       print( 'Parsing begin tag:', tag )
-      self._cursor.openNewTag( tag, **dict(attrs) )
+      
+      tag = tag.upper()
+      
+      if tag == 'P':
+         self._startNewParagraph( attrs )
+      
+      elif tag.upper() in [ 'IMG', 'HR' ]:
+         self._cursor.insertObject( HTMLEntity( tag, dict(attrs) ) )
+      
+      else:
+         self._cursor.openNewTag( tag, **dict(attrs) )
    
    def handle_startendtag( self, tag, attrs ):
       print( 'Parsing begin/end tag:', tag )
-      self._cursor.insertObject( HTMLEntity( tag, dict(attrs) ) )
+      self.handle_starttag( tag, attrs )
    
    def handle_endtag( self, tag ):
       print( 'Parsing end tag:', tag )
@@ -866,9 +911,24 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
    def handle_pi( self, pi ):
       pass
    
+   def _startNewParagraph( self, attrs ):
+      # Identify all open paragraph tags
+      activeParagraphTags = [ ]
+      for tagId in self._cursor.activeTags( ):
+         if self._doc.tag( tagId ).name( ) == 'P':
+            activeParagraphTags.append( tagId )
+      
+      # close all open paragraph tags
+      for tagId in activeParagraphTags:
+         self._cursor.closeTag( tagId )
+      
+      # Create and open a new paragraph tag
+      self._cursor.openNewTag( 'P', **dict(attrs) )
+
 
 doc = HTMLDocument( )
 doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
+print( doc.toHTML( ) )
 doc.debug( )
 
 #doc = HTMLDocument( )
