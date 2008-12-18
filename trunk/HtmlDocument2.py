@@ -3,99 +3,107 @@ from __future__ import print_function, unicode_literals
 
 import copy
 
+# Various information about HTML tags needed by
+# the implementation.
+# - Supported,   Does QTextEdit support the tag?
+# - Must Close,  Is a matching closing tag required for each open tag?
+# - Entity,      Does the tag produce a visible entity in the document AND change the
+#                position of subsequent text in a QTextEdit (such as an image, line break or horizontal rule)?
 TAGS = {
-   # Tag Name:    ( Supported, must  )
-   #              (            close )
-   'A':           ( True,      True  ),
-   'ADDRESS':     ( True,      True  ),
-   'APPLET':      ( False,     True  ),
-   'AREA':        ( False,     True  ),
-   'B':           ( True,      True  ),
-   'BASE':        ( False,     False ),
-   'BASEFONT':    ( False,     False ),
-   'BGSOUND':     ( False,     False ),
-   'BIG':         ( True,      True  ),
-   'BLINK':       ( False,     True  ),
-   'BLOCKQUOTE':  ( True,      True  ),
-   'BODY':        ( True,      True  ),
-   'BR':          ( True,      False ),
-   'BUTTON':      ( False,     True  ),
-   'CAPTION':     ( False,     True  ),
-   'CENTER':      ( True,      True  ),
-   'CITE':        ( True,      True  ),
-   'CODE':        ( True,      True  ),
-   'COL':         ( False,     False ),
-   'COLGROUP':    ( False,     False ),
-   'DD':          ( True,      False ),
-   'DEL':         ( False,     True  ),
-   'DFN':         ( True,      True  ),
-   'DIV':         ( True,      True  ),
-   'DL':          ( True,      True  ),
-   'DT':          ( True,      False ),
-   'EM':          ( True,      True  ),
-   'EMBED':       ( False,     False ),
-   'FIELDSET':    ( False,     True  ),
-   'FONT':        ( True,      False ),
-   'FORM':        ( False,     True  ),
-   'FRAME':       ( False,     False ),
-   'FRAMESET':    ( False,     True  ),
-   'H1':          ( True,      True  ),
-   'H2':          ( True,      True  ),
-   'H3':          ( True,      True  ),
-   'H4':          ( True,      True  ),
-   'H5':          ( True,      True  ),
-   'H6':          ( True,      True  ),
-   'HEAD':        ( True,      True  ),
-   'HR':          ( True,      False ),
-   'HTML':        ( True,      True  ),
-   'I':           ( True,      True  ),
-   'IFRAME':      ( False,     True  ),
-   'IMG':         ( True,      False ),
-   'INPUT':       ( False,     False ),
-   'INS':         ( False,     True  ),
-   'KBD':         ( True,      True  ),
-   'LABEL':       ( False,     True  ),
-   'LAYER':       ( False,     True  ),
-   'LEGEND':      ( False,     True  ),
-   'LI':          ( True,      False ),
-   'LINK':        ( False,     False ),
-   'MAP':         ( False,     True  ),
-   'MARQUEE':     ( False,     True  ),
-   'META':        ( True,      False ),
-   'NOBR':        ( True,      True  ),
-   'NOFRAMES':    ( False,     True  ),
-   'NOSCRIPT':    ( False,     True  ),
-   'OBJECT':      ( False,     False ),
-   'OL':          ( True,      True  ),
-   'OPTGROUP':    ( False,     True  ),
-   'P':           ( True,      False ),
-   'PRE':         ( True,      True  ),
-   'Q':           ( False,     True  ),
-   'S':           ( True,      True  ),
-   'SAMP':        ( True,      True  ),
-   'SCRIPT':      ( False,     True  ),
-   'SELECT':      ( False,     True  ),
-   'SMALL':       ( True,      True  ),
-   'SPAN':        ( True,      True  ),
-   'STRIKE':      ( False,     True  ),
-   'STRONG':      ( True,      True  ),
-   'STYLE':       ( False,     True  ),
-   'SUB':         ( True,      True  ),
-   'SUP':         ( True,      True  ),
-   'TABLE':       ( True,      True  ),
-   'TBODY':       ( True,      True  ),
-   'TD':          ( True,      False ),
-   'TH':          ( True,      False ),
-   'TEXTAREA':    ( False,     True  ),
-   'TFOOT':       ( True,      True  ),
-   'THEAD':       ( True,      True  ),
-   'TITLE':       ( True,      True  ),
-   'TR':          ( True,      False ),
-   'TT':          ( True,      True  ),
-   'U':           ( True,      True  ),
-   'UL':          ( True,      True  ),
-   'WBR':         ( False,     False ),
-   'VAR':         ( True,      True  )
+   # Tag Name:    ( Supported, must,  entity )
+   #              (            close         )
+   'A':           ( True,      True,  False  ),
+   'ADDRESS':     ( True,      True,  False  ),
+   'APPLET':      ( False,     True,  False  ),
+   'AREA':        ( False,     True,  False  ),
+   'B':           ( True,      True,  False  ),
+   'BASE':        ( False,     False, False  ),
+   'BASEFONT':    ( False,     False, False  ),
+   'BGSOUND':     ( False,     False, False  ),
+   'BIG':         ( True,      True,  False  ),
+   'BLINK':       ( False,     True,  False  ),
+   'BLOCKQUOTE':  ( True,      True,  False  ),
+   'BODY':        ( True,      True,  False  ),
+   'BR':          ( True,      False, True   ),
+   'BUTTON':      ( False,     True,  True   ),
+   'CAPTION':     ( False,     True,  False  ),
+   'CENTER':      ( True,      True,  False  ),
+   'CITE':        ( True,      True,  False  ),
+   'CODE':        ( True,      True,  False  ),
+   'COL':         ( False,     False, False  ),
+   'COLGROUP':    ( False,     False, False  ),
+   'DD':          ( True,      False, False  ),
+   'DEL':         ( False,     True,  False  ),
+   'DFN':         ( True,      True,  False  ),
+   'DIV':         ( True,      True,  False  ),
+   'DL':          ( True,      True,  False  ),
+   'DT':          ( True,      False, False  ),
+   'EM':          ( True,      True,  False  ),
+   'EMBED':       ( False,     False, False  ),
+   'FIELDSET':    ( False,     True,  False  ),
+   'FONT':        ( True,      False, False  ),
+   'FORM':        ( False,     True,  False  ),
+   'FRAME':       ( False,     False, False  ),
+   'FRAMESET':    ( False,     True,  False  ),
+   'H1':          ( True,      True,  False  ),
+   'H2':          ( True,      True,  False  ),
+   'H3':          ( True,      True,  False  ),
+   'H4':          ( True,      True,  False  ),
+   'H5':          ( True,      True,  False  ),
+   'H6':          ( True,      True,  False  ),
+   'HEAD':        ( True,      True,  False  ),
+   'HR':          ( True,      False, True   ),
+   'HTML':        ( True,      True,  False  ),
+   'I':           ( True,      True,  False  ),
+   'IFRAME':      ( False,     True,  False  ),
+   'IMG':         ( True,      False, True   ),
+   'INPUT':       ( False,     False, True   ),
+   'INS':         ( False,     True,  False  ),
+   'KBD':         ( True,      True,  False  ),
+   'LABEL':       ( False,     True,  False  ),
+   'LAYER':       ( False,     True,  False  ),
+   'LEGEND':      ( False,     True,  False  ),
+   'LI':          ( True,      False, False  ),
+   'LINK':        ( False,     False, False  ),
+   'MAP':         ( False,     True,  False  ),
+   'MARQUEE':     ( False,     True,  False  ),
+   'META':        ( True,      False, False  ),
+   'MULTICOL':    ( False,     True,  False  ),
+   'NOBR':        ( True,      True,  False  ),
+   'NOFRAMES':    ( False,     True,  False  ),
+   'NOSCRIPT':    ( False,     True,  False  ),
+   'OBJECT':      ( False,     False, True   ),
+   'OL':          ( True,      True,  False  ),
+   'OPTGROUP':    ( False,     True,  True   ),
+   'P':           ( True,      False, False  ),
+   'PRE':         ( True,      True,  False  ),
+   'Q':           ( False,     True,  False  ),
+   'S':           ( True,      True,  False  ),
+   'SAMP':        ( True,      True,  False  ),
+   'SCRIPT':      ( False,     True,  False  ),
+   'SELECT':      ( False,     True,  True   ),
+   'SMALL':       ( True,      True,  False  ),
+   'SPACER':      ( False,     False, False  ),
+   'SPAN':        ( True,      True,  False  ),
+   'STRIKE':      ( False,     True,  False  ),
+   'STRONG':      ( True,      True,  False  ),
+   'STYLE':       ( False,     True,  False  ),
+   'SUB':         ( True,      True,  False  ),
+   'SUP':         ( True,      True,  False  ),
+   'TABLE':       ( True,      True,  False  ),
+   'TBODY':       ( True,      True,  False  ),
+   'TD':          ( True,      False, False  ),
+   'TH':          ( True,      False, False  ),
+   'TEXTAREA':    ( False,     True,  True   ),
+   'TFOOT':       ( True,      True,  False  ),
+   'THEAD':       ( True,      True,  False  ),
+   'TITLE':       ( True,      True,  False  ),
+   'TR':          ( True,      False, False  ),
+   'TT':          ( True,      True,  False  ),
+   'U':           ( True,      True,  False  ),
+   'UL':          ( True,      True,  False  ),
+   'WBR':         ( False,     False, True   ),
+   'VAR':         ( True,      True,  False  )
    }
    
 class TagDefinition( object ):
@@ -157,12 +165,13 @@ class HTMLElement( object ):
 
 
 class HTMLEntity( HTMLElement ):
-   def __init__( self, name, options=None, tags=None ):
+   def __init__( self, name, options=None, tags=None, size=1 ):
       HTMLElement.__init__( self, tags )
       self._entityDef = TagDefinition( name, options )
+      self._size      = size
    
    def __len__( self ):
-      return 1
+      return self._size
    
    def entity( self ):
       return self._entityDef
@@ -428,9 +437,6 @@ class HTMLDocument( object ):
    # Tag Operations
    def defineTag( self, name, **options ):
       name = name.upper()
-      
-      if name in HTMLDocument.SINGULAR_TAGS:
-         return HTMLDocument.SINGULAR_TAGS[ name ][ 0 ]
       
       assert isinstance( name,    (str,unicode) )
       assert isinstance( options, dict          )
@@ -790,6 +796,7 @@ class HTMLDocumentCursor( object ):
    
    
 import HTMLParser
+import htmlentitydefs
 
 class HTMLDocumentParser( HTMLParser.HTMLParser ):
    def __init__( self, htmlDoc ):
@@ -802,23 +809,32 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
       HTMLParser.HTMLParser.close( self )
       self._doc._compact( 0 )
 
-   def handle_starttag( self, tag, attrs ):
+   def handle_starttag( self, tag, attrs, terminated=False ):
       print( 'Parsing begin tag:', tag )
       
       tag = tag.upper()
       
+      isSupported, requiresClose, isEntity = TAGS[ tag ]
+      
       if tag == 'P':
          self._startNewParagraph( attrs )
       
-      elif tag.upper() in [ 'IMG', 'HR' ]:
-         self._cursor.insertObject( HTMLEntity( tag, dict(attrs) ) )
+      elif isEntity or not requiresClose:
+         size = 1 if isEntity else 0
+         
+         if isSupported:
+            self._cursor.insertObject( HTMLEntity( tag, dict(attrs), size=size ) )
+         
+         else:
+            # Drop unsupported entities
+            pass
       
       else:
          self._cursor.openNewTag( tag, **dict(attrs) )
    
    def handle_startendtag( self, tag, attrs ):
       print( 'Parsing begin/end tag:', tag )
-      self.handle_starttag( tag, attrs )
+      self.handle_starttag( tag, attrs, terminated=True )
    
    def handle_endtag( self, tag ):
       print( 'Parsing end tag:', tag )
@@ -834,14 +850,14 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
          raise Exception( 'Unmatched end tag \'{0}\'.'.format(tag) )
 
    def handle_data( self, data ):
-      print( 'Parsing data:', data )
+      #print( 'Parsing data:', data )
       self._cursor.insertText( unicode(data) )
    
    def handle_charref( self, name ):
-      pass
+      self.handle_data( unichr(int(name)) )
    
    def handle_entityref( self, name ):
-      pass
+      self.handle_charref( htmlentitydefs.name2codepoint[name] )
    
    def handle_decl( self, decl ):
       pass
@@ -863,11 +879,6 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
       # Create and open a new paragraph tag
       self._cursor.openNewTag( 'P', **dict(attrs) )
 
-
-doc = HTMLDocument( )
-doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
-print( doc.toHTML( ) )
-doc.debug( )
 
 #doc = HTMLDocument( )
 #doc.insertText( None, 'Here\'s some sample text.' )
@@ -895,9 +906,11 @@ doc.debug( )
 
 from PyQt4 import QtCore, QtGui
 
-class HTMLEditor( object ):
-   def __init__( self, parent ):
-      self._editor = QtGui.QTextEdit( parent )
+class HTMLEditor( QtCore.QObject ):
+   def __init__( self ):
+      QtCore.QObject.__init__( self )
+      
+      self._editor = QtGui.QTextEdit( )
       self._document = HTMLDocument( )
       self._editor.installEventFilter( self )
       self._specialSelection = { }
@@ -1065,10 +1078,78 @@ class HTMLEditor( object ):
       if fromPos and toPos and name:
          self.applyTextSelector( fromPos, toPos, moveUserCursor, name )
    # Other Operations
+   def show( self ):
+      self._editor.show( )
+
    def update( self ):
       assert isinstance( self._editor, QtGui.QTextEdit )
       
-      self._editor.setHtml( self._document.toHTML() )
+      self._editor.setHtml( self._document.toHTML(False) )
 
 
 
+
+import sys
+
+doc = HTMLDocument( )
+msg1 = 'Here\'s <b>some<i> sample</B> &#202; &Euml; text</i>.'
+msg2 = 'Here\'s <B>some<i> sample</I></b> <i>text</i>.'
+msg3 = 'Here\'s some<I> sample text</I>.'
+doc.setHtml( msg3 )
+doc.debug( )
+print( doc.toHTML(False) )
+
+app = QtGui.QApplication( sys.argv )
+win = QtGui.QMainWindow( )
+
+edit = QtGui.QTextEdit( )
+edit.setHtml( msg2 )
+edit.show( )
+
+#edit = HTMLEditor( )
+#edit.setDocument( doc )
+#edit.show()
+
+app.exec_( )
+
+
+
+
+
+'''
+Requirements
+   U.  Unicode Editing
+   W.  WYSIWYG Editing
+   H.  Can produce HTML
+   L.  Supports lists
+   T.  Supports Tables
+   I.  Supports Images
+   F.  Supports a complete font (Lucida Sans Unicode)
+
+Possible Solutions
+- html text editor            W
+- restructred text editor     F, U only partially (indirectly using character codes)
+- QTextEdit editor            H only partially (generated HTML is not what's expected, can't customize with style sheet)
+- My Html Editor              Have to develop & debug
+
+
+
+
+If I developed my own version of an HTML editor consider:
+- An editor that has my own internal representation (not HTML, but probably HTML- or XML-like).
+
+There are three kinds of things that we need to support:
+- Styles
+   - Font (family, size, slant, weight, super/sub/normal)
+   - Line (underline, overline, overstrike)
+   - Color
+- Layouts
+   - Paragraph (align, margin, spacing, auto-newline, background (color/image), ... )
+   - List ( bullets, indentation, ... )
+   - Table ( borders, headers, cellsizes )
+- Objects
+   - Image
+   - Line Rule (horizontal rule)
+
+- User-defined tags
+'''
