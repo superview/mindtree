@@ -3,50 +3,42 @@ from __future__ import print_function, unicode_literals
 
 import copy
 
-# Kind of tag
-BLOCK  = 1
-ENTITY = 2
-
-# What to do on new start tag
-NEST       = 1
-CLOSE_OLD  = 2
-
 TAGS = {
-   # Tag Name:    ( Supported, requires, accepts
-   #              (            close,    attribs   )
-   'A':           ( True,      True,     True      ),
-   'ADDRESS':     ( True,      True,     False     ),
+   # Tag Name:    ( Supported, must  )
+   #              (            close )
+   'A':           ( True,      True  ),
+   'ADDRESS':     ( True,      True  ),
    'APPLET':      ( False,     True  ),
    'AREA':        ( False,     True  ),
-   'B':           ( True,      True,     False     ),
+   'B':           ( True,      True  ),
    'BASE':        ( False,     False ),
    'BASEFONT':    ( False,     False ),
    'BGSOUND':     ( False,     False ),
-   'BIG':         ( True,      True,     False     ),
-   'BLINK':       ( False,     True   ),
-   'BLOCKQUOTE':  ( True,      True   ),
-   'BODY':        ( True,      True   ),
-   'BR':          ( True,      False  ),
-   'BUTTON':      ( False,     True   ),
-   'CAPTION':     ( False,     True   ),
-   'CENTER':      ( True,      True   ),
-   'CITE':        ( True,      True   ),
-   'CODE':        ( True,      True   ),
-   'COL':         ( False,     False  ),
-   'COLGROUP':    ( False,     False  ),
-   'DD':          ( True,      False  ),
-   'DEL':         ( False,     True,  ),
-   'DFN':         ( True,      True,  ),
-   'DIV':         ( True,      True,  ),
-   'DL':          ( True,      True,  ),
-   'DT':          ( True,      False  ),
-   'EM':          ( True,      True   ),
-   'EMBED':       ( False,     False  ),
-   'FIELDSET':    ( False,     True   ),
-   'FONT':        ( True,      False  ),
-   'FORM':        ( False,     True   ),
-   'FRAME':       ( False,     False  ),
-   'FRAMESET':    ( False,     True   ),
+   'BIG':         ( True,      True  ),
+   'BLINK':       ( False,     True  ),
+   'BLOCKQUOTE':  ( True,      True  ),
+   'BODY':        ( True,      True  ),
+   'BR':          ( True,      False ),
+   'BUTTON':      ( False,     True  ),
+   'CAPTION':     ( False,     True  ),
+   'CENTER':      ( True,      True  ),
+   'CITE':        ( True,      True  ),
+   'CODE':        ( True,      True  ),
+   'COL':         ( False,     False ),
+   'COLGROUP':    ( False,     False ),
+   'DD':          ( True,      False ),
+   'DEL':         ( False,     True  ),
+   'DFN':         ( True,      True  ),
+   'DIV':         ( True,      True  ),
+   'DL':          ( True,      True  ),
+   'DT':          ( True,      False ),
+   'EM':          ( True,      True  ),
+   'EMBED':       ( False,     False ),
+   'FIELDSET':    ( False,     True  ),
+   'FONT':        ( True,      False ),
+   'FORM':        ( False,     True  ),
+   'FRAME':       ( False,     False ),
+   'FRAMESET':    ( False,     True  ),
    'H1':          ( True,      True  ),
    'H2':          ( True,      True  ),
    'H3':          ( True,      True  ),
@@ -59,51 +51,51 @@ TAGS = {
    'I':           ( True,      True  ),
    'IFRAME':      ( False,     True  ),
    'IMG':         ( True,      False ),
-   'INPUT':       ( False     ),
-   'INS':         ( False     ),
-   'KBD':         ( True      ),
-   'LABEL':       ( False     ),
-   'LAYER':       ( False     ),
-   'LEGEND':      ( False     ),
-   'LI':          ( True      ),
-   'LINK':        ( False     ),
-   'MAP':         ( False     ),
-   'MARQUEE':     ( False     ),
-   'META':        ( True      ),
-   'NOBR':        ( True      ),
-   'NOFRAMES':    ( False     ),
-   'NOSCRIPT':    ( False     ),
-   'OBJECT':      ( False     ),
-   'OL':          ( True      ),
-   'OPTGROUP':    ( False     ),
+   'INPUT':       ( False,     False ),
+   'INS':         ( False,     True  ),
+   'KBD':         ( True,      True  ),
+   'LABEL':       ( False,     True  ),
+   'LAYER':       ( False,     True  ),
+   'LEGEND':      ( False,     True  ),
+   'LI':          ( True,      False ),
+   'LINK':        ( False,     False ),
+   'MAP':         ( False,     True  ),
+   'MARQUEE':     ( False,     True  ),
+   'META':        ( True,      False ),
+   'NOBR':        ( True,      True  ),
+   'NOFRAMES':    ( False,     True  ),
+   'NOSCRIPT':    ( False,     True  ),
+   'OBJECT':      ( False,     False ),
+   'OL':          ( True,      True  ),
+   'OPTGROUP':    ( False,     True  ),
    'P':           ( True,      False ),
    'PRE':         ( True,      True  ),
-   'Q':           ( False     ),
-   'S':           ( True      ),
-   'SAMP':        ( True      ),
-   'SCRIPT':      ( False     ),
-   'SELECT':      ( False     ),
+   'Q':           ( False,     True  ),
+   'S':           ( True,      True  ),
+   'SAMP':        ( True,      True  ),
+   'SCRIPT':      ( False,     True  ),
+   'SELECT':      ( False,     True  ),
    'SMALL':       ( True,      True  ),
    'SPAN':        ( True,      True  ),
    'STRIKE':      ( False,     True  ),
    'STRONG':      ( True,      True  ),
-   'STYLE':       ( False     ),
+   'STYLE':       ( False,     True  ),
    'SUB':         ( True,      True  ),
    'SUP':         ( True,      True  ),
-   'TABLE':       ( True      ),
-   'TBODY':       ( True      ),
-   'TD':          ( True      ),
-   'TH':          ( True      ),
-   'TEXTAREA':    ( False     ),
-   'TFOOT':       ( True      ),
-   'THEAD':       ( True      ),
-   'TITLE':       ( True,      True ),
-   'TR':          ( True      ),
-   'TT':          ( True      ),
+   'TABLE':       ( True,      True  ),
+   'TBODY':       ( True,      True  ),
+   'TD':          ( True,      False ),
+   'TH':          ( True,      False ),
+   'TEXTAREA':    ( False,     True  ),
+   'TFOOT':       ( True,      True  ),
+   'THEAD':       ( True,      True  ),
+   'TITLE':       ( True,      True  ),
+   'TR':          ( True,      False ),
+   'TT':          ( True,      True  ),
    'U':           ( True,      True  ),
-   'UL':          ( True      ),
+   'UL':          ( True,      True  ),
    'WBR':         ( False,     False ),
-   'VAR':         ( True      )
+   'VAR':         ( True,      True  )
    }
    
 class TagDefinition( object ):
@@ -249,56 +241,6 @@ class HTMLDocument( object ):
 </html>
 '''
 
-   SINGULAR_TAGS = {
-      # Basic Styles
-      'B':          (   1, TagDefinition( 'B' )          ),
-      'I':          (   2, TagDefinition( 'I' )          ),
-      'U':          (   3, TagDefinition( 'U' )          ),
-      'STRIKE':     (   4, TagDefinition( 'STRIKE' )     ),
-      'SUB':        (   5, TagDefinition( 'SUB' )        ),
-      'SUP':        (   6, TagDefinition( 'SUP' )        ),
-      'BLINK':      (   7, TagDefinition( 'BLINK' )      ),
-      
-      # Abstract Styles
-      'ADDRESS':    (  11, TagDefinition( 'ADDRESS' )    ),
-      'BLOCKQUOTE': (  12, TagDefinition( 'BLOCKQUOTE' ) ),
-      'CENTER':     (  13, TagDefinition( 'CENTER' )     ),
-      'CITE':       (  14, TagDefinition( 'CITE' )       ),
-      'CODE':       (  15, TagDefinition( 'CODE' )       ),
-      'DEL':        (  16, TagDefinition( 'DEL' )        ),
-      'EM':         (  17, TagDefinition( 'EM' )         ),
-      'INS':        (  18, TagDefinition( 'INS' )        ),
-      'KBD':        (  19, TagDefinition( 'KBD' )        ),
-      'PRE':        (  20, TagDefinition( 'PRE' )        ),
-      'Q':          (  21, TagDefinition( 'Q' )          ),
-      'S':          (  22, TagDefinition( 'S' )          ),
-      'SAMP':       (  23, TagDefinition( 'SAMP' )       ),
-      'STRONG':     (  24, TagDefinition( 'STRONG' )     ),
-      'TT':         (  25, TagDefinition( 'TT' )         ),
-      
-      # Other Tags
-      'BIG':        (  30, TagDefinition( 'BIG' )        ),
-      'SMALL':      (  31, TagDefinition( 'SMALL' )      ),
-      
-      # Objects
-      'WBR':        (  40, TagDefinition( 'WBR' )        ),
-      
-      # Header Tags
-      'TITLE':      ( 115, TagDefinition( 'TITLE' )      ),
-      
-      # Structured Tags
-      'DD':         ( 101, TagDefinition( 'DD' )         ),
-      'DL':         ( 102, TagDefinition( 'DL' )         ),
-      'DT':         ( 103, TagDefinition( 'DT' )         ),
-      'NOBR':       ( 105, TagDefinition( 'NOBR' )       ),
-      'NOSCRIPT':   ( 106, TagDefinition( 'NOSCRIPT' )   ),
-      
-      'FIELDSET':   ( 111, TagDefinition( 'FIELDSET' )   ),
-      'HEAD':       ( 112, TagDefinition( 'HEAD' )       ),
-      'HTML':       ( 113, TagDefinition( 'HTML' )       ),
-      'NOFRAMES':   ( 114, TagDefinition( 'NOFRAMES' )   ),
-      }
-   
    TAG_ID_COUNT = 100
    
    def __init__( self ):
@@ -315,10 +257,6 @@ class HTMLDocument( object ):
       firstParagraphTagId = self.defineTag( 'P' )
       firstParagraph = HTMLSegment('',[firstParagraphTagId])
       self._elements = [ firstParagraph ]
-      
-      for tagName in HTMLDocument.SINGULAR_TAGS.keys():
-         tagId, tagDef = HTMLDocument.SINGULAR_TAGS[ tagName ]
-         self._tagDefs[ tagId ] = tagDef
 
    def setHtml( self, html ):
       '''Parse html in a string and set the content of the document.'''
