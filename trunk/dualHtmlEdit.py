@@ -26,7 +26,10 @@ class DualHtmlEditor( QtGui.QSplitter ):
 
    # Slots
    def onTextChanged( self ):
-      text = self._sourceView.toPlainText( )
+      text = unicode(self._sourceView.toPlainText( ))
+      self._textchanged( text )
+   
+   def _textchanged( self, text ):
       self._htmlView.setHtml( text )
 
    # Widget Construction
@@ -49,6 +52,9 @@ class DualHtmlEditor( QtGui.QSplitter ):
       self._sourceView.setMinimumWidth( 200 )
       QtCore.QObject.connect( self._sourceView, QtCore.SIGNAL('textChanged()'), self.onTextChanged )
       
+      self._sourceView.setFontFamily( 'Fixedsys' )
+      self._sourceView.setFontPointSize( 10 )
+      
       # Html View
       self._htmlView   = QtGui.QTextEdit( self )
       self._htmlView.setEnabled( False )
@@ -58,6 +64,9 @@ class DualHtmlEditor( QtGui.QSplitter ):
       self._htmlView.setSizePolicy( sizePolicy )
       self._htmlView.setMinimumHeight( 100 )
       self._htmlView.setMinimumWidth( 200 )
+      
+      self._htmlView.setFontFamily( 'Lucida Sans Unicode' )
+      self._htmlView.setFontPointSize( 12 )
 
    def _defineActions( self ):
       pass
@@ -69,11 +78,22 @@ class DualHtmlEditor( QtGui.QSplitter ):
       pass
 
 
+from docutils import examples
+
+class RestructuredDualEditor( DualHtmlEditor ):
+   def __init__( self, parent ):
+      DualHtmlEditor.__init__( self, parent )
+
+   def _textchanged( self, text ):
+      html = examples.html_body( text )
+      self._htmlView.setHtml( html )
+
+
 if __name__ == '__main__':
    app = QtGui.QApplication( sys.argv )
    
    win = QtGui.QMainWindow( )
-   edit = DualHtmlEditor( win )
+   edit = RestructuredDualEditor( win )
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
    sizePolicy.setVerticalStretch( 5 )
    sizePolicy.setHorizontalStretch( 1 )

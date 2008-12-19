@@ -895,66 +895,55 @@ class HTMLDocumentParser( HTMLParser.HTMLParser ):
    #tagDef = doc.tag(tagId)
    #print( tagDef.name( ) )
 
-#print( )
-#print( 'Removing bold from 12-15' )
-#doc.removeTag( boldTag, 12, 15 )
-
-#print( )
-#print( doc.toHTML(False) )
-#doc.debug( )
-
-
 from PyQt4 import QtCore, QtGui
 
-class HTMLEditor( QtCore.QObject ):
-   def __init__( self ):
-      QtCore.QObject.__init__( self )
+class HTMLEditor( QtGui.QTextEdit ):
+   def __init__( self, parent=None ):
+      QtGui.QTextEdit.__init__( self, parent )
       
-      self._editor = QtGui.QTextEdit( )
       self._document = HTMLDocument( )
-      self._editor.installEventFilter( self )
       self._specialSelection = { }
 
    def setDocument( self, aDocument ):
       assert isinstance( aDocument, HTMLDocument )
       
       self._document = aDocument
-      self.update( )
+      self._update( )
 
    def document( self ):
       return self._document
 
-   def eventFilter( self, obj, event ):
-      if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
-         keyEvent = event
-         key      = keyEvent.key()
-         text     = keyEvent.text()
-         if len(text) > 0:
-            self.insertText( text )
-         elif key == QtCore.Qt.Key_Tab:
-            self.insertText( '\t' )
-         elif key == QtCore.Qt.Key_Backspace:
-            self.delete( back=True )
-         elif key == QtCore.Qt.Key_Return:
-            self.insertText( '\n' )
-            insertParagraph( )
-         elif key == QtCore.Qt.Key_Enter:
-            self.insertText( '\n' )
-            insertParagraph( )
-         elif key == QtCore.Qt.Key_Delete:
-            self.delete( )
-         else:
-            return False
-      else:
-         return False
+   def setHtml( self, text ):
+      self._document.setHtml( text )
+      self._update( )
 
-   def textCursor( self ):
-      return self._editor.textCursor()
+   def toHtml( self ):
+      return self._document.toHTML( False )
+
+   def keyPressEvent( self, keyEvent ):
+      key      = keyEvent.key()
+      text     = keyEvent.text()
+      if len(text) > 0:
+         self.insertText( text )
+      elif key == QtCore.Qt.Key_Tab:
+         self.insertText( '\t' )
+      elif key == QtCore.Qt.Key_Backspace:
+         self.delete( back=True )
+      elif key == QtCore.Qt.Key_Return:
+         self.insertText( '\n' )
+         insertParagraph( )
+      elif key == QtCore.Qt.Key_Enter:
+         self.insertText( '\n' )
+         insertParagraph( )
+      elif key == QtCore.Qt.Key_Delete:
+         self.delete( )
+      else:
+         QtGui.QTextEdit.keyPressEvent( self, keyEvent )
 
    # Content Operations
    def insertText( self, text, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -970,11 +959,11 @@ class HTMLEditor( QtCore.QObject ):
       
       self._document.insertText( text, first )
       
-      self.update( )
+      self._update( )
 
    def delete( self, cursor, back=False ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -991,12 +980,12 @@ class HTMLEditor( QtCore.QObject ):
       elif back:
          self._document.delete( first - 1, first )
       
-      self.update( )
+      self._update( )
 
    # Tag Operations
    def applyTag( self, tag, options=None, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -1011,11 +1000,11 @@ class HTMLEditor( QtCore.QObject ):
       
       self._document.applyTag( tagId, first, last )
       
-      self.update( )
+      self._update( )
    
    def removeTag( self, tagId, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -1040,7 +1029,7 @@ class HTMLEditor( QtCore.QObject ):
       the underlying HTML document.
       '''
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -1077,38 +1066,26 @@ class HTMLEditor( QtCore.QObject ):
       
       if fromPos and toPos and name:
          self.applyTextSelector( fromPos, toPos, moveUserCursor, name )
-   # Other Operations
-   def show( self ):
-      self._editor.show( )
 
-   def update( self ):
-      assert isinstance( self._editor, QtGui.QTextEdit )
-      
-      self._editor.setHtml( self._document.toHTML(False) )
+   # Other Operations
+   def _update( self ):
+      QtGui.QTextEdit.setHtml( self, self._document.toHTML(False) )
 
 
 
 
 import sys
 
-doc = HTMLDocument( )
 msg1 = 'Here\'s <b>some<i> sample</B> &#202; &Euml; text</i>.'
-msg2 = 'Here\'s <B>some<i> sample</I></b> <i>text</i>.'
+msg2 = 'Here\'s <B>some<i> sample</b> text</i>.'
 msg3 = 'Here\'s some<I> sample text</I>.'
-doc.setHtml( msg3 )
-doc.debug( )
-print( doc.toHTML(False) )
 
 app = QtGui.QApplication( sys.argv )
 win = QtGui.QMainWindow( )
 
-edit = QtGui.QTextEdit( )
+edit = HTMLEditor( )
 edit.setHtml( msg2 )
 edit.show( )
-
-#edit = HTMLEditor( )
-#edit.setDocument( doc )
-#edit.show()
 
 app.exec_( )
 
