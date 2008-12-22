@@ -17,6 +17,7 @@ class DualHtmlEditor( QtGui.QSplitter ):
       self.setChildrenCollapsible(False)
       
       self._buildGui( )
+      self.onTextChanged( )
    
    def setText( self, text ):
       self._sourceView.setText( text )
@@ -27,10 +28,11 @@ class DualHtmlEditor( QtGui.QSplitter ):
    # Slots
    def onTextChanged( self ):
       text = unicode(self._sourceView.toPlainText( ))
-      self._textchanged( text )
+      html = self._getHTML( text )
+      self._htmlView.setHtml( html )
    
-   def _textchanged( self, text ):
-      self._htmlView.setHtml( text )
+   def _getHTML( self, text ):
+      return text
 
    # Widget Construction
    def _buildGui( self ):
@@ -53,10 +55,11 @@ class DualHtmlEditor( QtGui.QSplitter ):
       QtCore.QObject.connect( self._sourceView, QtCore.SIGNAL('textChanged()'), self.onTextChanged )
       
       self._sourceView.setFontFamily( 'Fixedsys' )
-      self._sourceView.setFontPointSize( 10 )
+      self._sourceView.setFontPointSize( 14 )
       
       # Html View
-      self._htmlView   = QtGui.QTextEdit( self )
+      self._htmlView   = QtWebKit.QWebView( self )
+      #self._htmlView   = QtGui.QTextEdit( self )
       self._htmlView.setEnabled( False )
       sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
       sizePolicy.setVerticalStretch( 1 )
@@ -65,8 +68,8 @@ class DualHtmlEditor( QtGui.QSplitter ):
       self._htmlView.setMinimumHeight( 100 )
       self._htmlView.setMinimumWidth( 200 )
       
-      self._htmlView.setFontFamily( 'Lucida Sans Unicode' )
-      self._htmlView.setFontPointSize( 12 )
+      #self._htmlView.setFontFamily( 'Lucida Sans Unicode' )
+      #self._htmlView.setFontPointSize( 12 )
 
    def _defineActions( self ):
       pass
@@ -84,9 +87,8 @@ class RestructuredDualEditor( DualHtmlEditor ):
    def __init__( self, parent ):
       DualHtmlEditor.__init__( self, parent )
 
-   def _textchanged( self, text ):
-      html = examples.html_body( text )
-      self._htmlView.setHtml( html )
+   def _getHTML( self, text ):
+      return examples.html_body( text )
 
 
 if __name__ == '__main__':
