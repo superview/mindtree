@@ -1133,13 +1133,14 @@ There are three kinds of things that we need to support:
 
 
 Structure
+   Page
+      Columns
    Paragraph
       Margins   (Left,Right,Top,Bottom)
       Indents
       Tabstops
       Linespace
       Alignment (Left,Right,Center,Full)
-   Multi-Column
    List
    Table
 
@@ -1166,5 +1167,4 @@ Content
    Rule
 
 Bookmark
-
 '''
