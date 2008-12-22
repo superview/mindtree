@@ -7,7 +7,6 @@
    * DONE: Links
    * Distribution
       * DONE: distutils script - write an initial script for distutils
-      * py2exe - Get an independent build/executable working.
 
 *2.0* (Final) Estimated Feb 2009
 
@@ -28,11 +27,13 @@
    * Plugins
       * Content Editing
          * WYSIWYG Editor:
-            * Lists
-            * Tables
+            * DONE: Lists
+            * DONE: Tables
+            * Margin
+            * Tabs
             * Print Preview
-         * HTML Editor (dual view)
-         * Restructured Text Editor (dual view)
+         * DONE not integrated: HTML Editor (dual view)
+         * DONE not integrated: Restructured Text Editor (dual view)
 
 *2.3* (Tentative) -- Focus on Preferences
    * Application Framework
@@ -53,3 +54,5 @@
       * Cut & Paste across views
       * Drag & Drop across views
       * Changes reflected across views
+   * Distribution
+      * Investigate easier means of distribution: installers, py2exe, etc.
