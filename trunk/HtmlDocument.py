@@ -3,6 +3,109 @@ from __future__ import print_function, unicode_literals
 
 import copy
 
+# Various information about HTML tags needed by
+# the implementation.
+# - Supported,   Does QTextEdit support the tag?
+# - Must Close,  Is a matching closing tag required for each open tag?
+# - Entity,      Does the tag produce a visible entity in the document AND change the
+#                position of subsequent text in a QTextEdit (such as an image, line break or horizontal rule)?
+TAGS = {
+   # Tag Name:    ( Supported, must,  entity )
+   #              (            close         )
+   'A':           ( True,      True,  False  ),
+   'ADDRESS':     ( True,      True,  False  ),
+   'APPLET':      ( False,     True,  False  ),
+   'AREA':        ( False,     True,  False  ),
+   'B':           ( True,      True,  False  ),
+   'BASE':        ( False,     False, False  ),
+   'BASEFONT':    ( False,     False, False  ),
+   'BGSOUND':     ( False,     False, False  ),
+   'BIG':         ( True,      True,  False  ),
+   'BLINK':       ( False,     True,  False  ),
+   'BLOCKQUOTE':  ( True,      True,  False  ),
+   'BODY':        ( True,      True,  False  ),
+   'BR':          ( True,      False, True   ),
+   'BUTTON':      ( False,     True,  True   ),
+   'CAPTION':     ( False,     True,  False  ),
+   'CENTER':      ( True,      True,  False  ),
+   'CITE':        ( True,      True,  False  ),
+   'CODE':        ( True,      True,  False  ),
+   'COL':         ( False,     False, False  ),
+   'COLGROUP':    ( False,     False, False  ),
+   'DD':          ( True,      False, False  ),
+   'DEL':         ( False,     True,  False  ),
+   'DFN':         ( True,      True,  False  ),
+   'DIV':         ( True,      True,  False  ),
+   'DL':          ( True,      True,  False  ),
+   'DT':          ( True,      False, False  ),
+   'EM':          ( True,      True,  False  ),
+   'EMBED':       ( False,     False, False  ),
+   'FIELDSET':    ( False,     True,  False  ),
+   'FONT':        ( True,      False, False  ),
+   'FORM':        ( False,     True,  False  ),
+   'FRAME':       ( False,     False, False  ),
+   'FRAMESET':    ( False,     True,  False  ),
+   'H1':          ( True,      True,  False  ),
+   'H2':          ( True,      True,  False  ),
+   'H3':          ( True,      True,  False  ),
+   'H4':          ( True,      True,  False  ),
+   'H5':          ( True,      True,  False  ),
+   'H6':          ( True,      True,  False  ),
+   'HEAD':        ( True,      True,  False  ),
+   'HR':          ( True,      False, True   ),
+   'HTML':        ( True,      True,  False  ),
+   'I':           ( True,      True,  False  ),
+   'IFRAME':      ( False,     True,  False  ),
+   'IMG':         ( True,      False, True   ),
+   'INPUT':       ( False,     False, True   ),
+   'INS':         ( False,     True,  False  ),
+   'KBD':         ( True,      True,  False  ),
+   'LABEL':       ( False,     True,  False  ),
+   'LAYER':       ( False,     True,  False  ),
+   'LEGEND':      ( False,     True,  False  ),
+   'LI':          ( True,      False, False  ),
+   'LINK':        ( False,     False, False  ),
+   'MAP':         ( False,     True,  False  ),
+   'MARQUEE':     ( False,     True,  False  ),
+   'META':        ( True,      False, False  ),
+   'MULTICOL':    ( False,     True,  False  ),
+   'NOBR':        ( True,      True,  False  ),
+   'NOFRAMES':    ( False,     True,  False  ),
+   'NOSCRIPT':    ( False,     True,  False  ),
+   'OBJECT':      ( False,     False, True   ),
+   'OL':          ( True,      True,  False  ),
+   'OPTGROUP':    ( False,     True,  True   ),
+   'P':           ( True,      False, False  ),
+   'PRE':         ( True,      True,  False  ),
+   'Q':           ( False,     True,  False  ),
+   'S':           ( True,      True,  False  ),
+   'SAMP':        ( True,      True,  False  ),
+   'SCRIPT':      ( False,     True,  False  ),
+   'SELECT':      ( False,     True,  True   ),
+   'SMALL':       ( True,      True,  False  ),
+   'SPACER':      ( False,     False, False  ),
+   'SPAN':        ( True,      True,  False  ),
+   'STRIKE':      ( False,     True,  False  ),
+   'STRONG':      ( True,      True,  False  ),
+   'STYLE':       ( False,     True,  False  ),
+   'SUB':         ( True,      True,  False  ),
+   'SUP':         ( True,      True,  False  ),
+   'TABLE':       ( True,      True,  False  ),
+   'TBODY':       ( True,      True,  False  ),
+   'TD':          ( True,      False, False  ),
+   'TH':          ( True,      False, False  ),
+   'TEXTAREA':    ( False,     True,  True   ),
+   'TFOOT':       ( True,      True,  False  ),
+   'THEAD':       ( True,      True,  False  ),
+   'TITLE':       ( True,      True,  False  ),
+   'TR':          ( True,      False, False  ),
+   'TT':          ( True,      True,  False  ),
+   'U':           ( True,      True,  False  ),
+   'UL':          ( True,      True,  False  ),
+   'WBR':         ( False,     False, True   ),
+   'VAR':         ( True,      True,  False  )
+   }
+   
 class TagDefinition( object ):
    def __init__( self, name, **options ):
       assert isinstance( name,    (str,unicode) )
@@ -46,11 +149,11 @@ class HTMLElement( object ):
    def __len__( self ):
       return 0
 
-   def addTag( self, tag ):
-      self._tags.add( tag )
+   def addTag( self, tagId ):
+      self._tags.add( tagId )
 
-   def removeTag( self, tag ):
-      self._tags.discard( tag )
+   def removeTag( self, tagId ):
+      self._tags.discard( tagId )
 
    def setTags( self, tags=None ):
       if tags is None:
@@ -62,12 +165,13 @@ class HTMLElement( object ):
 
 
 class HTMLEntity( HTMLElement ):
-   def __init__( self, name, options=None, tags=None ):
+   def __init__( self, name, options=None, tags=None, size=1 ):
       HTMLElement.__init__( self, tags )
       self._entityDef = TagDefinition( name, options )
+      self._size      = size
    
    def __len__( self ):
-      return 1
+      return self._size
    
    def entity( self ):
       return self._entityDef
@@ -132,6 +236,7 @@ class HTMLSegment( HTMLElement ):
       return self, HTMLSegment( newNodeText, newNodeTags )
 
 class HTMLDocument( object ):
+   END = None
    HTML_FORMAT = '''
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
@@ -145,33 +250,6 @@ class HTMLDocument( object ):
 </html>
 '''
 
-   SINGULAR_TAGS = {
-      # Basic Styles
-      'B':          (  1, TagDefinition( 'B' )          ),
-      'I':          (  2, TagDefinition( 'I' )          ),
-      'U':          (  3, TagDefinition( 'U' )          ),
-      'STRIKE':     (  4, TagDefinition( 'STRIKE' )     ),
-      'SUB':        (  5, TagDefinition( 'SUB' )        ),
-      'SUP':        (  6, TagDefinition( 'SUP' )        ),
-      'BLINK':      (  7, TagDefinition( 'BLINK' )      ),
-      
-      # Abstract Styles
-      'ADDRESS':    ( 11, TagDefinition( 'ADDRESS' )    ),
-      'BLOCKQUOTE': ( 12, TagDefinition( 'BLOCKQUOTE' ) ),
-      'CENTER':     ( 13, TagDefinition( 'CENTER' )     ),
-      'CITE':       ( 14, TagDefinition( 'CITE' )       ),
-      'CODE':       ( 15, TagDefinition( 'CODE' )       ),
-      'DEL':        ( 16, TagDefinition( 'DEL' )        ),
-      'EM':         ( 17, TagDefinition( 'EM' )         ),
-      'INS':        ( 18, TagDefinition( 'INS' )        ),
-      'KBD':        ( 19, TagDefinition( 'KBD' )        ),
-      'PRE':        ( 20, TagDefinition( 'PRE' )        ),
-      'Q':          ( 21, TagDefinition( 'Q' )          ),
-      'S':          ( 22, TagDefinition( 'S' )          ),
-      'SAMP':       ( 23, TagDefinition( 'SAMP' )       ),
-      'STRONG':     ( 24, TagDefinition( 'STRONG' )     )
-      }
-   
    TAG_ID_COUNT = 100
    
    def __init__( self ):
@@ -184,11 +262,10 @@ class HTMLDocument( object ):
       '''Initialize the document.'''
       self._htmlHead = ''
       self._tagDefs  = { }   # map tag id to tag definition
-      self._elements = [ HTMLSegment('') ]
       
-      for tagName in HTMLDocument.SINGULAR_TAGS.keys():
-         tagId, tagDef = HTMLDocument.SINGULAR_TAGS[ tagName ]
-         self._tagDefs[ tagId ] = tagDef
+      firstParagraphTagId = self.defineTag( 'P' )
+      firstParagraph = HTMLSegment('',[firstParagraphTagId])
+      self._elements = [ firstParagraph ]
 
    def setHtml( self, html ):
       '''Parse html in a string and set the content of the document.'''
@@ -220,7 +297,7 @@ class HTMLDocument( object ):
             body += self._segmentHtml( element, activeTags )
       
       for tagId in activeTags:
-         body += self._tag[ tagId ].makeEndTag()
+         body += self._tagDefs[ tagId ].makeEndTag()
       
       if fullDocument:
          return HTMLDocument.HTML_FORMAT.format( head=self._htmlHead, body=body )
@@ -297,7 +374,7 @@ class HTMLDocument( object ):
       else:
          self._elements[elementNum].insertText( text, offset )
    
-   def insertObject( self, pos, obj ):
+   def insertObject( self, pos, obj, setTagsFromContext=True ):
       '''Insert an HTMLElement at the position indicated by pos.  If pos
       is None, the element is appended to the document.
       '''
@@ -313,16 +390,18 @@ class HTMLDocument( object ):
          else:
             previousElement = self._elements[ elementNum - 1 ]
          
-         obj.setTags( copy.copy(previousElement.tags()) )
+         if setTagsFromContext:
+            obj.setTags( copy.copy(previousElement.tags()) )
+         
          if elementNum is None:
             self._elements.append( obj )
          else:
             self._elements.insert( elementNum, obj )
       
       else:
-         element = self._elements[ elementNum ]
-         
-         obj.setTags( copy.copy(element.tags()) )
+         if setTagsFromContext:
+            element = self._elements[ elementNum ]
+            obj.setTags( copy.copy(element.tags()) )
          
          self._splitElement( elementNum, offset )
          
@@ -332,16 +411,16 @@ class HTMLDocument( object ):
       # Compact the elements
       if elementNum is None:
          startCompact = len(self._elements) - 2
+         stopCompact  = None
       else:
          startCompact = elementNum - 1
+         stopCompact  = elementNum + 1
+         
+         if stopCompact >= len(self._elements):
+            stopCompact = None
       
       if startCompact < 0:
          startCompact = 0
-      
-      stopCompact = elementNum + 1
-      
-      if stopCompact >= len(self._elements):
-         stopCompact = None
       
       self._compact( startCompact, stopCompact )
 
@@ -358,9 +437,6 @@ class HTMLDocument( object ):
    # Tag Operations
    def defineTag( self, name, **options ):
       name = name.upper()
-      
-      if name in HTMLDocument.SINGULAR_TAGS:
-         return HTMLDocument.SINGULAR_TAGS[ name ][ 0 ]
       
       assert isinstance( name,    (str,unicode) )
       assert isinstance( options, dict          )
@@ -412,12 +488,21 @@ class HTMLDocument( object ):
       '''For the position indicated by pos, this method returns a list of
       tuples of the form (tagId,tagDef).  Which lists all the tags active
       at pos.
+      
+      If ordered is True, the list is returned such that tags at the beginning
+      of the list are openned closer to pos than those later in the list.
       '''
       elementNum,offset = self._elementAndOffset( pos )
-      result = copy.copy(self._elements[elementNum].tags( ))
+      
+      if elementNum is None:
+         result = list(self._elements[-1].tags())
+      else:
+         result = list(self._elements[elementNum].tags( ))
       
       if ordered:
          orderedResult = [ ]
+         if len(self._elements) == 1:
+            return result
          for eleNum in range( elementNum, -1, -1 ):
             ele = self._elements[eleNum]
             for tagId in ele.tags():
@@ -524,7 +609,6 @@ class HTMLDocument( object ):
       
       return False
 
-
    def _slice( self, pos1, pos2=None ):
       '''Return two element nums such that pos1 is the first position in
       the first element and pos2 is the first position after the second element.
@@ -561,8 +645,8 @@ class HTMLDocument( object ):
       if first >= last:
          return
       
-      if first < 1:
-         first = 1
+      if first < 0:
+         first = 0
       
       for idx in range( last, first-1, -1 ):
          self._joinIfPossible( idx )
@@ -589,7 +673,7 @@ class HTMLDocument( object ):
 class HTMLDocumentCursor( object ):
    def __init__( self, document, pos ):
       assert isinstance( document, HTMLDocument )
-      assert isinstance( pos,      int          )
+      assert isinstance( pos,      int          ) or ( pos is None )
       
       self._doc           = document
       
@@ -632,8 +716,8 @@ class HTMLDocumentCursor( object ):
       '''
       tagId = self._doc.defineTag( tagName, **options )
       
-      if tagId not in self.activeTags:
-         self._activeTags.append( tagId )
+      if tagId not in self._activeTags:
+         self._activeTags.insert( 0, tagId )
       
       return tagId
    
@@ -649,22 +733,61 @@ class HTMLDocumentCursor( object ):
       the active tags.  If there is a selection (anchor != pos), the
       selected text is first deleted.
       '''
-      obj = HTMLSegment( text, copy.copy(self.activeTags) )
-      self.insertObject( obj )
+      obj = HTMLSegment( text, self._activeTags )
+      self.insertObject( obj, setTagsFromContext=False )
    
-   def insertObject( self, obj ):
+   def insertParagraph( self, closePreviousTags=True ):
+      if closePreviousTags:
+         self.closeAllTags( )
+      
+      obj = HTMLEntity( 'P' )
+      self.insertObject( obj, setTagsFromContext=False )
+
+   def insertObject( self, obj, setTagsFromContext=True ):
       if self._anchor != self._pos:
          self.delete( )
       
-      self._doc.insertObject( self._pos, obj )
-      self._pos += len(obj)
+      self._doc.insertObject( self._pos, obj, setTagsFromContext )
+      
+      if isinstance( self._pos, int ):
+         self._pos += len(obj)
    
    def backspace( self ):
-      pass
+      if self._anchor != self._pos:
+         self._deleteSection( )
+      elif self._pos is None:
+         lastPos = len(self._doc) - 1
+         self._doc.delete( lastPos )
+      elif self._pos == 0:
+         return
+      else:
+         self._pos -= 1
+         self._doc.delete( self._pos )
+         self._anchor = self._pos
    
    def delete( self ):
-      pass
-   
+      if self._anchor != self._pos:
+         self._deleteSection( )
+      elif self._pos is None:
+         return
+      else:
+         self._doc.delete( self._pos )
+
+   def _deleteSection( self ):
+      if self._anchor is None:
+         fromPos = self._pos
+         toPos   = None
+      elif self._pos is None:
+         fromPos = self._anchor
+         toPos   = None
+      else:
+         fromPos = min( self._anchor, self._pos )
+         toPos   = max( self._anchor, self._pos )
+      
+      self._doc.delete( fromPos, toPos )
+      
+      self.moveTo( fromPos )
+
    def activeTags( self ):
       '''Return the active tags ordered by locality of activation.
       (i.e. tags openned closest to the cursor are listed first)
@@ -673,247 +796,154 @@ class HTMLDocumentCursor( object ):
    
    
 import HTMLParser
+import htmlentitydefs
 
 class HTMLDocumentParser( HTMLParser.HTMLParser ):
-   TAGS = {
-      # Tag Name:    ( Supported, Block, Nest  )
-      'A':           ( True,      True,  True ),
-      'ADDRESS':     ( True,      True,  True ),
-      'APPLET':      ( False,     True   ),
-      'AREA':        ( False,     True   ),
-      'B':           ( True,      True,  True ),
-      'BASE':        ( False,     False  ),
-      'BASEFONT':    ( False,     False  ),
-      'BGSOUND':     ( False,     False  ),
-      'BIG':         ( True,      True   ),
-      'BLINK':       ( False,     True   ),
-      'BLOCKQUOTE':  ( True,      True   ),
-      'BODY':        ( True,      True   ),
-      'BR':          ( True,      False  ),
-      'BUTTON':      ( False,     False  ),
-      'CAPTION':     ( False,     True   ),
-      'CENTER':      ( True,      True  ),
-      'CITE':        ( True,      True  ),
-      'CODE':        ( True,      True  ),
-      'COL':         ( False,     False ),
-      'COLGROUP':    ( False,     False ),
-      'DD':          ( True,      True , False ),
-      'DEL':         ( False     ),
-      'DFN':         ( True      ),
-      'DIV':         ( True      ),
-      'DL':          ( True      ),
-      'DT':          ( True      ),
-      'EM':          ( True      ),
-      'EMBED':       ( False     ),
-      'FIELDSET':    ( False     ),
-      'FONT':        ( True      ),
-      'FORM':        ( False     ),
-      'FRAME':       ( False     ),
-      'FRAMESET':    ( False     ),
-      'H1':          ( True      ),
-      'H2':          ( True      ),
-      'H3':          ( True      ),
-      'H4':          ( True      ),
-      'H5':          ( True      ),
-      'H6':          ( True      ),
-      'HEAD':        ( True      ),
-      'HR':          ( True      ),
-      'HTML':        ( True      ),
-      'I':           ( True      ),
-      'IFRAME':      ( False     ),
-      'IMG':         ( True      ),
-      'INPUT':       ( False     ),
-      'INS':         ( False     ),
-      'KBD':         ( True      ),
-      'LABEL':       ( False     ),
-      'LAYER':       ( False     ),
-      'LEGEND':      ( False     ),
-      'LI':          ( True      ),
-      'LINK':        ( False     ),
-      'MAP':         ( False     ),
-      'MARQUEE':     ( False     ),
-      'META':        ( True      ),
-      'NOBR':        ( True      ),
-      'NOFRAMES':    ( False     ),
-      'NOSCRIPT':    ( False     ),
-      'OBJECT':      ( False     ),
-      'OL':          ( True      ),
-      'OPTGROUP':    ( False     ),
-      'P':           ( True      ),
-      'PRE':         ( True      ),
-      'Q':           ( False     ),
-      'S':           ( True      ),
-      'SAMP':        ( True      ),
-      'SCRIPT':      ( False     ),
-      'SELECT':      ( False     ),
-      'SMALL':       ( True      ),
-      'SPAN':        ( True      ),
-      'STRIKE':      ( False     ),
-      'STRONG':      ( True      ),
-      'STYLE':       ( False     ),
-      'SUB':         ( True      ),
-      'SUP':         ( True      ),
-      'TABLE':       ( True      ),
-      'TBODY':       ( True      ),
-      'TD':          ( True      ),
-      'TH':          ( True      ),
-      'TEXTAREA':    ( False     ),
-      'TFOOT':       ( True      ),
-      'THEAD':       ( True      ),
-      'TITLE':       ( True      ),
-      'TR':          ( True      ),
-      'TT':          ( True      ),
-      'U':           ( True      ),
-      'UL':          ( True      ),
-      'WBR':         ( False     ),
-      'VAR':         ( True      )
-      }
-   
    def __init__( self, htmlDoc ):
       HTMLParser.HTMLParser.__init__( self )
       
       self._doc            = htmlDoc
-      
-      self._activeTags     = [ ]
-      self._textBufer      = ''
-      
-      self._doc._elements  = [ ]
-      self._elements       = self._doc._elements
+      self._cursor         = HTMLDocumentCursor( htmlDoc, None )
 
    def close( self ):
       HTMLParser.HTMLParser.close( self )
-      self.flushTextBuffer( )
-      
-      if len(self._activeTags) > 0:
-         print( 'Not all tags closed.' )
-   
-   def handle_starttag( self, tag, attrs ):
+      self._doc._compact( 0 )
+
+   def handle_starttag( self, tag, attrs, terminated=False ):
       print( 'Parsing begin tag:', tag )
       
-      self.flushTextBuffer( )
-      tagId = self._doc.defineTag( tag, **dict(attrs) )
-      self._activeTags.append( tagId )
+      tag = tag.upper()
+      
+      isSupported, requiresClose, isEntity = TAGS[ tag ]
+      
+      if tag == 'P':
+         self._startNewParagraph( attrs )
+      
+      elif isEntity or not requiresClose:
+         size = 1 if isEntity else 0
+         
+         if isSupported:
+            self._cursor.insertObject( HTMLEntity( tag, dict(attrs), size=size ) )
+         
+         else:
+            # Drop unsupported entities
+            pass
+      
+      else:
+         self._cursor.openNewTag( tag, **dict(attrs) )
    
    def handle_startendtag( self, tag, attrs ):
       print( 'Parsing begin/end tag:', tag )
-      
-      self.flushTextBuffer( )
-      
-      self._elements.append( HTMLEntity( tag, dict(attrs), self._activeTags ) )
+      self.handle_starttag( tag, attrs, terminated=True )
    
    def handle_endtag( self, tag ):
       print( 'Parsing end tag:', tag )
       
-      self.flushTextBuffer( )
-      
-      for idx in range( len(self._activeTags)-1, -1, -1 ):
-         tagId = self._activeTags[ idx ]
+      activeTags = self._cursor.activeTags()
+      for idx in range( len(activeTags)-1, -1, -1 ):
+         tagId = activeTags[ idx ]
          tagDef = self._doc.tag( tagId )
          if tagDef.name() == tag.upper():
-            del self._activeTags[ idx ]
+            self._cursor.closeTag( tagId )
             break
       else:
          raise Exception( 'Unmatched end tag \'{0}\'.'.format(tag) )
 
    def handle_data( self, data ):
-      print( 'Parsing data:', data )
-      self._textBufer += unicode(data)
+      #print( 'Parsing data:', data )
+      self._cursor.insertText( unicode(data) )
    
    def handle_charref( self, name ):
-      pass
+      self.handle_data( unichr(int(name)) )
    
    def handle_entityref( self, name ):
-      pass
+      self.handle_charref( htmlentitydefs.name2codepoint[name] )
    
-   def flushTextBuffer( self ):
-      print( 'Flushing:', self._textBufer )
-      
-      if self._textBufer != '':
-         self._elements.append( HTMLSegment( self._textBufer, self._activeTags ) )
-         self._textBufer = ''
-
    def handle_decl( self, decl ):
       pass
    
    def handle_pi( self, pi ):
       pass
    
+   def _startNewParagraph( self, attrs ):
+      # Identify all open paragraph tags
+      activeParagraphTags = [ ]
+      for tagId in self._cursor.activeTags( ):
+         if self._doc.tag( tagId ).name( ) == 'P':
+            activeParagraphTags.append( tagId )
+      
+      # close all open paragraph tags
+      for tagId in activeParagraphTags:
+         self._cursor.closeTag( tagId )
+      
+      # Create and open a new paragraph tag
+      self._cursor.openNewTag( 'P', **dict(attrs) )
+
 
 #doc = HTMLDocument( )
-#doc.setHtml( 'Here\'s <b>some<i> sample</B> text</i>.' )
+#doc.insertText( None, 'Here\'s some sample text.' )
+#boldTag   = doc.addTag(  7, 15, 'B' )
+#italicTag = doc.addTag( 12, 20, 'I' )
+
+#print( doc.toHTML(False) )
 #doc.debug( )
 
-doc = HTMLDocument( )
-doc.insertText( None, 'Here\'s some sample text.' )
-boldTag   = doc.addTag(  7, 15, 'B' )
-italicTag = doc.addTag( 12, 20, 'I' )
-
-print( doc.toHTML(False) )
-doc.debug( )
-
-print( )
-print( 'Examining tags at 14' )
-tagList = doc.tagsAt( 14, ordered=True )
-for tagId in tagList:
-   tagDef = doc.tag(tagId)
-   print( tagDef.name( ) )
-
-print( )
-print( 'Removing bold from 12-15' )
-doc.removeTag( boldTag, 12, 15 )
-
-print( )
-print( doc.toHTML(False) )
-doc.debug( )
-
+#print( )
+#print( 'Examining tags at 14' )
+#tagList = doc.tagsAt( 14, ordered=True )
+#for tagId in tagList:
+   #tagDef = doc.tag(tagId)
+   #print( tagDef.name( ) )
 
 from PyQt4 import QtCore, QtGui
 
-class HTMLEditor( object ):
-   def __init__( self, parent ):
-      self._editor = QtGui.QTextEdit( parent )
+class HTMLEditor( QtGui.QTextEdit ):
+   def __init__( self, parent=None ):
+      QtGui.QTextEdit.__init__( self, parent )
+      
       self._document = HTMLDocument( )
-      self._editor.installEventFilter( self )
       self._specialSelection = { }
 
    def setDocument( self, aDocument ):
       assert isinstance( aDocument, HTMLDocument )
       
       self._document = aDocument
-      self.update( )
+      self._update( )
 
    def document( self ):
       return self._document
 
-   def eventFilter( self, obj, event ):
-      if isinstance(obj,QtGui.QLineEdit) and (event.type() == QtCore.QEvent.KeyPress):
-         keyEvent = event
-         key      = keyEvent.key()
-         text     = keyEvent.text()
-         if len(text) > 0:
-            self.insertText( text )
-         elif key == QtCore.Qt.Key_Tab:
-            self.insertText( '\t' )
-         elif key == QtCore.Qt.Key_Backspace:
-            self.delete( back=True )
-         elif key == QtCore.Qt.Key_Return:
-            self.insertText( '\n' )
-         elif key == QtCore.Qt.Key_Enter:
-            self.insertText( '\n' )
-         elif key == QtCore.Qt.Key_Delete:
-            self.delete( )
-         else:
-            return False
-      else:
-         return False
+   def setHtml( self, text ):
+      self._document.setHtml( text )
+      self._update( )
 
-   def textCursor( self ):
-      return self._editor.textCursor()
+   def toHtml( self ):
+      return self._document.toHTML( False )
+
+   def keyPressEvent( self, keyEvent ):
+      key      = keyEvent.key()
+      text     = keyEvent.text()
+      if len(text) > 0:
+         self.insertText( text )
+      elif key == QtCore.Qt.Key_Tab:
+         self.insertText( '\t' )
+      elif key == QtCore.Qt.Key_Backspace:
+         self.delete( back=True )
+      elif key == QtCore.Qt.Key_Return:
+         self.insertText( '\n' )
+         insertParagraph( )
+      elif key == QtCore.Qt.Key_Enter:
+         self.insertText( '\n' )
+         insertParagraph( )
+      elif key == QtCore.Qt.Key_Delete:
+         self.delete( )
+      else:
+         QtGui.QTextEdit.keyPressEvent( self, keyEvent )
 
    # Content Operations
    def insertText( self, text, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -929,11 +959,11 @@ class HTMLEditor( object ):
       
       self._document.insertText( text, first )
       
-      self.update( )
+      self._update( )
 
    def delete( self, cursor, back=False ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -950,12 +980,12 @@ class HTMLEditor( object ):
       elif back:
          self._document.delete( first - 1, first )
       
-      self.update( )
+      self._update( )
 
    # Tag Operations
    def applyTag( self, tag, options=None, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -970,11 +1000,11 @@ class HTMLEditor( object ):
       
       self._document.applyTag( tagId, first, last )
       
-      self.update( )
+      self._update( )
    
    def removeTag( self, tagId, cursor=None ):
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -999,7 +1029,7 @@ class HTMLEditor( object ):
       the underlying HTML document.
       '''
       if cursor is None:
-         cursor = self._editor.textCursor()
+         cursor = self.textCursor()
       
       assert isinstance( text,   (str,unicode)     )
       assert isinstance( cursor, QtGui.QTextCursor )
@@ -1036,11 +1066,105 @@ class HTMLEditor( object ):
       
       if fromPos and toPos and name:
          self.applyTextSelector( fromPos, toPos, moveUserCursor, name )
+
    # Other Operations
-   def update( self ):
-      assert isinstance( self._editor, QtGui.QTextEdit )
-      
-      self._editor.setHtml( self._document.toHTML() )
+   def _update( self ):
+      QtGui.QTextEdit.setHtml( self, self._document.toHTML(False) )
 
 
 
+
+import sys
+
+msg1 = 'Here\'s <b>some<i> sample</B> &#202; &Euml; text</i>.'
+msg2 = 'Here\'s <B>some<i> sample</b> text</i>.'
+msg3 = 'Here\'s some<I> sample text</I>.'
+
+app = QtGui.QApplication( sys.argv )
+win = QtGui.QMainWindow( )
+
+edit = HTMLEditor( )
+edit.setHtml( msg2 )
+edit.show( )
+
+app.exec_( )
+
+
+
+
+
+'''
+Requirements
+   U.  Unicode Editing
+   W.  WYSIWYG Editing
+   H.  Can produce HTML
+   L.  Supports lists
+   T.  Supports Tables
+   I.  Supports Images
+   F.  Supports a complete font (Lucida Sans Unicode)
+
+Possible Solutions
+- html text editor            W
+- restructred text editor     F, U only partially (indirectly using character codes)
+- QTextEdit editor            H only partially (generated HTML is not what's expected, can't customize with style sheet)
+- My Html Editor              Have to develop & debug
+
+
+
+
+If I developed my own version of an HTML editor consider:
+- An editor that has my own internal representation (not HTML, but probably HTML- or XML-like).
+
+There are three kinds of things that we need to support:
+- Styles
+   - Font (family, size, slant, weight, super/sub/normal)
+   - Line (underline, overline, overstrike)
+   - Color
+- Layouts
+   - Paragraph (align, margin, spacing, auto-newline, background (color/image), ... )
+   - List ( bullets, indentation, ... )
+   - Table ( borders, headers, cellsizes )
+- Objects
+   - Image
+   - Line Rule (horizontal rule)
+
+- User-defined tags
+
+
+
+Structure
+   Paragraph
+      Margins   (Left,Right,Top,Bottom)
+      Indents
+      Tabstops
+      Linespace
+      Alignment (Left,Right,Center,Full)
+   Multi-Column
+   List
+   Table
+
+Style
+   Font
+      Family
+      Size
+      Weight       (normal,bold)
+      Slant        (roman,italic)
+      Augment      (super,sub)
+
+   Decorations
+      Underline
+      Overstrike
+      Overline
+      Color
+
+   Actions
+      Link
+
+Content
+   Text
+   Image
+   Rule
+
+Bookmark
+
+'''
