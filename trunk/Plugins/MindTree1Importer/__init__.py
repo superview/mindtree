@@ -9,7 +9,8 @@ class MT1ImportingArchiver( ImporterPlugin ):
 
    DEFAULT_SETTINGS = {
                       'fileTypes':     'MindTree Data File (*.mt);;All Files (*.*)',
-                      'fileExtension': 'mt'
+                      'fileExtension': 'mt',
+                      'defaultFont':   'Lucida Sans Unicode:10'
                       }
 
    def __init__( self, parentWidget ):
@@ -59,6 +60,7 @@ class MT1ImportingArchiver( ImporterPlugin ):
       # Convert the article to HTML
       if len(plainTextArticle) > 0:
          self._document.clear( )
+         self._document.setDefaultFont( RES.getFont('MindTree1.x','defaultFont') )
          self._document.setPlainText( plainTextArticle )
          htmlArticle = unicode(self._document.toHtml( 'utf-8' ))
       else:

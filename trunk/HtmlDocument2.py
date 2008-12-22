@@ -1129,4 +1129,42 @@ There are three kinds of things that we need to support:
    - Line Rule (horizontal rule)
 
 - User-defined tags
+
+
+
+Structure
+   Paragraph
+      Margins   (Left,Right,Top,Bottom)
+      Indents
+      Tabstops
+      Linespace
+      Alignment (Left,Right,Center,Full)
+   Multi-Column
+   List
+   Table
+
+Style
+   Font
+      Family
+      Size
+      Weight       (normal,bold)
+      Slant        (roman,italic)
+      Augment      (super,sub)
+
+   Decorations
+      Underline
+      Overstrike
+      Overline
+      Color
+
+   Actions
+      Link
+
+Content
+   Text
+   Image
+   Rule
+
+Bookmark
+
 '''

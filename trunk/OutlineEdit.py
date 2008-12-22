@@ -234,7 +234,8 @@ class TreeView( QtGui.QTreeView ):
 
 
 class ArticleView( QtGui.QTextEdit ):
-   ImageFormats = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff);;All Files (*.*)'
+   ImageFormats   = 'Windows bitmap (*.bmp);;Graphic Interchange Format (*.gif);;Joint Photographic Experts Group (*.jpg);;Portable Network Graphics (*.png);;Tagged Image File Format (*.tif *.tiff);;All Files (*.*)'
+   FONT_SIZE_STRS = [ str(x) for x in (8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72) ]
    
    def __init__( self, parent ):
       QtGui.QTextEdit.__init__( self, parent )
@@ -411,14 +412,26 @@ class ArticleView( QtGui.QTextEdit ):
       
       cursor.insertHtml( '<A HREF="{0}">{1}</A>'.format(url, selectedText) )
    
+   def textInsertList( self ):
+      cursor = self.textCursor( )
+      cursor.insertList( QtGui.QTextListFormat.ListDisc )
+
+   def textInsertTable( self ):
+      cursor = self.textCursor( )
+      cursor.insertTable( 2, 2 )
+
    def _updateToolbars( self ):
       # Font Combo
       fontFamily = unicode(self.currentFont().family())
-      self._fontFamilyCombo.setEditText( fontFamily )
+      font = QtGui.QFont( fontFamily )
+      self._fontFamilyCombo.setCurrentFont( font )
       
       # Font Size
-      fontSize = unicode(self.fontPointSize())
-      self._fontSizeCombo.setEditText( fontSize )
+      size = int(self.fontPointSize())
+      fontSize = unicode(size)
+      if fontSize != '0':
+         index = ArticleView.FONT_SIZE_STRS.index( fontSize )
+         self._fontSizeCombo.setCurrentIndex( index )
       
       # Styles
       isBold = True if self.fontWeight() == QtGui.QFont.Bold else False
@@ -436,6 +449,203 @@ class ArticleView( QtGui.QTextEdit ):
          self.textAlignCenterAction.setChecked( True )
       elif alignment == QtCore.Qt.AlignJustify:
          self.textAlignFullAction.setChecked( True )
+   
+   def listChangeBulletStyle( self ):
+      cursor = self.textCursor( )
+      theList = cursor.currentList( )
+      
+      if theList:
+         theListFormat = theList.format( )
+         theCurrentStyle = theListFormat.style( )
+         
+         styles = { QtGui.QTextListFormat.ListDisc:      'Disc',
+                    QtGui.QTextListFormat.ListCircle:    'Circle',
+                    QtGui.QTextListFormat.ListSquare:    'Square',
+                    QtGui.QTextListFormat.ListDecimal:   'Number',
+                    QtGui.QTextListFormat.ListLowerAlpha:'Alpha (lower)',
+                    QtGui.QTextListFormat.ListUpperAlpha:'Alpha (upper)' 
+                    }
+         
+         styleNums  = styles.keys()
+         styleNames = styles.values()
+         
+         currentStyleNum = styleNums.index( theCurrentStyle )
+         
+         selectedStyle, ok = QtGui.QInputDialog.getItem( self, 'Bullet Style', 'Bullet style', styleNames, currentStyleNum, False )
+         
+         if not ok:
+            return
+         
+         styleIndex = styleNames.index( selectedStyle )
+         newStyle = styleNums[ styleIndex ]
+         
+         theListFormat.setStyle( newStyle )
+         theList.setFormat( theListFormat )
+   
+   def listIndentIncrease( self ):
+      cursor = self.textCursor( )
+      theList = cursor.currentList( )
+      
+      if theList:
+         theListFormat = theList.format( )
+         indent = theListFormat.indent( )
+         theListFormat.setIndent( indent + 1 )
+         theList.setFormat( theListFormat )
+   
+   def listIndentDecrease( self ):
+      cursor = self.textCursor( )
+      theList = cursor.currentList( )
+      
+      if theList:
+         theListFormat = theList.format( )
+         indent = theListFormat.indent( )
+         if indent == 0:
+            return
+         
+         theListFormat.setIndent( indent - 1 )
+         theList.setFormat( theListFormat )
+   
+   def tableRowInsert( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         theTable.insertRows( cursorPos, 1 )
+   
+   def tableRowDelete( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         theTable.removeRows( cursorPos, 1 )
+   
+   def tableColumnInsert( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         theTable.insertColumns( cursorPos, 1 )
+   
+   def tableColumnDelete( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         theTable.deleteColumns( cursorPos, 1 )
+
+   def _tableCellInfo( self, table, position ):
+      theTableCell = table.cellAt( position )
+      
+      row        = theTableCell.row( )
+      rowSpan    = theTableCell.rowSpan( )
+      
+      column     = theTableCell.column( )
+      columnSpan = theTableCell.columnSpan( )
+      
+      return row, column, rowSpan, columnSpan
+   
+   def tableCellMergeRight( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
+         
+         theTable.mergeCells( row, col, rowSpan, colSpan + 1 )
+   
+   def tableCellSplitRight( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
+         
+         theTable.splitCell( row, col, rowSpan, colSpan - 1 )
+   
+   def tableCellMergeDown( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
+         
+         theTable.mergeCells( row, col, rowSpan + 1, colSpan )
+   
+   def tableCellSplitDown( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
+         
+         theTable.splitCell( row, col, rowSpan - 1, colSpan )
+   
+   def tableHeaderRowAdd( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         theTableFormat = theTable.format()
+         numHeaderRows = theTableFormat.headerRowCount( )
+         theTableFormat.setHeaderRowCount( numHeaderRows + 1 )
+         theTable.setFormat( theTableFormat )
+   
+   def tableHeaderRowRem( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         theTableFormat = theTable.format()
+         numHeaderRows = theTableFormat.headerRowCount( )
+         
+         if numHeaderRows == 0:
+            return
+         
+         theTableFormat.setHeaderRowCount( numHeaderRows - 1 )
+         theTable.setFormat( theTableFormat )
+   
+   def tableCellAlign( self ):
+      cursor = self.textCursor( )
+      theTable = cursor.currentTable( )
+      
+      if theTable:
+         cursorPos = cursor.position()
+         
+         alignList = [ 'Center', 'North', 'North East', 'North West', 'West', 'East', 'South', 'South West', 'South East' ]
+         
+         selectedStyle, ok = QtGui.QInputDialog.getItem( self, 'Cell Alignment', 'align', alignList, 0, False )
+         
+         if not ok:
+            return
+         
+         if selectedStyle == 'Center':
+            align = QtCore.Qt.AlignHCenter + QtCore.Qt.AlignVCenter
+         elif selectedStyle == 'North':
+            align = QtCore.Qt.AlignHCenter + QtCore.Qt.AlignTop
+         elif selectedStyle == 'North West':
+            align = QtCore.Qt.AlignLeft + QtCore.Qt.AlignTop
+         elif selectedStyle == 'North East':
+            align = QtCore.Qt.AlignRight + QtCore.Qt.AlignTop
+         elif selectedStyle == 'West':
+            align = QtCore.Qt.AlignLeft + QtCore.Qt.AlignVCenter
+         elif selectedStyle == 'East':
+            align = QtCore.Qt.AlignRight + QtCore.Qt.AlignVCenter
+         elif selectedStyle == 'South':
+            align = QtCore.Qt.AlignHCenter + QtCore.Qt.AlignBottom
+         elif selectedStyle == 'South West':
+            align = QtCore.Qt.AlignLeft + QtCore.Qt.AlignBottom
+         elif selectedStyle == 'South East':
+            align = QtCore.Qt.AlignRight + QtCore.Qt.AlignBottom
+         
+         
    
    # Construct the widget
    def _buildGui( self ):
@@ -455,7 +665,7 @@ class ArticleView( QtGui.QTextEdit ):
       
       self._fontSizeCombo = QtGui.QComboBox( self )
       
-      self._fontSizeCombo.addItems( [ str(x) for x in (8,9,10,11,12,14,16,18,20,22,24,26,28,36,48,72) ] )
+      self._fontSizeCombo.addItems( ArticleView.FONT_SIZE_STRS )
       QtCore.QObject.connect( self._fontSizeCombo, QtCore.SIGNAL('activated(QString)'), self.textFontSize )
 
    def _defineActions( self ):
@@ -496,7 +706,30 @@ class ArticleView( QtGui.QTextEdit ):
       
       self.textInsertImageAction   = RES.installAction( 'textInsertImage', self )
       self.textInsertLinkAction    = RES.installAction( 'textInsertLink',  self )
-   
+      self.textInsertListAction    = RES.installAction( 'textInsertList',  self )
+      self.textInsertTableAction   = RES.installAction( 'textInsertTable', self )
+      
+      # List Specific Actions
+      self.listChangeBulletStyleAction = RES.installAction( 'listChangeBulletStyle', self )
+      self.listIndentIncreaseAction= RES.installAction( 'listIndentIncrease', self )
+      self.listIndentDecreaseAction= RES.installAction( 'listIndentDecrease', self )
+      
+      # Table Specific Actions
+      self.tableRowInsertAction    = RES.installAction( 'tableRowInsert',    self )
+      self.tableRowDeleteAction    = RES.installAction( 'tableRowDelete',    self )
+      self.tableColumnInsertAction = RES.installAction( 'tableColumnInsert', self )
+      self.tableColumnDeleteAction = RES.installAction( 'tableColumnDelete', self )
+      
+      self.tableCellMergeLeftAction = RES.installAction( 'tableCellMergeRight',  self )
+      self.tableCellSplitLeftAction = RES.installAction( 'tableCellSplitRight',  self )
+      self.tableCellMergeDownAction = RES.installAction( 'tableCellMergeDown', self )
+      self.tableCellSplitDownAction = RES.installAction( 'tableCellSplitDown', self )
+      
+      self.tableHeaderRowAddAction  = RES.installAction( 'tableHeaderRowAdd', self )
+      self.tableHeaderRowRemAction  = RES.installAction( 'tableHeaderRowRem', self )
+      
+      self.tableCellAlignAction     = RES.installAction( 'tableCellAlign', self )
+
    def _buildMenus( self ):
       self.menuArticle = QtGui.QMenu(self)
       self.menuArticle.setObjectName("menuArticle")
@@ -509,6 +742,8 @@ class ArticleView( QtGui.QTextEdit ):
       self.menuArticle.addAction( self.articleSelectAllAction )
       self.menuArticle.addSeparator()
       self.menuArticle.addAction( self.textInsertImageAction )
+      self.menuArticle.addAction( self.textInsertListAction )
+      self.menuArticle.addAction( self.textInsertTableAction )
    
    def _buildToolbars( self ):
       self._articletoolbar = QtGui.QToolBar( 'articleEditingToolbar', self )
@@ -544,11 +779,41 @@ class ArticleView( QtGui.QTextEdit ):
       # Objects
       self._objectToolbar = QtGui.QToolBar( 'objectToolbar', self )
       self._objectToolbar.addSeparator( )
+      self._objectToolbar.addAction( self.textInsertListAction )
+      self._objectToolbar.addAction( self.textInsertTableAction )
       self._objectToolbar.addAction( self.textInsertImageAction )
       self._objectToolbar.addAction( self.textInsertLinkAction  )
 
    def _cursorPositionChanged( self ):
       self._updateToolbars( )
+   
+   def contextMenuEvent( self, event ):
+      menu = self.createStandardContextMenu( )
+      
+      menu.addSeparator( )
+      menu.addAction( self.listChangeBulletStyleAction )
+      menu.addAction( self.listIndentIncreaseAction )
+      menu.addAction( self.listIndentDecreaseAction )
+      menu.addSeparator( )
+      menu.addAction( self.tableRowInsertAction )
+      menu.addAction( self.tableRowDeleteAction )
+      menu.addAction( self.tableColumnInsertAction )
+      menu.addAction( self.tableColumnDeleteAction )
+      menu.addSeparator( )
+      menu.addAction( self.tableCellMergeLeftAction )
+      menu.addAction( self.tableCellSplitLeftAction )
+      menu.addAction( self.tableCellMergeDownAction )
+      menu.addAction( self.tableCellSplitDownAction )
+      menu.addSeparator( )
+      menu.addAction( self.tableHeaderRowAddAction )
+      menu.addAction( self.tableHeaderRowRemAction )
+      menu.addSeparator( )
+      menu.addAction( self.tableCellAlignAction )
+      
+      menu.exec_( event.globalPos() )
+      
+      del menu
+   
 
 class OutlineEdit(QtGui.QSplitter):
    '''Emits: QtCore.SIGNAL("modelChanged()")   -- the model has been modified.
