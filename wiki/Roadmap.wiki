@@ -4,7 +4,10 @@
    * Note:  Given major complications that resources require of the structure of MindTree software (e.g. number of interdependancies, etc.) The concept of resources has been dropped in favor of a much simpler method of achieving the same thing.
    * Application
       * DONE: Revamp Icons, Images, Cursors, etc.
-   * DONE: Links
+   * Article Editing
+      * DONE: Links
+      * DONE: Lists
+      * DONE: Tables
    * Distribution
       * DONE: distutils script - write an initial script for distutils
 
@@ -27,8 +30,6 @@
    * Plugins
       * Content Editing
          * WYSIWYG Editor:
-            * DONE: Lists
-            * DONE: Tables
             * Margin
             * Tabs
             * Print Preview
