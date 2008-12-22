@@ -5,7 +5,7 @@ import sys
 import os
 import os.path
 
-#import enchant.utils
+import enchant.utils
 
 try:
    import py2exe
@@ -54,14 +54,8 @@ if os.path.exists( distPath ):
       sys.exit( )
 
 
-#tixDataFiles = [
-               #('DLLs', glob.glob(sys.prefix+'/DLLs/tix84.dll')),
-               #('tcl/tix8.4', files(sys.prefix+'/tcl/tix8.4')),
-               #('tcl/tix8.4/bitmaps', files(sys.prefix+'/tcl/tix8.4/bitmaps')),
-               #('tcl/tix8.4/pref', files(sys.prefix+'/tcl/tix8.4/pref')),
-               #]
-
-#enchantDataFiles = enchant.utils.win32_data_files()
+enchantDataFiles = enchant.utils.win32_data_files()
+print( 'Enchant files', enchantDataFiles )
 
 
 # Create the Distribution
@@ -77,9 +71,9 @@ setup( name=name,
        download_url=dist_url,
        license=license,
        windows=[entryPoint],
-       #data_files=tixDataFiles, enchantDataFiles,
+       data_files=enchantDataFiles,
        classifiers=[
-                   'Development Status :: 3 - Alpha',
+                   'Development Status :: 4 - Beta',
                    'Intended Audience :: Developers',
                    'Intended Audience :: Education',
                    'Intended Audience :: End Users/Desktop',
@@ -94,7 +88,7 @@ setup( name=name,
                    'Intended Audience :: Telecommunications Industry',
                    'License :: OSI Approved :: Apache Software License',
                    'Natural Language :: English',
-                   'Programming Language :: Python',
+                   'Programming Language :: Python :: 2.6',
                    'Topic :: Documentation',
                    'Topic :: Education',
                    'Topic :: Internet :: WWW/HTTP',

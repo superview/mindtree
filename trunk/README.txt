@@ -29,4 +29,9 @@ To run, run the MindTree.pyw python script.
 In windows you should be able to click on the MindTree.pyw file.  From a
 command-line you can type 'python MindTree.pyw'.
 
+What's New
+==========
+Support for Lists and Tables in Articles.  Default lists and articles are
+inserted into the document via the toolbar.  These objects can then be
+customized by right clicking on them.
 
