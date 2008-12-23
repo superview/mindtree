@@ -505,6 +505,9 @@ class Project( object ):
       import datetime
       import shutil
       
+      if not os.path.exists( self._backupDir ):
+         os.mkdir( self._backupDir )
+      
       if not os.path.exists( self._filename ):
          return
       
