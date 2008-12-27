@@ -1,0 +1,11 @@
+
+include *.py *.pyw *.ini *.txt *.in *.wpr
+recursive-include Plugins *.py
+recursive-include resources *.cur *.ico *.png *.gif *.jpg *.GIF *.PNG
+recursive-include doc *.mto *.png *.gif *.jpg *.GIF *.PNG
+
+exclude *.pyc *.pyo
+
+prune .svn
+prune */.svn
+prune UnitTests
