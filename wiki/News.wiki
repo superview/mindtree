@@ -1,9 +1,0 @@
-#summary What's going on with MindTree _right now_?
-#labels Featured,developer,enduser
-=What's Going On with MindTree=
-
-Immediate work has begun on a complete ground-up rewrite of MindTree!  The original MindTree (anything less than version 1.5) was written for Python 2.x using the Tk gui development tools.  Python 2.x is showing its age and Tk is has reached obsolesence.
-
-The Python community has nearly completed its work rewriting Python to take the language into the future (Python 3.x, with Python 2.6 as a transition version).  MindTree 2.0 is being written for Python 2.6 and above.  The GUI is also being rewritten using the state-of-the-art PyQt gui tool.  PyQt makes the addition of new features to MindTree considerably easier.  Future plans for MindTree will be to support such things as printing, cut & paste with other applications, Lists and Tables, multiple views of the same outline and drag-and-drop across views and even applications.
-
-The decision to go with this redesign has been difficult.  It goes against the existing design philosophy of minimal 3rd party libraries.  However, the change is also necessary to insure that MindTree can advance.
