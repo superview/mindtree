@@ -430,7 +430,8 @@ class HTMLDocument( object ):
       if lastElementNum is None:
          self._elements = self._elements[ : firstElementNum ]
       else:
-         self._elements = self._elements[ firstElementNum : lastElementNum ]
+         self._elements = self._elements[ : firstElementNum ] + self._elements[ lastElementNum : ]
+         #self._elements = self._elements[ firstElementNum : lastElementNum ]
       
       self._joinIfPossible( firstElementNum )
 
@@ -922,31 +923,29 @@ class HTMLEditor( QtGui.QTextEdit ):
 
    def keyPressEvent( self, keyEvent ):
       key      = keyEvent.key()
-      text     = keyEvent.text()
-      if len(text) > 0:
-         self.insertText( text )
-      elif key == QtCore.Qt.Key_Tab:
-         self.insertText( '\t' )
-      elif key == QtCore.Qt.Key_Backspace:
+      text     = unicode(keyEvent.text())
+      if key == QtCore.Qt.Key_Backspace:
          self.delete( back=True )
+      elif key == QtCore.Qt.Key_Delete:
+         self.delete( )
       elif key == QtCore.Qt.Key_Return:
          self.insertText( '\n' )
          insertParagraph( )
       elif key == QtCore.Qt.Key_Enter:
          self.insertText( '\n' )
          insertParagraph( )
-      elif key == QtCore.Qt.Key_Delete:
-         self.delete( )
+      elif len(text) > 0:
+         self.insertText( text )
+      elif key == QtCore.Qt.Key_Tab:
+         self.insertText( '\t' )
       else:
          QtGui.QTextEdit.keyPressEvent( self, keyEvent )
 
    # Content Operations
-   def insertText( self, text, cursor=None ):
-      if cursor is None:
-         cursor = self.textCursor()
-      
+   def insertText( self, text ):
       assert isinstance( text,   (str,unicode)     )
-      assert isinstance( cursor, QtGui.QTextCursor )
+      
+      cursor = self.textCursor()
       
       anchor   = cursor.anchor()
       position = cursor.position()
@@ -957,16 +956,18 @@ class HTMLEditor( QtGui.QTextEdit ):
       if first != last:
          self._document.delete( first, last )
       
-      self._document.insertText( text, first )
+      self._document.insertText( first, text )
       
+      # Update the editor window
       self._update( )
-
-   def delete( self, cursor, back=False ):
-      if cursor is None:
-         cursor = self.textCursor()
       
-      assert isinstance( text,   (str,unicode)     )
-      assert isinstance( cursor, QtGui.QTextCursor )
+      # Update the cursor position
+      cursor = self.textCursor( )
+      cursor.setPosition( position + len(text) )
+      self.setTextCursor( cursor )
+
+   def delete( self, back=False ):
+      cursor = self.textCursor()
       
       anchor   = cursor.anchor()
       position = cursor.position()
@@ -980,7 +981,21 @@ class HTMLEditor( QtGui.QTextEdit ):
       elif back:
          self._document.delete( first - 1, first )
       
+      else:
+         self._document.delete( first, last + 1 )
+      
+      # Update the editor window
       self._update( )
+      
+      # Update the cursor position
+      cursor = self.textCursor( )
+      
+      if back and (first > 0):
+         cursor.setPosition( first - 1 )
+      else:
+         cursor.setPosition( position )
+      
+      self.setTextCursor( cursor )
 
    # Tag Operations
    def applyTag( self, tag, options=None, cursor=None ):
@@ -1132,17 +1147,28 @@ There are three kinds of things that we need to support:
 
 
 
-Structure
+Layout
    Page
       Columns
+      default style
    Paragraph
       Margins   (Left,Right,Top,Bottom)
-      Indents
+      Tabs
       Tabstops
       Linespace
       Alignment (Left,Right,Center,Full)
    List
+      Bullet Style
+      Indent Level
+      Bullet-Text offset
    Table
+      Row count
+      column count
+      row
+         is header row
+      cell
+         row span
+         column span
 
 Style
    Font
@@ -1157,14 +1183,18 @@ Style
       Overstrike
       Overline
       Color
-
-   Actions
-      Link
+      bgcolor
+      background
 
 Content
    Text
    Image
    Rule
+
+Groping
+
+Action
+   Link
 
 Bookmark
 '''
