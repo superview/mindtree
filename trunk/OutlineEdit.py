@@ -281,7 +281,10 @@ class ArticleView( QtGui.QTextEdit ):
       return [ self.menuArticle ]
    
    def getToolbars( self ):
-      return [ self._articletoolbar, self._styleToolbar, self._objectToolbar ]
+      return { 'Article Edit':self._articletoolbar,
+               'Text Align':self._alignToolbar,
+               'Article Text Style':self._styleToolbar,
+               'Insert Object':self._objectToolbar }
    
    def articlePrint( self ):
       printer = QtGui.QPrinter( )
@@ -344,6 +347,24 @@ class ArticleView( QtGui.QTextEdit ):
    
    def textStyleOverstrike( self ):
       pass
+   
+   def textStyleSuperscript( self ):
+      cursor = self.textCursor( )
+      selectedText = cursor.selectedText( )
+      
+      if selectedText == '':
+         return
+      
+      cursor.insertHtml( '<SUP>{0}</SUP>'.format(selectedText) )
+   
+   def textStyleSubscript( self ):
+      cursor = self.textCursor( )
+      selectedText = cursor.selectedText( )
+      
+      if selectedText == '':
+         return
+      
+      cursor.insertHtml( '<SUB>{0}</SUB>'.format(selectedText) )
    
    def textAlignLeft( self ):
       self.setAlignment( QtCore.Qt.AlignLeft )
@@ -412,6 +433,25 @@ class ArticleView( QtGui.QTextEdit ):
       
       cursor.insertHtml( '<A HREF="{0}">{1}</A>'.format(url, selectedText) )
    
+   def textEditLink( self ):
+      title  = RES.get('ArticleView','editLinkDlgTitle',translate=True)
+      prompt = RES.get('ArticleView','createLinkDlgPrompt',translate=True)
+      error   = RES.get('ArticleView','createLink_warnNoSelect',translate=True)
+      
+      cursor = self.textCursor( )
+      format = cursor.charFormat( )
+      url    = format.anchorHref( )
+      
+      if url == '':
+         return
+      
+      newUrl,pressedOK = QtGui.QInputDialog.getText( self, title, prompt, QtGui.QLineEdit.Normal, url )
+      if not pressedOK:
+         return
+      
+      #newUrl = unicode(newUrl)
+      #format.setAnchorHref( newUrl )
+
    def textInsertList( self ):
       cursor = self.textCursor( )
       cursor.insertList( QtGui.QTextListFormat.ListDisc )
@@ -510,32 +550,32 @@ class ArticleView( QtGui.QTextEdit ):
       theTable = cursor.currentTable( )
       
       if theTable:
-         cursorPos = cursor.position()
-         theTable.insertRows( cursorPos, 1 )
+         tableCell = theTable.cellAt( cursor )
+         theTable.insertRows( tableCell.row(), 1 )
    
    def tableRowDelete( self ):
       cursor = self.textCursor( )
       theTable = cursor.currentTable( )
       
       if theTable:
-         cursorPos = cursor.position()
-         theTable.removeRows( cursorPos, 1 )
+         tableCell = theTable.cellAt( cursor )
+         theTable.removeRows( tableCell.row(), 1 )
    
    def tableColumnInsert( self ):
       cursor = self.textCursor( )
       theTable = cursor.currentTable( )
       
       if theTable:
-         cursorPos = cursor.position()
-         theTable.insertColumns( cursorPos, 1 )
+         tableCell = theTable.cellAt( cursor )
+         theTable.insertColumns( tableCell.column(), 1 )
    
    def tableColumnDelete( self ):
       cursor = self.textCursor( )
       theTable = cursor.currentTable( )
       
       if theTable:
-         cursorPos = cursor.position()
-         theTable.deleteColumns( cursorPos, 1 )
+         tableCell = theTable.cellAt( cursor )
+         theTable.deleteColumns( tableCell.column(), 1 )
 
    def _tableCellInfo( self, table, position ):
       theTableCell = table.cellAt( position )
@@ -685,6 +725,9 @@ class ArticleView( QtGui.QTextEdit ):
       self.textUnderlineAction       = RES.installAction( 'textStyleUnderline', self )
       self.textOverstrikeAction      = RES.installAction( 'textStyleOverstrike',self )
       
+      self.textSuperscriptAction     = RES.installAction( 'textStyleSuperscript', self )
+      self.textSubscriptAction       = RES.installAction( 'textStyleSubscript',   self )
+      
       self.textAlignLeftAction       = RES.installAction( 'textAlignLeft',      self )
       self.textAlignRightAction      = RES.installAction( 'textAlignRight',     self )
       self.textAlignCenterAction     = RES.installAction( 'textAlignCenter',    self )
@@ -706,6 +749,7 @@ class ArticleView( QtGui.QTextEdit ):
       
       self.textInsertImageAction   = RES.installAction( 'textInsertImage', self )
       self.textInsertLinkAction    = RES.installAction( 'textInsertLink',  self )
+      self.textEditLinkAction      = RES.installAction( 'textEditLink',    self )
       self.textInsertListAction    = RES.installAction( 'textInsertList',  self )
       self.textInsertTableAction   = RES.installAction( 'textInsertTable', self )
       
@@ -764,15 +808,16 @@ class ArticleView( QtGui.QTextEdit ):
       self._styleToolbar.addAction( self.textItalicAction )
       self._styleToolbar.addAction( self.textUnderlineAction )
       self._styleToolbar.addAction( self.textOverstrikeAction )
+      self._styleToolbar.addSeparator( )
+      self._styleToolbar.addAction( self.textSuperscriptAction )
+      self._styleToolbar.addAction( self.textSubscriptAction )
       
       # Alignment
-      self._styleToolbar.addSeparator( )
-      self._styleToolbar.addAction( self.textAlignLeftAction )
-      self._styleToolbar.addAction( self.textAlignRightAction )
-      self._styleToolbar.addAction( self.textAlignCenterAction )
-      self._styleToolbar.addAction( self.textAlignFullAction )
-      
-      # Superscript/Subscript
+      self._alignToolbar = QtGui.QToolBar( 'articleAlignToolbar', self )
+      self._alignToolbar.addAction( self.textAlignLeftAction )
+      self._alignToolbar.addAction( self.textAlignRightAction )
+      self._alignToolbar.addAction( self.textAlignCenterAction )
+      self._alignToolbar.addAction( self.textAlignFullAction )
       
       # Line Spacing
       
@@ -790,6 +835,8 @@ class ArticleView( QtGui.QTextEdit ):
    def contextMenuEvent( self, event ):
       menu = self.createStandardContextMenu( )
       
+      menu.addSeparator( )
+      menu.addAction( self.textEditLinkAction )
       menu.addSeparator( )
       menu.addAction( self.listChangeBulletStyleAction )
       menu.addAction( self.listIndentIncreaseAction )
@@ -837,8 +884,8 @@ class OutlineEdit(QtGui.QSplitter):
       return menus
 
    def getToolbars( self ):
-      toolbars = [ self._treetoolbar ]
-      toolbars.extend( self._articleView.getToolbars() )
+      toolbars = { 'Tree Toolbar':self._treetoolbar }
+      toolbars.update( self._articleView.getToolbars() )
       return toolbars
 
    # Subwidget Access (mainly used by pluggable tools
