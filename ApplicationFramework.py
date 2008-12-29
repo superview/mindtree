@@ -168,10 +168,13 @@ class Resources( SafeConfigParser ):
       assert isinstance( translate, bool          )
       assert isinstance( sep,       (str,unicode) )
       
-      parts = self.get(section,option).split(':')
-      if translate:
-         parts = [ QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) for resValue in parts ]
-      return parts
+      try:
+         parts = self.get(section,option).split(':')
+         if translate:
+            parts = [ QtGui.QApplication.translate("MainWindow", resValue, None, QtGui.QApplication.UnicodeUTF8) for resValue in parts ]
+         return parts
+      except:
+         return [ ]
 
    def makeActionObj( self, name, actionName, parent, handlerObj=None, handlerFn=None, **resources ):
       assert isinstance( name,       (str,unicode) )

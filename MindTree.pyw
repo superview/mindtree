@@ -284,11 +284,26 @@ class MindTree( Application ):
       self._filetoolbar.addAction( self.actionNew )
       self._filetoolbar.addAction( self.actionOpen )
       self._filetoolbar.addAction( self.actionSave )
-      self.addToolBar( self._filetoolbar )
       
-      for toolbar in self._outlineView.getToolbars( ):
-         self.addToolBar( toolbar )
-   
+      toolbars = { 'File':self._filetoolbar }
+      toolbars.update( self._outlineView.getToolbars() )
+      
+      # Add the toolbars to the application window
+      lineOne = RES.getMultipartResource( 'Application','toolbarLine1' )
+      for tbName in lineOne:
+         tb = toolbars[ tbName ]
+         self.addToolBar( tb )
+      
+      self.addToolBarBreak( )
+      
+      lineTwo = RES.getMultipartResource( 'Application','toolbarLine2' )
+      for tbName in lineTwo:
+         try:
+            tb = toolbars[ tbName ]
+            self.addToolBar( tb )
+         except:
+            pass
+
    def _buildStatusBar( self ):
       self.statusbar = QtGui.QStatusBar(self)
       self.statusbar.setObjectName("statusbar")
