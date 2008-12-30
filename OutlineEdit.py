@@ -575,7 +575,7 @@ class ArticleView( QtGui.QTextEdit ):
       
       if theTable:
          tableCell = theTable.cellAt( cursor )
-         theTable.deleteColumns( tableCell.column(), 1 )
+         theTable.removeColumns( tableCell.column(), 1 )
 
    def _tableCellInfo( self, table, position ):
       theTableCell = table.cellAt( position )
