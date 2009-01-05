@@ -607,7 +607,8 @@ class ArticleView( QtGui.QTextEdit ):
          cursorPos = cursor.position()
          row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
          
-         theTable.splitCell( row, col, rowSpan, colSpan - 1 )
+         if colSpan > 1:
+            theTable.splitCell( row, col, rowSpan, colSpan - 1 )
    
    def tableCellMergeDown( self ):
       cursor = self.textCursor( )
@@ -627,7 +628,8 @@ class ArticleView( QtGui.QTextEdit ):
          cursorPos = cursor.position()
          row,col,rowSpan,colSpan = self._tableCellInfo( theTable, cursorPos )
          
-         theTable.splitCell( row, col, rowSpan - 1, colSpan )
+         if rowSpan > 1:
+            theTable.splitCell( row, col, rowSpan - 1, colSpan )
    
    def tableHeaderRowAdd( self ):
       cursor = self.textCursor( )
