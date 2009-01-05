@@ -23,7 +23,9 @@ class TreeView_Delegate( QtGui.QItemDelegate ):
    
 
 class TreeView( QtGui.QTreeView ):
-   '''Emits: entryRightClicked(QPoint,QModelIndex)'''
+   '''Emits: entryRightClicked(QPoint,QModelIndex),
+             dragBegun(QModelIndex)
+   '''
    def __init__( self, parent ):
       QtGui.QTreeView.__init__( self, parent )
       
@@ -146,6 +148,7 @@ class TreeView( QtGui.QTreeView ):
       self.drag.setMimeData( mimeData )
       
       print( 'Dragging item: {0}'.format(dragStartIndex.internalPointer().title()) )
+      self.emit( QtCore.SIGNAL('dragBegun(QModelIndex)'),dragStartIndex )
       
       # Execute the drag (this is blocking)
       savedDragIndex = QtCore.QPersistentModelIndex( dragStartIndex )  # Save the drag start index
@@ -174,7 +177,6 @@ class TreeView( QtGui.QTreeView ):
          if event.possibleActions() & QtCore.Qt.MoveAction:
             event.acceptProposedAction()
             
-            print( 'Dropping' )
             # Determine the drop location
             point = event.pos()
             index = self.indexAt( point )
@@ -468,9 +470,8 @@ class ArticleView( QtGui.QTextEdit ):
       
       # Font Size
       size = int(self.fontPointSize())
-      fontSize = unicode(size)
-      if fontSize != '0':
-         index = ArticleView.FONT_SIZE_STRS.index( fontSize )
+      if size != 0:
+         index = ArticleView.FONT_SIZE_STRS.index( unicode(size) )
          self._fontSizeCombo.setCurrentIndex( index )
       
       # Styles
@@ -1257,6 +1258,7 @@ class OutlineEdit(QtGui.QSplitter):
       self._articleView.setObjectName("articleView")
       
       QtCore.QObject.connect( self._treeView, QtCore.SIGNAL('entryRightClicked(QPoint,QModelIndex)'), self.entryRightClicked )
+      QtCore.QObject.connect( self._treeView, QtCore.SIGNAL('dragBegun(QModelIndex)'), self.commitChanges ) 
 
    def _defineActions( self ):
       self.cutNodeAction             = RES.installAction( 'cutNode',           self )
