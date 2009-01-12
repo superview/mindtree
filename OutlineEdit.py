@@ -147,7 +147,6 @@ class TreeView( QtGui.QTreeView ):
       self.drag = QtGui.QDrag( self )
       self.drag.setMimeData( mimeData )
       
-      print( 'Dragging item: {0}'.format(dragStartIndex.internalPointer().title()) )
       self.emit( QtCore.SIGNAL('dragBegun(QModelIndex)'),dragStartIndex )
       
       # Execute the drag (this is blocking)
