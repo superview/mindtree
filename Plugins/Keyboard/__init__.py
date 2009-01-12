@@ -19,10 +19,11 @@ KeyboardTabs = { 'Logic': [ # Logic
                               u'\u2203',        # existential quantifier
                               #u'\u2204',        # does not exist
                               u'\u25A1',        # alethic logic: Necessary
-                              u'\u25C7'         # alethic logic: Possible
+                              u'\u22C4',        # alethic logic: Possible
                               ],
                             # Metalogic
                             [ u'\u22A6',        # assertion
+                              u'\u22AC',        # does not prove
                               u'\u22A7',        # models
                               u'\u2234',        # therefore
                               u'\u2235',        # because
@@ -33,6 +34,7 @@ KeyboardTabs = { 'Logic': [ # Logic
                             # Relations
                             [ u'\u225D',        # equal by definition
                               u'\u2261',        # tripple equals
+                              u'\u2260',        # not equal to
                               ]
                           ],
                  'Set Theory': [
