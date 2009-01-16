@@ -383,6 +383,13 @@ class ArticleView( QtGui.QTextEdit ):
       self.setAlignment( QtCore.Qt.AlignJustify )
       self._updateToolbars()
 
+   def textAlignOffset( self ):
+      cursor = self.textCursor( )
+      cursor.insertList( QtGui.QTextListFormat.ListDisc )
+      
+      backSpaceEvent = QtGui.QKeyEvent( QtCore.QEvent.KeyPress, QtCore.Qt.Key_Backspace, QtCore.Qt.NoModifier )
+      self.keyPressEvent( backSpaceEvent )
+   
    def textInsertImage( self ):
       IMAGE_DIR = RES.get( 'Project','imageDir' )
       
@@ -730,10 +737,11 @@ class ArticleView( QtGui.QTextEdit ):
       self.textSuperscriptAction     = RES.installAction( 'textStyleSuperscript', self )
       self.textSubscriptAction       = RES.installAction( 'textStyleSubscript',   self )
       
-      self.textAlignLeftAction       = RES.installAction( 'textAlignLeft',      self )
-      self.textAlignRightAction      = RES.installAction( 'textAlignRight',     self )
-      self.textAlignCenterAction     = RES.installAction( 'textAlignCenter',    self )
-      self.textAlignFullAction       = RES.installAction( 'textAlignFull',      self )
+      self.textAlignLeftAction       = RES.installAction( 'textAlignLeft',        self )
+      self.textAlignRightAction      = RES.installAction( 'textAlignRight',       self )
+      self.textAlignCenterAction     = RES.installAction( 'textAlignCenter',      self )
+      self.textAlignFullAction       = RES.installAction( 'textAlignFull',        self )
+      self.textAlignOffsetAction     = RES.installAction( 'textAlignOffset',      self )
       self.textAlignGroup            = QtGui.QActionGroup( self )
       self.textAlignGroup.addAction( self.textAlignLeftAction )
       self.textAlignGroup.addAction( self.textAlignRightAction )
@@ -820,6 +828,7 @@ class ArticleView( QtGui.QTextEdit ):
       self._alignToolbar.addAction( self.textAlignRightAction )
       self._alignToolbar.addAction( self.textAlignCenterAction )
       self._alignToolbar.addAction( self.textAlignFullAction )
+      self._alignToolbar.addAction( self.textAlignOffsetAction )
       
       # Line Spacing
       

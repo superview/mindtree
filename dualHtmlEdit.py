@@ -95,7 +95,7 @@ if __name__ == '__main__':
    app = QtGui.QApplication( sys.argv )
    
    win = QtGui.QMainWindow( )
-   edit = RestructuredDualEditor( win )
+   edit = DualHtmlEditor( win )
    sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
    sizePolicy.setVerticalStretch( 5 )
    sizePolicy.setHorizontalStretch( 1 )
