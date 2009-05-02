@@ -365,7 +365,7 @@ class ArticleView( QtGui.QTextEdit ):
       if selectedText == '':
          return
       
-      cursor.insertHtml( '<SUB>{0}</SUB>'.format(selectedText) )
+      cursor.insertHtml( u'<SUB>{0}</SUB>'.format(selectedText) )
    
    def textAlignLeft( self ):
       self.setAlignment( QtCore.Qt.AlignLeft )
